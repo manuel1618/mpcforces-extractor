@@ -1,0 +1,31 @@
+version: "3"
+
+tasks:
+  install:
+    desc: Install dependencies
+    cmds:
+      - poetry install
+
+  lint:
+    desc: Lint the code
+    cmds:
+      - python -m  poetry run black --check spcforces_tools
+      - |
+        python -m poetry run flake8 spcforces_tools \
+           --show-source \
+           --statistics \
+           --count
+      - python -m poetry run pylint spcforces_tools
+
+  test:
+    desc: Run tests
+    cmds:
+      - >
+        poetry run pytest 
+        --cov=spcforces_tools 
+        --cov-report=html
+
+  run:
+    desc: Run the application
+    cmds:
+      - poetry run python -m spcforces_tools.mpc_tools
