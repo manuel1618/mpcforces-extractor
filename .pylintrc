@@ -1,0 +1,17 @@
+[FORMAT]
+max-line-length=120
+
+[DESIGN]
+# Maximum number of arguments for a function / method
+max-args=10
+
+# Maximum number of local variables for a function / method
+max-locals=25
+max-attributes=15
+
+[MASTER]
+ignore-patterns=test_.*.py
+
+[MESSAGES CONTROL]
+disable=
+    missing-module-docstring,too-few-public-methods,broad-exception-caught,duplicate-code,C0103

@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "spcforces-tools"
+version = "0.1.0"
+description = "A simple toolbox for getting mpc and spc forces from output files from Optistruct"
+authors = ["Manuel <manuel.ramsaier89@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^3.2.7"
+flake9 = "^3.8.3.post2"
+black = "^24.8.0"
+pytest = "^8.3.3"
+pytest-cov = "^5.0.0"
+poetry = "^1.8.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
