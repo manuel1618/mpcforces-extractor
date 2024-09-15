@@ -3,6 +3,6 @@ repos:
     hooks:
       - id: python-linting
         name: python-linting
-        entry: task lint
+        entry: python -m poetry run pylint spcforces_tools
         language: system
         types: [python]

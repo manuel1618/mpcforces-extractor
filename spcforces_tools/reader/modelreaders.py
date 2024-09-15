@@ -43,7 +43,6 @@ class FemFileReader:
         if "\n" in line_content:
             line_content.remove("\n")
 
-        return  # TODO
         line_content = [line.strip() for line in line_content]
         return line_content
 
