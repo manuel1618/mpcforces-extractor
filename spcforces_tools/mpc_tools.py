@@ -42,6 +42,8 @@ class MPCForceExtractor:
         if os.path.exists(file_path_out):
             os.remove(file_path_out)
 
+        os.makedirs(os.path.dirname(file_path_out), exist_ok=True)
+
         timestamp = time.time()
         local_time = time.localtime(timestamp)
         formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", local_time)
@@ -73,6 +75,10 @@ if __name__ == "__main__":
     mpc_force_extractor = MPCForceExtractor(
         input_folder + "/PlateSimpleRigid.fem",
         input_folder + "/PlateSimpleRigid.mpcf",
+    )
+    mpc_force_extractor = MPCForceExtractor(
+        input_folder + "/PlateSimpleRigid3D.fem",
+        input_folder + "/PlateSimpleRigid3D.mpcf",
     )
     blocksize = 8
 
