@@ -67,8 +67,8 @@ if __name__ == "__main__":
     output_folder = "data/output"
 
     mpc_force_extractor = MPCForceExtractor(
-        input_folder + "/PlateSimpleRigid2.fem",
-        input_folder + "/PlateSimpleRigid2.mpcf",
+        input_folder + "/PlateSimpleRBE3.fem",
+        input_folder + "/PlateSimpleRBE3.mpcf",
     )
     blocksize = 8
 

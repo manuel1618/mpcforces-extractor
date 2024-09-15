@@ -1,5 +1,5 @@
 from typing import List
-from spcforces_tools.datastructure.rigids import MPC, RBE2
+from spcforces_tools.datastructure.rigids import MPC
 
 
 class FemFileReader:
@@ -68,27 +68,66 @@ class FemFileReader:
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i]
             if line.startswith("RBE2"):
-                # divide the line into parts of 8 chars
-                line_content = [
-                    line[j : j + blocksize] for j in range(0, len(line), blocksize)
-                ]
-                print(line_content)
+                i = self.read_rbe2(blocksize, line, i)
+            elif line.startswith("RBE3"):
+                i = self.read_rbe3(blocksize, line, i)
 
-                element_id = int(line_content[1].strip())
-                dofs = int(line_content[3].strip())
-                nodes = [node.strip() for node in line_content[4:]]
+    def read_rbe3(self, blocksize: int, line: str, line_number: int) -> int:
+        """
+        Reads in an RBE3 Element with blockdata
+        """
+        line_content = [line[j : j + blocksize] for j in range(0, len(line), blocksize)]
 
-                line2 = self.file_content[i + 1]
-                while line2.startswith("+"):
-                    line_content = [
-                        line2[j : j + blocksize]
-                        for j in range(0, len(line2), blocksize)
-                    ]
-                    nodes += [node.strip() for node in line_content[1:]]
-                    i += 1
-                    line2 = self.file_content[i]
+        element_id = int(line_content[1].strip())
+        dofs = int(line_content[4].strip())
+        nodes = [node.strip() for node in line_content[7:]]
 
-                # remove anything with a . in nodes, those are the weights
-                nodes = [node for node in nodes if "." not in node and node != ""]
+        line2 = self.file_content[line_number + 1]
+        while line2.startswith("+"):
+            line_content = [
+                line2[j : j + blocksize] for j in range(0, len(line2), blocksize)
+            ]
+            line_content.remove("\n") if "\n" in line_content else None
 
-                self.rigid_elements.append(RBE2(element_id, nodes, dofs))
+            for j, _ in enumerate(line_content):
+                if j == 0:
+                    continue
+                if "." in line_content[j]:
+                    j += 1
+                    continue
+                nodes.append(line_content[j].strip())
+
+            line_number += 1
+            line2 = self.file_content[line_number]
+
+        # remove anything with a . in nodes, those are the weights
+        nodes = [node for node in nodes if "." not in node and node != ""]
+
+        self.rigid_elements.append(MPC(element_id, nodes, dofs))
+        return line_number
+
+    def read_rbe2(self, blocksize: int, line: str, line_number: int) -> int:
+        """
+        Reads in an RBE2 Element with blockdata
+        """
+        line_content = [line[j : j + blocksize] for j in range(0, len(line), blocksize)]
+        line_content.remove("\n") if "\n" in line_content else None
+
+        element_id = int(line_content[1].strip())
+        dofs = int(line_content[3].strip())
+        nodes = [node.strip() for node in line_content[4:]]
+
+        line2 = self.file_content[line_number + 1]
+        while line2.startswith("+"):
+            line_content = [
+                line2[j : j + blocksize] for j in range(0, len(line2), blocksize)
+            ]
+            nodes += [node.strip() for node in line_content[1:]]
+            line_number += 1
+            line2 = self.file_content[line_number]
+
+        # remove anything with a . in nodes, those are the weights
+        nodes = [node for node in nodes if "." not in node and node != ""]
+
+        self.rigid_elements.append(MPC(element_id, nodes, dofs))
+        return line_number
