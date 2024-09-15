@@ -14,13 +14,15 @@ class FemFileReader:
     nodes: List = []
     rigid_elements: List[MPC] = []
     node2property = {}
+    blocksize: int = None
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, block_size: int):
         self.file_path = file_path
         self.nodes = []
         self.rigid_elements = []
         self.node2property = {}
         self.__read_lines()
+        self.blocksize = block_size
 
     def __read_lines(self):
         """
@@ -29,19 +31,21 @@ class FemFileReader:
         with open(self.file_path, "r", encoding="utf-8") as file:
             self.file_content = file.readlines()
 
-    def __get_nodes(self, blocksize: int):
+    def split_line(self, line: str) -> List:
         """
-        This method is used to extract the nodes from the .fem file
+        This method is used to split a line into blocks of blocksize, and
+        remove the newline character and strip the content of the block
         """
-        for line in self.file_content:
-            if line.startswith("GRID"):
-                line_content = [
-                    line[j : j + blocksize] for j in range(0, len(line), blocksize)
-                ]
-                node_id = line_content[1]
-                self.nodes.append(node_id)
+        line_content = [
+            line[j : j + self.blocksize] for j in range(0, len(line), self.blocksize)
+        ]
 
-    def bulid_node2property(self, blocksize: int):
+        if "\n" in line_content:
+            line_content.remove("\n")
+        line_content = [line.strip() for line in line_content]
+        return line_content
+
+    def bulid_node2property(self):
         """
         This method is used to build the node2property dictionary.
         Its the main info needed for getting the forces by property
@@ -49,9 +53,7 @@ class FemFileReader:
         for line in self.file_content:
             for _, element_keyword in enumerate(self.element_keywords2number_nodes):
                 if line.startswith(element_keyword):
-                    line_content = [
-                        line[j : j + blocksize] for j in range(0, len(line), blocksize)
-                    ]
+                    line_content = self.split_line(line)
                     property_id = int(line_content[2].strip())
                     nodes = [node.strip() for node in line_content[3:]]
 
@@ -59,75 +61,47 @@ class FemFileReader:
                         if node not in self.node2property:
                             self.node2property[node] = property_id
 
-    def get_rigid_elements(self, blocksize: int):
+    def get_rigid_elements(self):
         """
         This method is used to extract the rigid elements from the .fem file
         Currently: only RBE2 is supported TODO: add support for RBE3
         """
 
+        element_keywords = ["RBE2", "RBE3"]
+
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i]
-            if line.startswith("RBE2"):
-                i = self.read_rbe2(blocksize, line, i)
-            elif line.startswith("RBE3"):
-                i = self.read_rbe3(blocksize, line, i)
 
-    def read_rbe3(self, blocksize: int, line: str, line_number: int) -> int:
-        """
-        Reads in an RBE3 Element with blockdata
-        """
-        line_content = [line[j : j + blocksize] for j in range(0, len(line), blocksize)]
+            if line.split(" ")[0] not in element_keywords:
+                continue
 
-        element_id = int(line_content[1].strip())
-        dofs = int(line_content[4].strip())
-        nodes = [node.strip() for node in line_content[7:]]
+            line_content = self.split_line(line)
+            element_id: int = int(line_content[1])
+            dofs: int = None
+            nodes: List = []
+            if line.startswith("RBE3"):
+                dofs = int(line_content[4])
+                nodes = line_content[7:]
 
-        line2 = self.file_content[line_number + 1]
-        while line2.startswith("+"):
-            line_content = [
-                line2[j : j + blocksize] for j in range(0, len(line2), blocksize)
-            ]
-            line_content.remove("\n") if "\n" in line_content else None
+            elif line.startswith("RBE2"):
+                dofs = int(line_content[3])
+                nodes = [node.strip() for node in line_content[4:]]
 
-            for j, _ in enumerate(line_content):
-                if j == 0:
-                    continue
-                if "." in line_content[j]:
-                    j += 1
-                    continue
-                nodes.append(line_content[j].strip())
+            line2 = self.file_content[i + 1]
+            while line2.startswith("+"):
+                line_content = self.split_line(line2)
+                for j, _ in enumerate(line_content):
+                    if j == 0:
+                        continue
+                    if "." in line_content[j]:
+                        j += 1
+                        continue
+                    nodes.append(line_content[j])
 
-            line_number += 1
-            line2 = self.file_content[line_number]
+                i += 1
+                line2 = self.file_content[i]
 
-        # remove anything with a . in nodes, those are the weights
-        nodes = [node for node in nodes if "." not in node and node != ""]
+            # remove anything with a . in nodes, those are the weights
+            nodes = [node for node in nodes if "." not in node and node != ""]
 
-        self.rigid_elements.append(MPC(element_id, nodes, dofs))
-        return line_number
-
-    def read_rbe2(self, blocksize: int, line: str, line_number: int) -> int:
-        """
-        Reads in an RBE2 Element with blockdata
-        """
-        line_content = [line[j : j + blocksize] for j in range(0, len(line), blocksize)]
-        line_content.remove("\n") if "\n" in line_content else None
-
-        element_id = int(line_content[1].strip())
-        dofs = int(line_content[3].strip())
-        nodes = [node.strip() for node in line_content[4:]]
-
-        line2 = self.file_content[line_number + 1]
-        while line2.startswith("+"):
-            line_content = [
-                line2[j : j + blocksize] for j in range(0, len(line2), blocksize)
-            ]
-            nodes += [node.strip() for node in line_content[1:]]
-            line_number += 1
-            line2 = self.file_content[line_number]
-
-        # remove anything with a . in nodes, those are the weights
-        nodes = [node for node in nodes if "." not in node and node != ""]
-
-        self.rigid_elements.append(MPC(element_id, nodes, dofs))
-        return line_number
+            self.rigid_elements.append(MPC(element_id, nodes, dofs))
