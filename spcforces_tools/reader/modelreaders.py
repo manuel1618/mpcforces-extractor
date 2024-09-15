@@ -65,7 +65,7 @@ class FemFileReader:
     def get_rigid_elements(self):
         """
         This method is used to extract the rigid elements from the .fem file
-        Currently: only RBE2 is supported TODO: add support for RBE3
+        Currently: only RBE2 / RBE3 is supported
         """
 
         element_keywords = ["RBE2", "RBE3"]
