@@ -7,7 +7,15 @@ class FemFileReader:
     This class is used to read the .fem file and extract the nodes and the rigid elements
     """
 
-    element_keywords2number_nodes: List = {"CTRIA3": 3, "CQUAD4": 4}
+    element_keywords2number_nodes: List = [
+        "CTRIA3",
+        "CQUAD4",
+        "CTRIA6",
+        "CQUAD8",
+        "CHEXA",
+        "CPENTA",
+        "CTETRA",
+    ]
 
     file_path: str = None
     file_content: str = None
@@ -51,12 +59,20 @@ class FemFileReader:
         This method is used to build the node2property dictionary.
         Its the main info needed for getting the forces by property
         """
-        for line in self.file_content:
-            for _, element_keyword in enumerate(self.element_keywords2number_nodes):
+        for i, _ in enumerate(self.file_content):
+            line = self.file_content[i]
+            for element_keyword in self.element_keywords2number_nodes:
                 if line.startswith(element_keyword):
                     line_content = self.split_line(line)
                     property_id = int(line_content[2].strip())
                     nodes = [node.strip() for node in line_content[3:]]
+
+                    line2 = self.file_content[i + 1]
+                    while line2.startswith("+"):
+                        line_content = self.split_line(line2)
+                        nodes += self.split_line(line2)[1:]
+                        i += 1
+                        line2 = self.file_content[i]
 
                     for node in nodes:
                         if node not in self.node2property:
