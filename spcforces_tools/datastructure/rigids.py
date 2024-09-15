@@ -12,24 +12,6 @@ class MPC:
         self.dofs = dofs
         self.property2nodes = {}
 
-
-class RBE2(MPC):
-    """
-    This class is the RBE2 child class of the MPC class
-    """
-
-    def sort_nodes_by_property(self, node2property: Dict):
-        """
-        This method is used to sort the nodes by property
-        """
-        for node in self.nodes:
-            property_id = node2property[node]
-            if property_id not in self.property2nodes:
-                self.property2nodes[property_id] = []
-
-            if node not in self.property2nodes[property_id]:
-                self.property2nodes[property_id].append(node)
-
     def sum_forces_by_property(self, node2force: Dict):
         """
         This method is used to sum the forces by property
@@ -62,3 +44,15 @@ class RBE2(MPC):
 
         # {1:[500, 0 0 ], 2:[-500, 0, 0]}
         return forces
+
+    def sort_nodes_by_property(self, node2property: Dict):
+        """
+        This method is used to sort the nodes by property
+        """
+        for node in self.nodes:
+            property_id = node2property[node]
+            if property_id not in self.property2nodes:
+                self.property2nodes[property_id] = []
+
+            if node not in self.property2nodes[property_id]:
+                self.property2nodes[property_id].append(node)
