@@ -14,12 +14,12 @@ class MPCForceExtractor:
         self.fem_file_path = fem_file_path
         self.mpc_file_path = mpc_file_path
 
-    def get_mpc_forces(self) -> dict:
+    def get_mpc_forces(self, block_size: int) -> dict:
         """
         This method reads the FEM File and the MPCF file and extracts the forces
         in a dictory with the rigid element as the key and the property2forces dict as the value
         """
-        reader = FemFileReader(self.fem_file_path)
+        reader = FemFileReader(self.fem_file_path, block_size)
         reader.bulid_node2property()
         reader.get_rigid_elements()
 
@@ -66,11 +66,17 @@ if __name__ == "__main__":
     input_folder = "data/input"
     output_folder = "data/output"
 
+    # mpc_force_extractor = MPCForceExtractor(
+    #     input_folder + "/PlateSimpleRBE3.fem",
+    #     input_folder + "/PlateSimpleRBE3.mpcf",
+    # )
     mpc_force_extractor = MPCForceExtractor(
-        input_folder + "/PlateSimpleRigid2.fem",
-        input_folder + "/PlateSimpleRigid2.mpcf",
+        input_folder + "/PlateSimpleRigid.fem",
+        input_folder + "/PlateSimpleRigid.mpcf",
     )
-    rigidelement2forces = mpc_force_extractor.get_mpc_forces()
+    blocksize = 8
+
+    rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
     mpc_force_extractor.write_suammry(
         rigidelement2forces, output_folder + "/mpcforces_summary/output.txt"
     )
