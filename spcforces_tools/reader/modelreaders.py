@@ -29,15 +29,20 @@ class FemFileReader:
         self.nodes = []
         self.rigid_elements = []
         self.node2property = {}
-        self.__read_lines()
+        self.file_content = self.__read_lines()
         self.blocksize = block_size
 
-    def __read_lines(self):
+    def __read_lines(self) -> List:
         """
         This method reads the lines of the .fem file
         """
-        with open(self.file_path, "r", encoding="utf-8") as file:
-            self.file_content = file.readlines()
+        # check if the file exists
+        try:
+            with open(self.file_path, "r", encoding="utf-8") as file:
+                return file.readlines()
+        except FileNotFoundError:
+            print(f"File {self.file_path} not found")
+            return []
 
     def split_line(self, line: str) -> List:
         """
@@ -64,17 +69,19 @@ class FemFileReader:
             for element_keyword in self.element_keywords2number_nodes:
                 if line.startswith(element_keyword):
                     line_content = self.split_line(line)
-                    property_id = int(line_content[2].strip())
-                    nodes = [node.strip() for node in line_content[3:]]
+                    property_id = int(line_content[2])
+                    nodes = line_content[3:]
 
-                    line2 = self.file_content[i + 1]
-                    while line2.startswith("+"):
-                        line_content = self.split_line(line2)
-                        nodes += self.split_line(line2)[1:]
-                        i += 1
-                        line2 = self.file_content[i]
+                    if i < len(self.file_content) - 1:
+                        line2 = self.file_content[i + 1]
+                        while line2.startswith("+"):
+                            line_content = self.split_line(line2)
+                            nodes += self.split_line(line2)[1:]
+                            i += 1
+                            line2 = self.file_content[i]
 
                     for node in nodes:
+                        node = int(node)  # cast to int
                         if node not in self.node2property:
                             self.node2property[node] = property_id
 
@@ -104,21 +111,26 @@ class FemFileReader:
                 dofs = int(line_content[3])
                 nodes = [node.strip() for node in line_content[4:]]
 
-            line2 = self.file_content[i + 1]
-            while line2.startswith("+"):
-                line_content = self.split_line(line2)
-                for j, _ in enumerate(line_content):
-                    if j == 0:
-                        continue
-                    if "." in line_content[j]:
-                        j += 1
-                        continue
-                    nodes.append(line_content[j])
+            if i < len(self.file_content) - 1:
+                line2 = self.file_content[i + 1]
+                while line2.startswith("+"):
+                    line_content = self.split_line(line2)
+                    for j, _ in enumerate(line_content):
+                        if j == 0:
+                            continue
+                        if "." in line_content[j]:
+                            j += 1
+                            continue
+                        nodes.append(line_content[j])
 
-                i += 1
-                line2 = self.file_content[i]
+                    i += 1
+                    if i == len(self.file_content) - 1:
+                        break
+                    line2 = self.file_content[i]
 
             # remove anything with a . in nodes, those are the weights
             nodes = [node for node in nodes if "." not in node and node != ""]
+            # cast to int
+            nodes = [int(node) for node in nodes]
 
             self.rigid_elements.append(MPC(element_id, nodes, dofs))
