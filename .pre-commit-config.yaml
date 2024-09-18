@@ -1,8 +1,22 @@
 repos:
   - repo: local
     hooks:
+      - id: python-formatting
+        name: python-formatting
+        entry: python -m poetry run black --check spcforces_tools
+        language: system
+        types: [python]
+
       - id: python-linting
         name: python-linting
         entry: python -m poetry run pylint spcforces_tools
         language: system
         types: [python]
+
+      - id: python-testing
+        name: python-testing
+        entry: poetry run pytest --cov=spcforces_tools --cov-report=html
+        language: system
+        types: [python]
+        always_run: true
+        pass_filenames: false
