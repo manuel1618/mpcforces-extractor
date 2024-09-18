@@ -18,3 +18,5 @@ repos:
         entry: poetry run pytest --cov=spcforces_tools --cov-report=html
         language: system
         types: [python]
+        always_run: true
+        pass_filenames: false
