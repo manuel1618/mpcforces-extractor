@@ -63,7 +63,11 @@ class MPCForceExtractor:
                         file.write(f"    {force_name}: {force}\n")
 
 
-if __name__ == "__main__":
+def main():
+    """ "
+    This is the main function that is used to test the MPCForceExtractor class
+    Its there because of a entry point in the toml file
+    """
 
     input_folder = "data/input"
     output_folder = "data/output"
@@ -86,3 +90,7 @@ if __name__ == "__main__":
     mpc_force_extractor.write_suammry(
         rigidelement2forces, output_folder + "/mpcforces_summary/output.txt"
     )
+
+
+if __name__ == "__main__":
+    main()
