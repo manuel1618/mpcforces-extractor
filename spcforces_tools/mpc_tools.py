@@ -53,11 +53,22 @@ class MPCForceExtractor:
             file.write(f"Date: {formatted_time}\n")
             file.write(f"Input FEM file: {self.fem_file_path}\n")
             file.write(f"Input MPC forces file: {self.mpc_file_path}\n")
+            file.write("\n")
 
             for rigid_element, property2forces in rigid_element2property2forces.items():
                 file.write(f"Rigid Element ID: {rigid_element.element_id}\n")
-                for property_id, forces in property2forces.items():
+                master_node_id = list(rigid_element.master_node.keys())[0]
+                file.write(f"  Master Node ID: {master_node_id}\n")
+                master_node_coords = rigid_element.master_node[master_node_id]
+                file.write(f"  Master Node Coords: {master_node_coords}\n")
+
+                file.write(f"  Slave Nodes: {len(rigid_element.nodes)}\n")
+                for property_id in sorted(property2forces.keys()):
+                    forces = property2forces[property_id]
                     file.write(f"  Property ID: {property_id}\n")
+                    file.write(
+                        f"    Slave Nodes: {len(rigid_element.property2nodes[property_id])}\n"
+                    )
                     force_names = ["FX", "FY", "FZ", "MX", "MY", "MZ"]
                     for force, force_name in zip(forces, force_names):
                         file.write(f"    {force_name}: {force}\n")

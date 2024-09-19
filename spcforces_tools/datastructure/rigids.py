@@ -6,11 +6,16 @@ class MPC:
     This class is a Multiple Point Constraint (MPC) class that is used to store the nodes and the dofs
     """
 
-    def __init__(self, element_id: int, nodes: List, dofs: str):
-        self.element_id = element_id
-        self.nodes = nodes
-        self.dofs = dofs
-        self.property2nodes = {}
+    def __init__(self, element_id: int, master_node2coords, nodes: List, dofs: str):
+        self.element_id: int = element_id
+        if master_node2coords is not None:
+            self.master_node: Dict = master_node2coords
+        else:
+            self.master_node: Dict = {}
+            print("master_node2coords is None for element_id", element_id)
+        self.nodes: List = nodes
+        self.dofs: int = dofs
+        self.property2nodes: Dict = {}
 
     def sum_forces_by_property(self, node2force: Dict):
         """
