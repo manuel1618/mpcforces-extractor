@@ -166,7 +166,6 @@ class FemFileReader:
             nodes = [node for node in nodes if "." not in node and node != ""]
             # cast to int
             nodes = [int(node) for node in nodes]
-            print(master_node, master_coords, nodes, dofs)
             self.rigid_elements.append(
                 MPC(element_id, {master_node: master_coords}, nodes, dofs)
             )

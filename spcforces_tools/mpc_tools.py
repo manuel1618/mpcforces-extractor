@@ -71,7 +71,8 @@ class MPCForceExtractor:
                     )
                     force_names = ["FX", "FY", "FZ", "MX", "MY", "MZ"]
                     for force, force_name in zip(forces, force_names):
-                        file.write(f"    {force_name}: {force}\n")
+                        file.write(f"    {force_name}: {force:.3f}\n")
+                file.write("\n")
 
 
 def main():
@@ -92,8 +93,8 @@ def main():
     #     input_folder + "/PlateSimpleRigid.mpcf",
     # )
     mpc_force_extractor = MPCForceExtractor(
-        input_folder + "/PlateSimpleRigid3D.fem",
-        input_folder + "/PlateSimpleRigid3D.mpcf",
+        input_folder + "/PlateSimpleRigid2.fem",
+        input_folder + "/PlateSimpleRigid2.mpcf",
     )
     blocksize = 8
 
