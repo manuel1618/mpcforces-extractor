@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 from spcforces_tools.reader.modelreaders import FemFileReader
+from spcforces_tools.datastructure.entities import Node
 
 
 class TestFemFileReader(unittest.TestCase):
@@ -18,7 +19,7 @@ class TestFemFileReader(unittest.TestCase):
         mock_read_lines.return_value = []
         fem_file_reader = FemFileReader("test.fem", 8)
         self.assertEqual(fem_file_reader.file_path, "test.fem")
-        self.assertEqual(fem_file_reader.nodes, [])
+        self.assertEqual(fem_file_reader.nodes_id2node, {})
         self.assertEqual(fem_file_reader.rigid_elements, [])
         self.assertEqual(fem_file_reader.node2property, {})
         self.assertEqual(fem_file_reader.blocksize, 8)
@@ -90,13 +91,13 @@ class TestFemFileReader(unittest.TestCase):
             "\n",
         ]
         mock_read_nodes.return_value = {
-            1: [-16.8891, 86.0, 13.11648],
-            2: [0.0, 0.0, 0.0],
+            1: Node(1, [-16.8891, 86.0, 13.11648]),
+            2: Node(2, [0.0, 0.0, 0.0]),
         }
 
         fem_file_reader = FemFileReader("test.fem", 8)
         fem_file_reader.file_content = mock_read_lines.return_value
-        fem_file_reader.nodes2coords = mock_read_nodes.return_value
+        fem_file_reader.nodes_id2node = mock_read_nodes.return_value
 
         fem_file_reader.get_rigid_elements()
 
@@ -112,8 +113,11 @@ class TestFemFileReader(unittest.TestCase):
         )  # check the nodes
 
         self.assertEqual(
-            fem_file_reader.rigid_elements[0].master_node, {2: [0.0, 0.0, 0.0]}
+            fem_file_reader.rigid_elements[0].master_node.id, 2
         )  # check the master_node
+        self.assertEqual(
+            fem_file_reader.rigid_elements[0].master_node.coords, [0.0, 0.0, 0.0]
+        )
 
 
 if __name__ == "__main__":

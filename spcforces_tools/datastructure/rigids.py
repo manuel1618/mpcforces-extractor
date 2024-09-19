@@ -1,4 +1,5 @@
 from typing import Dict, List
+from spcforces_tools.datastructure.entities import Node
 
 
 class MPC:
@@ -6,13 +7,11 @@ class MPC:
     This class is a Multiple Point Constraint (MPC) class that is used to store the nodes and the dofs
     """
 
-    def __init__(self, element_id: int, master_node2coords, nodes: List, dofs: str):
+    def __init__(self, element_id: int, master_node: Node, nodes: List, dofs: str):
         self.element_id: int = element_id
-        if master_node2coords is not None:
-            self.master_node: Dict = master_node2coords
-        else:
-            self.master_node: Dict = {}
-            print("master_node2coords is None for element_id", element_id)
+        if master_node is None:
+            print("Master_node2coords is None for element_id", element_id)
+        self.master_node = master_node
         self.nodes: List = nodes
         self.dofs: int = dofs
         self.property2nodes: Dict = {}
