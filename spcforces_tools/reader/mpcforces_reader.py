@@ -40,7 +40,7 @@ class MPCForcesReader:
                     line = self.file_content[i]
 
                     # take the first 8 characters as the node id
-                    node_id = line[:8].strip()
+                    node_id = int(line[:8].strip())
 
                     # take the next 13 characters as the force_i
                     n = 13

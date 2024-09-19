@@ -9,7 +9,7 @@ class TestRigids(unittest.TestCase):
         """
 
         # Test the init method
-        mpc = MPC(1, [1, 2], "123")
+        mpc = MPC(1, 0, [1, 2], "123")
         self.assertEqual(mpc.element_id, 1)
         self.assertEqual(mpc.nodes, [1, 2])
         self.assertEqual(mpc.dofs, "123")
@@ -21,7 +21,7 @@ class TestRigids(unittest.TestCase):
         """
 
         # Test the sum_forces_by_property method
-        mpc = MPC(1, [1, 2], "123")
+        mpc = MPC(1, 0, [1, 2], "123")
         node2force = {1: [500, 0, 0, 0, 0, 0], 2: [-500, 0, 0, 0, 0, 0]}
         forces = mpc.sum_forces_by_property(node2force)
         self.assertEqual(forces, {})
@@ -39,12 +39,12 @@ class TestRigids(unittest.TestCase):
         """
 
         # Test the sort_nodes_by_property method
-        mpc = MPC(1, [1, 2], "123")
+        mpc = MPC(1, 0, [1, 2], "123")
         node2property = {1: 1, 2: 2, 3: 3}
         mpc.sort_nodes_by_property(node2property)
         self.assertEqual(mpc.property2nodes, {1: [1], 2: [2]})
 
-        mpc = MPC(1, [1, 2, 3], "123")
+        mpc = MPC(1, 0, [1, 2, 3], "123")
         node2property = {1: 1, 2: 2, 3: 1}
         mpc.sort_nodes_by_property(node2property)
         self.assertEqual(mpc.property2nodes, {1: [1, 3], 2: [2]})

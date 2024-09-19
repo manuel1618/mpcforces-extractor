@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from spcforces_tools.datastructure.rigids import MPC
 
 
@@ -19,18 +19,19 @@ class FemFileReader:
 
     file_path: str = None
     file_content: str = None
-    nodes: List = []
+    nodes2coords: Dict = {}
     rigid_elements: List[MPC] = []
     node2property = {}
     blocksize: int = None
 
     def __init__(self, file_path, block_size: int):
         self.file_path = file_path
+        self.blocksize = block_size
         self.nodes = []
         self.rigid_elements = []
         self.node2property = {}
         self.file_content = self.__read_lines()
-        self.blocksize = block_size
+        self.__read_nodes()
 
     def __read_lines(self) -> List:
         """
@@ -43,6 +44,33 @@ class FemFileReader:
         except FileNotFoundError:
             print(f"File {self.file_path} not found")
             return []
+
+    def __read_nodes(self):
+        """
+        This method is used to read the nodes from the .fem file
+        """
+        for line in self.file_content:
+            if line.startswith("GRID"):
+                line_content = self.split_line(line)
+                node_id = int(line_content[1])
+                x = self.__node_coord_parser(line_content[3])
+                y = self.__node_coord_parser(line_content[4])
+                z = self.__node_coord_parser(line_content[5])
+                self.nodes2coords[node_id] = [x, y, z]
+
+    def __node_coord_parser(self, coord_str: str) -> float:
+        """
+        This method is used to parse the node coordinates
+        """
+        # Problem is the expenential notation without the E in it
+        before_dot = coord_str.split(".")[0]
+        after_dot = coord_str.split(".")[1]
+        if "-" in after_dot:
+            return float(before_dot + "." + after_dot.replace("-", "e-"))
+        if "+" in after_dot:
+            return float(before_dot + "." + after_dot.replace("+", "e+"))
+
+        return float(coord_str)
 
     def split_line(self, line: str) -> List:
         """
@@ -103,16 +131,22 @@ class FemFileReader:
             element_id: int = int(line_content[1])
             dofs: int = None
             nodes: List = []
+            master_node = None
+
             if line.startswith("RBE3"):
+                master_node = int(line_content[3])
                 dofs = int(line_content[4])
                 nodes = line_content[7:]
 
             elif line.startswith("RBE2"):
+                master_node = int(line_content[2])
                 dofs = int(line_content[3])
-                nodes = [node.strip() for node in line_content[4:]]
+                nodes = line_content[4:]
 
+            master_coords = self.nodes2coords[master_node]
             if i < len(self.file_content) - 1:
-                line2 = self.file_content[i + 1]
+                i += 1
+                line2 = self.file_content[i]
                 while line2.startswith("+"):
                     line_content = self.split_line(line2)
                     for j, _ in enumerate(line_content):
@@ -132,5 +166,7 @@ class FemFileReader:
             nodes = [node for node in nodes if "." not in node and node != ""]
             # cast to int
             nodes = [int(node) for node in nodes]
-
-            self.rigid_elements.append(MPC(element_id, nodes, dofs))
+            print(master_node, master_coords, nodes, dofs)
+            self.rigid_elements.append(
+                MPC(element_id, {master_node: master_coords}, nodes, dofs)
+            )
