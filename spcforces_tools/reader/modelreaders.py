@@ -1,5 +1,6 @@
 from typing import List, Dict
 from spcforces_tools.datastructure.rigids import MPC
+from spcforces_tools.datastructure.entities import Element1D, Element, Node
 
 
 class FemFileReader:
@@ -7,7 +8,7 @@ class FemFileReader:
     This class is used to read the .fem file and extract the nodes and the rigid elements
     """
 
-    element_keywords2number_nodes: List = [
+    element_keywords: List = [
         "CTRIA3",
         "CQUAD4",
         "CTRIA6",
@@ -15,11 +16,15 @@ class FemFileReader:
         "CHEXA",
         "CPENTA",
         "CTETRA",
+        "CROD",
+        "CTUBE",
+        "CBEAM",
+        "CBAR",
     ]
 
     file_path: str = None
     file_content: str = None
-    nodes2coords: Dict = {}
+    nodes_id2node: Dict = {}
     rigid_elements: List[MPC] = []
     node2property = {}
     blocksize: int = None
@@ -27,11 +32,13 @@ class FemFileReader:
     def __init__(self, file_path, block_size: int):
         self.file_path = file_path
         self.blocksize = block_size
-        self.nodes = []
+        self.nodes_id2node = {}
         self.rigid_elements = []
         self.node2property = {}
         self.file_content = self.__read_lines()
         self.__read_nodes()
+        self.elements_1D = []
+        self.elements_3D = []
 
     def __read_lines(self) -> List:
         """
@@ -56,7 +63,8 @@ class FemFileReader:
                 x = self.__node_coord_parser(line_content[3])
                 y = self.__node_coord_parser(line_content[4])
                 z = self.__node_coord_parser(line_content[5])
-                self.nodes2coords[node_id] = [x, y, z]
+                node = Node(node_id, [x, y, z])
+                self.nodes_id2node[node.id] = node
 
     def __node_coord_parser(self, coord_str: str) -> float:
         """
@@ -94,24 +102,46 @@ class FemFileReader:
         """
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i]
-            for element_keyword in self.element_keywords2number_nodes:
-                if line.startswith(element_keyword):
-                    line_content = self.split_line(line)
-                    property_id = int(line_content[2])
-                    nodes = line_content[3:]
 
-                    if i < len(self.file_content) - 1:
-                        line2 = self.file_content[i + 1]
-                        while line2.startswith("+"):
-                            line_content = self.split_line(line2)
-                            nodes += self.split_line(line2)[1:]
-                            i += 1
-                            line2 = self.file_content[i]
+            line_content = self.split_line(line)
+            if len(line_content) < 2:
+                continue
+            element_keyword = line_content[0]
 
-                    for node in nodes:
-                        node = int(node)  # cast to int
-                        if node not in self.node2property:
-                            self.node2property[node] = property_id
+            if element_keyword not in self.element_keywords:
+                continue
+
+            line_content = self.split_line(line)
+            property_id = int(line_content[2])
+
+            if element_keyword in ["CBEAM", "CBAR", "CTUBE", "CROD"]:
+                element = Element1D(
+                    int(line_content[1]),
+                    property_id,
+                    int(line_content[3]),
+                    int(line_content[4]),
+                )
+                self.elements_1D.append(element)
+                nodes = line_content[3:5]
+
+            else:
+                nodes = line_content[3:]
+                self.elements_3D.append(
+                    Element(int(line_content[1]), property_id, nodes)
+                )
+
+                if i < len(self.file_content) - 1:
+                    line2 = self.file_content[i + 1]
+                    while line2.startswith("+"):
+                        line_content = self.split_line(line2)
+                        nodes += self.split_line(line2)[1:]
+                        i += 1
+                        line2 = self.file_content[i]
+
+            for node in nodes:
+                node = int(node)  # cast to int
+                if node not in self.node2property:
+                    self.node2property[node] = property_id
 
     def get_rigid_elements(self):
         """
@@ -134,16 +164,16 @@ class FemFileReader:
             master_node = None
 
             if line.startswith("RBE3"):
-                master_node = int(line_content[3])
+                master_node_id = int(line_content[2])
+                master_node = self.nodes_id2node[master_node_id]
                 dofs = int(line_content[4])
                 nodes = line_content[7:]
 
             elif line.startswith("RBE2"):
-                master_node = int(line_content[2])
+                master_node_id = int(line_content[2])
+                master_node = self.nodes_id2node[master_node_id]
                 dofs = int(line_content[3])
                 nodes = line_content[4:]
-
-            master_coords = self.nodes2coords[master_node]
             if i < len(self.file_content) - 1:
                 i += 1
                 line2 = self.file_content[i]
@@ -166,6 +196,4 @@ class FemFileReader:
             nodes = [node for node in nodes if "." not in node and node != ""]
             # cast to int
             nodes = [int(node) for node in nodes]
-            self.rigid_elements.append(
-                MPC(element_id, {master_node: master_coords}, nodes, dofs)
-            )
+            self.rigid_elements.append(MPC(element_id, master_node, nodes, dofs))

@@ -13,6 +13,7 @@ class MPCForceExtractor:
     def __init__(self, fem_file_path, mpc_file_path):
         self.fem_file_path = fem_file_path
         self.mpc_file_path = mpc_file_path
+        self.elements_1D = []
 
     def get_mpc_forces(self, block_size: int) -> dict:
         """
@@ -22,6 +23,7 @@ class MPCForceExtractor:
         reader = FemFileReader(self.fem_file_path, block_size)
         reader.bulid_node2property()
         reader.get_rigid_elements()
+        self.elements_1D = reader.elements_1D
 
         rigid_element2forces = {}
 
@@ -57,10 +59,14 @@ class MPCForceExtractor:
 
             for rigid_element, property2forces in rigid_element2property2forces.items():
                 file.write(f"Rigid Element ID: {rigid_element.element_id}\n")
-                master_node_id = list(rigid_element.master_node.keys())[0]
-                file.write(f"  Master Node ID: {master_node_id}\n")
-                master_node_coords = rigid_element.master_node[master_node_id]
-                file.write(f"  Master Node Coords: {master_node_coords}\n")
+                master_node = rigid_element.master_node
+                file.write(f"  Master Node ID: {master_node.id}\n")
+                file.write(f"  Master Node Coords: {master_node.coords}\n")
+                for element1D in self.elements_1D:
+                    if master_node.id in [element1D.node1, element1D.node2]:
+                        file.write(
+                            f"  Element ID: {element1D.id} associated with the master Node\n"
+                        )
 
                 file.write(f"  Slave Nodes: {len(rigid_element.nodes)}\n")
                 for property_id in sorted(property2forces.keys()):
@@ -93,8 +99,8 @@ def main():
     #     input_folder + "/PlateSimpleRigid.mpcf",
     # )
     mpc_force_extractor = MPCForceExtractor(
-        input_folder + "/PlateSimpleRigid2.fem",
-        input_folder + "/PlateSimpleRigid2.mpcf",
+        input_folder + "/PlateSimpleRigid3DBolt.fem",
+        input_folder + "/PlateSimpleRigid3DBolt.mpcf",
     )
     blocksize = 8
 
