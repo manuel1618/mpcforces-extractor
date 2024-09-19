@@ -23,5 +23,5 @@ class TestMPCForcesReader(unittest.TestCase):
 
         nodes2forces = mpc_reader.get_nodes2forces()
         self.assertEqual(len(nodes2forces), 2)
-        self.assertEqual(nodes2forces["1"], [-1.0, 1.0, 1.0, 1.0, 0.0, 0.0])
-        self.assertEqual(nodes2forces["2"], [-1.0, 1.0, 1.0, 0.0, 1.0, 0.0])
+        self.assertEqual(nodes2forces[1], [-1.0, 1.0, 1.0, 1.0, 0.0, 0.0])
+        self.assertEqual(nodes2forces[2], [-1.0, 1.0, 1.0, 0.0, 1.0, 0.0])
