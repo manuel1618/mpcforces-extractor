@@ -2,6 +2,7 @@ import os
 import time
 from spcforces_tools.reader.modelreaders import FemFileReader
 from spcforces_tools.reader.mpcforces_reader import MPCForcesReader
+from spcforces_tools.datastructure.entities import Element
 
 
 class MPCForceExtractor:
@@ -23,21 +24,19 @@ class MPCForceExtractor:
         reader = FemFileReader(self.fem_file_path, block_size)
         reader.bulid_node2property()
         reader.get_rigid_elements()
+        Element.get_neighbors()
         self.elements_1D = reader.elements_1D
 
         rigid_element2forces = {}
 
         for rigid_element in reader.rigid_elements:
-            rigid_element.sort_nodes_by_property(reader.node2property)
-
             node2forces = MPCForcesReader(self.mpc_file_path).get_nodes2forces()
-
-            property2forces = rigid_element.sum_forces_by_property(node2forces)
-            rigid_element2forces[rigid_element] = property2forces
+            part_id2forces = rigid_element.sum_forces_by_connected_parts(node2forces)
+            rigid_element2forces[rigid_element] = part_id2forces
 
         return rigid_element2forces
 
-    def write_suammry(self, rigid_element2property2forces: dict, file_path_out: str):
+    def write_suammry(self, rigid_element2part2forces: dict, file_path_out: str):
         """
         This method writes the summary of the forces extracted from the MPC forces file
         """
@@ -57,7 +56,7 @@ class MPCForceExtractor:
             file.write(f"Input MPC forces file: {self.mpc_file_path}\n")
             file.write("\n")
 
-            for rigid_element, property2forces in rigid_element2property2forces.items():
+            for rigid_element, part_id2forces in rigid_element2part2forces.items():
                 file.write(f"Rigid Element ID: {rigid_element.element_id}\n")
                 master_node = rigid_element.master_node
                 file.write(f"  Master Node ID: {master_node.id}\n")
@@ -69,11 +68,11 @@ class MPCForceExtractor:
                         )
 
                 file.write(f"  Slave Nodes: {len(rigid_element.nodes)}\n")
-                for property_id in sorted(property2forces.keys()):
-                    forces = property2forces[property_id]
-                    file.write(f"  Property ID: {property_id}\n")
+                for part_id in sorted(part_id2forces.keys()):
+                    forces = part_id2forces[part_id]
+                    file.write(f"  Part ID: {part_id}\n")
                     file.write(
-                        f"    Slave Nodes: {len(rigid_element.property2nodes[property_id])}\n"
+                        f"    Slave Nodes: {len(rigid_element.part_id2slave_node_ids[part_id])}\n"
                     )
                     force_names = ["FX", "FY", "FZ", "MX", "MY", "MZ"]
                     for force, force_name in zip(forces, force_names):
@@ -94,14 +93,14 @@ def main():
     #     input_folder + "/PlateSimpleRBE3.fem",
     #     input_folder + "/PlateSimpleRBE3.mpcf",
     # )
-    # mpc_force_extractor = MPCForceExtractor(
-    #     input_folder + "/PlateSimpleRigid.fem",
-    #     input_folder + "/PlateSimpleRigid.mpcf",
-    # )
     mpc_force_extractor = MPCForceExtractor(
-        input_folder + "/PlateSimpleRigid3DBolt.fem",
-        input_folder + "/PlateSimpleRigid3DBolt.mpcf",
+        input_folder + "/PlateSimpleRigid.fem",
+        input_folder + "/PlateSimpleRigid.mpcf",
     )
+    # mpc_force_extractor = MPCForceExtractor(
+    #     input_folder + "/PlateSimpleRigid3DBolt.fem",
+    #     input_folder + "/PlateSimpleRigid3DBolt.mpcf",
+    # )
     blocksize = 8
 
     rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
