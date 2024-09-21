@@ -122,23 +122,26 @@ class FemFileReader:
                     int(line_content[4]),
                 )
                 self.elements_1D.append(element)
-                nodes = line_content[3:5]
+                node_ids = line_content[3:5]
+                nodes = [self.nodes_id2node[int(node_id)] for node_id in node_ids]
 
             else:
-                nodes = line_content[3:]
-                self.elements_3D.append(
-                    Element(int(line_content[1]), property_id, nodes)
-                )
+                node_ids = line_content[3:]
 
                 if i < len(self.file_content) - 1:
                     line2 = self.file_content[i + 1]
                     while line2.startswith("+"):
                         line_content = self.split_line(line2)
-                        nodes += self.split_line(line2)[1:]
+                        node_ids += self.split_line(line2)[1:]
                         i += 1
                         line2 = self.file_content[i]
 
-            for node in nodes:
+                nodes = [self.nodes_id2node[int(node_id)] for node_id in node_ids]
+                self.elements_3D.append(
+                    Element(int(line_content[1]), property_id, nodes)
+                )
+
+            for node in node_ids:
                 node = int(node)  # cast to int
                 if node not in self.node2property:
                     self.node2property[node] = property_id
@@ -160,20 +163,20 @@ class FemFileReader:
             line_content = self.split_line(line)
             element_id: int = int(line_content[1])
             dofs: int = None
-            nodes: List = []
+            node_ids: List = []
             master_node = None
 
             if line.startswith("RBE3"):
-                master_node_id = int(line_content[2])
+                master_node_id = int(line_content[3])
                 master_node = self.nodes_id2node[master_node_id]
                 dofs = int(line_content[4])
-                nodes = line_content[7:]
+                node_ids = line_content[7:]
 
             elif line.startswith("RBE2"):
                 master_node_id = int(line_content[2])
                 master_node = self.nodes_id2node[master_node_id]
                 dofs = int(line_content[3])
-                nodes = line_content[4:]
+                node_ids = line_content[4:]
             if i < len(self.file_content) - 1:
                 i += 1
                 line2 = self.file_content[i]
@@ -185,7 +188,7 @@ class FemFileReader:
                         if "." in line_content[j]:
                             j += 1
                             continue
-                        nodes.append(line_content[j])
+                        node_ids.append(line_content[j])
 
                     i += 1
                     if i == len(self.file_content) - 1:
@@ -193,7 +196,9 @@ class FemFileReader:
                     line2 = self.file_content[i]
 
             # remove anything with a . in nodes, those are the weights
-            nodes = [node for node in nodes if "." not in node and node != ""]
+            node_ids = [
+                int(node) for node in node_ids if "." not in node and node != ""
+            ]
             # cast to int
-            nodes = [int(node) for node in nodes]
+            nodes = [self.nodes_id2node[id] for id in node_ids]
             self.rigid_elements.append(MPC(element_id, master_node, nodes, dofs))
