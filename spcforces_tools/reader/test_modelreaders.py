@@ -49,24 +49,24 @@ class TestFemFileReader(unittest.TestCase):
     @patch(
         "spcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
-    @patch(
-        "spcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_nodes"
-    )
-    def test_bulid_node2property(self, mock_read_lines, mock_read_nodes):
+    def test_bulid_node2property(self, mock_read_lines):
         """
         Test the bulid_node2property method. Make sure the node2property is built correctly
         """
         mock_read_lines.return_value = [
             "GRID           1        -16.889186.0    13.11648\n",
+            "GRID           2        -16.889186.0    13.11648\n",
+            "GRID           3        -16.889186.0    13.11648\n",
+            "GRID           4        -16.889186.0    13.11648\n",
+            "GRID           5        -16.889186.0    13.11648\n",
+            "GRID           6        -16.889186.0    13.11648\n",
+            "GRID           7        -16.889186.0    13.11648\n",
             "CHEXA        497       1       1       2       3\n",
             "+              4       5\n",
             "RBE2           1       2  123456       3       4       5       6       7\n",
         ]
 
-        mock_read_nodes.return_value = {1: [0.0, 0.0, 0.0], 2: [0.0, 0.0, 0.0]}
-
         fem_file_reader = FemFileReader("test.fem", 8)
-        fem_file_reader.file_content = mock_read_lines.return_value
 
         fem_file_reader.bulid_node2property()
         self.assertEqual(fem_file_reader.node2property, {1: 1, 2: 1, 3: 1, 4: 1, 5: 1})
@@ -74,30 +74,27 @@ class TestFemFileReader(unittest.TestCase):
     @patch(
         "spcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
-    @patch(
-        "spcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_nodes"
-    )
-    def test_get_rigid_elements(self, mock_read_lines, mock_read_nodes):
+    def test_get_rigid_elements(self, mock_read_lines):
         """
         Test the get_rigid_elements method. Make sure the rigid elements are extracted correctly
         """
         mock_read_lines.return_value = [
             "GRID           1        -16.889186.0    13.11648\n",
             "GRID           2        -0.0    0.0     0.0     \n",
+            "GRID           3        -16.889186.0    13.11648\n",
+            "GRID           4        -16.889186.0    13.11648\n",
+            "GRID           5        -16.889186.0    13.11648\n",
+            "GRID           6        -16.889186.0    13.11648\n",
+            "GRID           7        -16.889186.0    13.11648\n",
+            "GRID           8        -16.889186.0    13.11648\n",
             "CHEXA        497       1       1       2       3\n",
             "+              4       5\n",
             "RBE2           1       2  123456       3       4       5       6       7\n",
             "+              8\n",
             "\n",
         ]
-        mock_read_nodes.return_value = {
-            1: Node(1, [-16.8891, 86.0, 13.11648]),
-            2: Node(2, [0.0, 0.0, 0.0]),
-        }
 
         fem_file_reader = FemFileReader("test.fem", 8)
-        fem_file_reader.file_content = mock_read_lines.return_value
-        fem_file_reader.nodes_id2node = mock_read_nodes.return_value
 
         fem_file_reader.get_rigid_elements()
 
@@ -108,9 +105,9 @@ class TestFemFileReader(unittest.TestCase):
         self.assertEqual(
             fem_file_reader.rigid_elements[0].dofs, 123456
         )  # check the dofs
-        self.assertEqual(
-            fem_file_reader.rigid_elements[0].nodes, [3, 4, 5, 6, 7, 8]
-        )  # check the nodes
+
+        node_ids = [node.id for node in fem_file_reader.rigid_elements[0].nodes]
+        self.assertEqual(sorted(node_ids), [3, 4, 5, 6, 7, 8])  # check the nodes
 
         self.assertEqual(
             fem_file_reader.rigid_elements[0].master_node.id, 2
