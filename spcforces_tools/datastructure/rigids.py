@@ -14,7 +14,8 @@ class MPC:
         self.master_node = master_node
         self.nodes: List = nodes
         self.dofs: int = dofs
-        self.property2nodes: Dict = {}
+        self.part_id2force = {}
+        self.part_id2slave_node_ids = {}
 
     def sum_forces_by_connected_parts(self, node_id2force: Dict):
         """
@@ -39,6 +40,8 @@ class MPC:
 
         # add the forces for each part
         for part_id, node_ids in part_id2node_ids.items():
+            self.part_id2slave_node_ids[part_id] = node_ids
+
             forces[part_id] = [0, 0, 0, 0, 0, 0]
 
             for node_id in node_ids:
@@ -63,49 +66,5 @@ class MPC:
                 forces[part_id][4] += moment_y
                 forces[part_id][5] += moment_z
 
+        self.part_id2force = forces
         return forces
-
-    def sum_forces_by_property(self, node2force: Dict):
-        """
-        This method is used to sum the forces by property
-        """
-        forces = {}
-        for property_id, nodes in self.property2nodes.items():
-            forces[property_id] = [0, 0, 0, 0, 0, 0]
-            for node in nodes:
-
-                if node not in node2force:
-                    print(
-                        f"Node {node} not found in the MPC forces file - bug or zero - you decide!"
-                    )
-                    continue
-
-                force = node2force[node]
-                force_x = force[0]
-                force_y = force[1]
-                force_z = force[2]
-                moment_x = force[3]
-                moment_y = force[4]
-                moment_z = force[5]
-
-                forces[property_id][0] += force_x
-                forces[property_id][1] += force_y
-                forces[property_id][2] += force_z
-                forces[property_id][3] += moment_x
-                forces[property_id][4] += moment_y
-                forces[property_id][5] += moment_z
-
-        # {1:[500, 0 0 ], 2:[-500, 0, 0]}
-        return forces
-
-    def sort_nodes_by_property(self, node2property: Dict):
-        """
-        This method is used to sort the nodes by property
-        """
-        for node in self.nodes:
-            property_id = node2property[node]
-            if property_id not in self.property2nodes:
-                self.property2nodes[property_id] = []
-
-            if node not in self.property2nodes[property_id]:
-                self.property2nodes[property_id].append(node)
