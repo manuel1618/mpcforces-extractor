@@ -8,6 +8,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+numpy = "^2.1.1"
+scipy = "^1.14.1"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.2.7"
@@ -17,6 +19,8 @@ pytest = "^8.3.3"
 pytest-cov = "^5.0.0"
 poetry = "^1.8.3"
 pre-commit = "^3.8.0"
+numpy = "^2.1.1"
+scipy = "^1.14.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -7,10 +7,15 @@ tasks:
       - poetry install
       - poetry run pre-commit install
 
+  format:
+    desc: Format the code
+    cmds:
+      - python -m poetry run black spcforces_tools
+
   lint:
     desc: Lint the code
     cmds:
-      - python -m  poetry run black --check spcforces_tools
+      - python -m poetry run black --check spcforces_tools
       - |
         python -m poetry run flake8 spcforces_tools \
            --show-source \
@@ -22,7 +27,7 @@ tasks:
     desc: Run tests
     cmds:
       - >
-        poetry run pytest 
+        python -m poetry run pytest 
         --cov=spcforces_tools 
         --cov-report=html
 
