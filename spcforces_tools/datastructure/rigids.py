@@ -1,5 +1,6 @@
 from typing import Dict, List
-from spcforces_tools.datastructure.entities import Node
+import networkx as nx
+from spcforces_tools.datastructure.entities import Node, Element
 
 
 class MPC:
@@ -17,15 +18,13 @@ class MPC:
         self.part_id2force = {}
         self.part_id2slave_node_ids = {}
 
-    def sum_forces_by_connected_parts(self, node_id2force: Dict):
+    def get_part_id2node_ids(self, node_stack: List) -> Dict:
         """
-        This method is used to sum the forces by connected - parts NEW
+        Gets the connected nodes for each part (attached elements) via neighbors
         """
-        forces = {}
+
         part_id2node_ids = {}
 
-        # get the connected nodes for each part (attached elements)
-        node_stack = self.nodes.copy()
         part_id = 1
         while len(node_stack) > 0:
             node = node_stack.pop()
@@ -37,6 +36,36 @@ class MPC:
                     node_stack.remove(node_temp)
             part_id2node_ids[part_id] = [node.id for node in part_nodes]
             part_id += 1
+
+        return part_id2node_ids
+
+    def get_part_id2node_ids_graph(self, slave_nodes: List) -> Dict:
+        """
+        This method is used to get the part_id2node_ids using the graph
+        """
+        part_id2node_ids = {}
+        graph = Element.graph
+        sub_graph = graph.subgraph(slave_nodes)
+        connected_components = list(nx.connected_components(sub_graph))
+
+        for i, connected_component in enumerate(connected_components):
+            part_id2node_ids[i + 1] = [node.id for node in connected_component]
+
+        return part_id2node_ids
+
+    def sum_forces_by_connected_parts(
+        self, node_id2force: Dict, use_graph: bool
+    ) -> Dict:
+        """
+        This method is used to sum the forces by connected - parts NEW
+        """
+        forces = {}
+        part_id2node_ids = {}
+
+        if use_graph:
+            part_id2node_ids = self.get_part_id2node_ids_graph(self.nodes.copy())
+        else:
+            part_id2node_ids = self.get_part_id2node_ids(self.nodes.copy())
 
         # add the forces for each part
         for part_id, node_ids in part_id2node_ids.items():

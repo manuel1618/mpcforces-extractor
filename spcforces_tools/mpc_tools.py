@@ -2,7 +2,6 @@ import os
 import time
 from spcforces_tools.reader.modelreaders import FemFileReader
 from spcforces_tools.reader.mpcforces_reader import MPCForcesReader
-from spcforces_tools.datastructure.entities import Element
 
 
 class MPCForceExtractor:
@@ -24,14 +23,19 @@ class MPCForceExtractor:
         reader = FemFileReader(self.fem_file_path, block_size)
         reader.bulid_node2property()
         reader.get_rigid_elements()
-        Element.get_neighbors()
+
+        # Element.get_neighbors()
+
         self.elements_1D = reader.elements_1D
 
         rigid_element2forces = {}
 
         for rigid_element in reader.rigid_elements:
             node2forces = MPCForcesReader(self.mpc_file_path).get_nodes2forces()
-            part_id2forces = rigid_element.sum_forces_by_connected_parts(node2forces)
+
+            part_id2forces = rigid_element.sum_forces_by_connected_parts(
+                node2forces, True
+            )
             rigid_element2forces[rigid_element] = part_id2forces
 
         return rigid_element2forces
@@ -94,8 +98,8 @@ def main():
     #     input_folder + "/PlateSimpleRBE3.mpcf",
     # )
     mpc_force_extractor = MPCForceExtractor(
-        input_folder + "/PlateSimpleRigid.fem",
-        input_folder + "/PlateSimpleRigid.mpcf",
+        input_folder + "/PlateSimpleRigid2.fem",
+        input_folder + "/PlateSimpleRigid2.mpcf",
     )
     # mpc_force_extractor = MPCForceExtractor(
     #     input_folder + "/PlateSimpleRigid3DBolt.fem",
