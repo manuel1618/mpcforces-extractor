@@ -98,8 +98,8 @@ def main():
     #     input_folder + "/PlateSimpleRBE3.mpcf",
     # )
     mpc_force_extractor = MPCForceExtractor(
-        input_folder + "/PlateSimpleRigid2.fem",
-        input_folder + "/PlateSimpleRigid2.mpcf",
+        input_folder + "/PlateSimpleRigidBroken.fem",
+        input_folder + "/PlateSimpleRigidBroken.mpcf",
     )
     # mpc_force_extractor = MPCForceExtractor(
     #     input_folder + "/PlateSimpleRigid3DBolt.fem",
