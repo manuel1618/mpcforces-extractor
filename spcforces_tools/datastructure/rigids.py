@@ -46,7 +46,33 @@ class MPC:
         part_id2node_ids = {}
         graph = Element.graph
         sub_graph = graph.subgraph(slave_nodes)
+
+        # visualize the graph
+        # nx.draw(sub_graph, with_labels=True)
+        # plt.show()
+
         connected_components = list(nx.connected_components(sub_graph))
+
+        # merge the connected components if they are linked in the graph
+        comps_to_remove = []
+        for i, comp in enumerate(connected_components):
+            if comp in comps_to_remove:
+                continue
+            node1 = list(comp)[0]
+            for _, comp2 in enumerate(connected_components):
+                if comp == comp2:
+                    continue
+                if comp2 in comps_to_remove:
+                    continue
+                node2 = list(comp2)[0]
+                # check if we can trvael from one component to another in the graph
+                if nx.has_path(graph, node1, node2):
+                    connected_components[i] = comp.union(comp2)
+                    comps_to_remove.append(comp2)
+        # remove the empty components
+        connected_components = [
+            comp for comp in connected_components if comp not in comps_to_remove
+        ]
 
         for i, connected_component in enumerate(connected_components):
             part_id2node_ids[i + 1] = [node.id for node in connected_component]
@@ -62,10 +88,12 @@ class MPC:
         forces = {}
         part_id2node_ids = {}
 
+        slave_nodes = self.nodes.copy()
+
         if use_graph:
-            part_id2node_ids = self.get_part_id2node_ids_graph(self.nodes.copy())
+            part_id2node_ids = self.get_part_id2node_ids_graph(slave_nodes)
         else:
-            part_id2node_ids = self.get_part_id2node_ids(self.nodes.copy())
+            part_id2node_ids = self.get_part_id2node_ids(slave_nodes)
 
         # add the forces for each part
         for part_id, node_ids in part_id2node_ids.items():
