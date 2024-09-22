@@ -1,4 +1,6 @@
 from typing import Dict, List
+import time
+import matplotlib.pyplot as plt
 import networkx as nx
 from spcforces_tools.datastructure.entities import Node, Element
 
@@ -16,7 +18,7 @@ class MPC:
         self.nodes: List = nodes
         self.dofs: int = dofs
         self.part_id2force = {}
-        self.part_id2slave_node_ids = {}
+        self.part_id2node_ids = {}
 
     def get_part_id2node_ids(self, node_stack: List) -> Dict:
         """
@@ -43,36 +45,38 @@ class MPC:
         """
         This method is used to get the part_id2node_ids using the graph
         """
+
+        start_time = time.time()
+        print("Building the part_id2node_ids using the graph")
         part_id2node_ids = {}
-        graph = Element.graph
+        graph = Element.graph.copy()
+
+        print("...Caluclatiung Sub Graph")
         sub_graph = graph.subgraph(slave_nodes)
 
         # visualize the graph
-        # nx.draw(sub_graph, with_labels=True)
+        pos = nx.spring_layout(sub_graph)
+        nx.draw(
+            sub_graph,
+            pos=pos,
+            with_labels=True,
+            labels={node: node.id for node in sub_graph.nodes()},
+        )
         # plt.show()
+        plt.savefig("data/output/sub_graph.png")
 
+        print("...Calculating connected components")
         connected_components = list(nx.connected_components(sub_graph))
 
-        # merge the connected components if they are linked in the graph
-        comps_to_remove = []
-        for i, comp in enumerate(connected_components):
-            if comp in comps_to_remove:
-                continue
-            node1 = list(comp)[0]
-            for _, comp2 in enumerate(connected_components):
-                if comp == comp2:
-                    continue
-                if comp2 in comps_to_remove:
-                    continue
-                node2 = list(comp2)[0]
-                # check if we can trvael from one component to another in the graph
-                if nx.has_path(graph, node1, node2):
-                    connected_components[i] = comp.union(comp2)
-                    comps_to_remove.append(comp2)
-        # remove the empty components
-        connected_components = [
-            comp for comp in connected_components if comp not in comps_to_remove
-        ]
+        # debug write this to a file
+        # def stringizer(node):
+        # return str(node.id)
+        # nx.write_gml(sub_graph, "data/output/sub_graph.gml", stringizer)
+
+        print(
+            "Finished calculating the connected components, returning part_id2node_ids"
+        )
+        print("..took ", round(time.time() - start_time, 2), "seconds")
 
         for i, connected_component in enumerate(connected_components):
             part_id2node_ids[i + 1] = [node.id for node in connected_component]
@@ -86,18 +90,16 @@ class MPC:
         This method is used to sum the forces by connected - parts NEW
         """
         forces = {}
-        part_id2node_ids = {}
 
         slave_nodes = self.nodes.copy()
 
         if use_graph:
-            part_id2node_ids = self.get_part_id2node_ids_graph(slave_nodes)
+            self.part_id2node_ids = self.get_part_id2node_ids_graph(slave_nodes)
         else:
-            part_id2node_ids = self.get_part_id2node_ids(slave_nodes)
+            self.part_id2node_ids = self.get_part_id2node_ids(slave_nodes)
 
         # add the forces for each part
-        for part_id, node_ids in part_id2node_ids.items():
-            self.part_id2slave_node_ids[part_id] = node_ids
+        for part_id, node_ids in self.part_id2node_ids.items():
 
             forces[part_id] = [0, 0, 0, 0, 0, 0]
 
