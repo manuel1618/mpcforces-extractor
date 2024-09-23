@@ -1,6 +1,7 @@
 from typing import Dict, List
 import time
-import matplotlib.pyplot as plt
+
+# import matplotlib.pyplot as plt
 import networkx as nx
 from spcforces_tools.datastructure.entities import Node, Element
 
@@ -41,32 +42,27 @@ class MPC:
 
         return part_id2node_ids
 
-    def get_part_id2node_ids_graph(self, slave_nodes: List) -> Dict:
+    def get_part_id2node_ids_graph(self, graph: nx.Graph) -> Dict:
         """
         This method is used to get the part_id2node_ids using the graph
         """
-
         start_time = time.time()
         print("Building the part_id2node_ids using the graph")
         part_id2node_ids = {}
-        graph = Element.graph.copy()
-
-        print("...Caluclatiung Sub Graph")
-        sub_graph = graph.subgraph(slave_nodes)
 
         # visualize the graph
-        pos = nx.spring_layout(sub_graph)
-        nx.draw(
-            sub_graph,
-            pos=pos,
-            with_labels=True,
-            labels={node: node.id for node in sub_graph.nodes()},
-        )
+        # pos = nx.spring_layout(graph)
+        # nx.draw(
+        #     graph,
+        #     pos=pos,
+        #     with_labels=True,
+        #     labels={node: node.id for node in graph.nodes()},
+        # )
         # plt.show()
-        plt.savefig("data/output/sub_graph.png")
+        # plt.savefig("data/output/sub_graph.png")
 
         print("...Calculating connected components")
-        connected_components = list(nx.connected_components(sub_graph))
+        connected_components = list(nx.connected_components(graph))
 
         # debug write this to a file
         # def stringizer(node):
@@ -84,7 +80,7 @@ class MPC:
         return part_id2node_ids
 
     def sum_forces_by_connected_parts(
-        self, node_id2force: Dict, use_graph: bool
+        self, node_id2force: Dict, use_graph: bool, use_complete_graph: bool = True
     ) -> Dict:
         """
         This method is used to sum the forces by connected - parts NEW
@@ -94,7 +90,24 @@ class MPC:
         slave_nodes = self.nodes.copy()
 
         if use_graph:
-            self.part_id2node_ids = self.get_part_id2node_ids_graph(slave_nodes)
+
+            graph = Element.graph.copy()
+
+            if use_complete_graph:
+
+                # get the connected nodes for each part from all nodes,
+                # then get the intersection with the slave nodes = the group of nodes
+
+                part_id2connected_node_ids = self.get_part_id2node_ids_graph(graph)
+
+                self.part_id2node_ids = self.get_slave_nodes_intersection(
+                    part_id2connected_node_ids
+                )
+
+            else:
+                self.part_id2node_ids = self.get_part_id2node_ids_graph(
+                    graph.subgraph(slave_nodes)
+                )
         else:
             self.part_id2node_ids = self.get_part_id2node_ids(slave_nodes)
 
@@ -127,3 +140,13 @@ class MPC:
 
         self.part_id2force = forces
         return forces
+
+    def get_slave_nodes_intersection(self, part_id2connected_node_ids: Dict) -> Dict:
+        """
+        This method is used to get the slave nodes intersection
+        """
+        part_id2node_ids = {}
+        slave_node_ids = [node.id for node in self.nodes]
+        for part_id, node_ids in part_id2connected_node_ids.items():
+            part_id2node_ids[part_id] = list(set(node_ids).intersection(slave_node_ids))
+        return part_id2node_ids
