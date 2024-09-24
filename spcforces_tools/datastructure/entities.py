@@ -1,6 +1,7 @@
 from typing import List
 from scipy.spatial import KDTree
 import numpy as np
+import networkx as nx
 
 
 class Element1D:
@@ -31,6 +32,7 @@ class Element:
     property_id: int
     nodes: list = []
     all_elements = []
+    graph = nx.Graph()
     centroid: list = []
 
     def __init__(self, element_id: int, property_id: int, nodes: list):
@@ -39,6 +41,17 @@ class Element:
         self.nodes = nodes
         for node in nodes:
             node.add_element(self)
+
+        # Graph - careful: Careless implementation regarding nodes:
+        # every node is connected to every other node.
+        # Real implementation should be done depending on element keyword TODO
+        for node in nodes:
+            for node2 in nodes:
+                if node.id != node2.id:
+                    # add the edge to the graph if it does not exist
+                    if not Element.graph.has_edge(node, node2):
+                        Element.graph.add_edge(node, node2)
+
         self.centroid = self.__calculate_centroid()
         self.neighbors = []
         Element.all_elements.append(self)
