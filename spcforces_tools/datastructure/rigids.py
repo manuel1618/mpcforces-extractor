@@ -15,32 +15,22 @@ class MPC:
         self.nodes: List = nodes
         self.dofs: int = dofs
         self.part_id2force = {}
-        self.part_id2slave_node_ids = {}
+        self.part_id2node_ids = {}
 
-    def sum_forces_by_connected_parts(self, node_id2force: Dict):
+    def sum_forces_by_connected_parts(
+        self, node_id2force: Dict, part_id2connected_node_ids: Dict
+    ) -> Dict:
         """
         This method is used to sum the forces by connected - parts NEW
         """
         forces = {}
-        part_id2node_ids = {}
 
-        # get the connected nodes for each part (attached elements)
-        node_stack = self.nodes.copy()
-        part_id = 1
-        while len(node_stack) > 0:
-            node = node_stack.pop()
-            element = node.connected_elements[0]
-            connected_nodes = element.get_all_connected_nodes()
-            part_nodes = set(connected_nodes).intersection(self.nodes)
-            for node_temp in part_nodes:
-                if node_temp in node_stack:
-                    node_stack.remove(node_temp)
-            part_id2node_ids[part_id] = [node.id for node in part_nodes]
-            part_id += 1
+        self.part_id2node_ids = self.__get_slave_nodes_intersection(
+            part_id2connected_node_ids
+        )
 
         # add the forces for each part
-        for part_id, node_ids in part_id2node_ids.items():
-            self.part_id2slave_node_ids[part_id] = node_ids
+        for part_id, node_ids in self.part_id2node_ids.items():
 
             forces[part_id] = [0, 0, 0, 0, 0, 0]
 
@@ -68,3 +58,13 @@ class MPC:
 
         self.part_id2force = forces
         return forces
+
+    def __get_slave_nodes_intersection(self, part_id2connected_node_ids: Dict) -> Dict:
+        """
+        This method is used to get the slave nodes intersection
+        """
+        part_id2node_ids = {}
+        slave_node_ids = [node.id for node in self.nodes]
+        for part_id, node_ids in part_id2connected_node_ids.items():
+            part_id2node_ids[part_id] = list(set(node_ids).intersection(slave_node_ids))
+        return part_id2node_ids
