@@ -1,7 +1,10 @@
 import os
 import time
+from typing import Dict
+import networkx as nx
 from spcforces_tools.reader.modelreaders import FemFileReader
 from spcforces_tools.reader.mpcforces_reader import MPCForcesReader
+from spcforces_tools.datastructure.entities import Element
 
 
 class MPCForceExtractor:
@@ -29,6 +32,27 @@ class MPCForceExtractor:
 
         self.elements_1D = []
 
+    def get_part_id2node_ids_graph(self, graph: nx.Graph) -> Dict:
+        """
+        This method is used to get the part_id2node_ids using the graph
+        """
+        start_time = time.time()
+        print("Building the part_id2node_ids using the graph")
+        part_id2node_ids = {}
+
+        print("...Calculating connected components")
+        connected_components = list(nx.connected_components(graph))
+
+        print(
+            "Finished calculating the connected components, returning part_id2node_ids"
+        )
+        print("..took ", round(time.time() - start_time, 2), "seconds")
+
+        for i, connected_component in enumerate(connected_components):
+            part_id2node_ids[i + 1] = [node.id for node in connected_component]
+
+        return part_id2node_ids
+
     def get_mpc_forces(self, block_size: int) -> dict:
         """
         This method reads the FEM File and the MPCF file and extracts the forces
@@ -51,9 +75,16 @@ class MPCForceExtractor:
 
         mpc2forces = {}
 
+        # Get the connected Nodes for all nodes
+        graph = Element.graph.copy()
+        part_id2connected_node_ids = self.get_part_id2node_ids_graph(graph)
+
         for mpc in reader.rigid_elements:
             node2forces = MPCForcesReader(self.mpc_file_path).get_nodes2forces()
-            part_id2forces = mpc.sum_forces_by_connected_parts(node2forces, True)
+
+            part_id2forces = mpc.sum_forces_by_connected_parts(
+                node2forces, part_id2connected_node_ids
+            )
             mpc2forces[mpc] = part_id2forces
 
             part_id2node_ids = mpc.part_id2node_ids
@@ -127,7 +158,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "flange"
+    model_name = "PlateSimpleRigid3DMidBroken"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
