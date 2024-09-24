@@ -9,9 +9,10 @@ max-args=10
 max-locals=25
 max-attributes=15
 
+
 [MASTER]
 ignore-patterns=test_.*.py
 
 [MESSAGES CONTROL]
 disable=
-    missing-module-docstring,too-few-public-methods,broad-exception-caught,duplicate-code,C0103
+    missing-module-docstring,too-few-public-methods,broad-exception-caught,duplicate-code,C0103,R0917
