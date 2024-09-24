@@ -1,6 +1,7 @@
 from typing import List, Dict
-from spcforces_tools.datastructure.rigids import MPC
+from spcforces_tools.datastructure.rigids import MPC, MPC_CONFIG
 from spcforces_tools.datastructure.entities import Element1D, Element, Node
+from spcforces_tools.datastructure.forces import Force
 
 
 class FemFileReader:
@@ -27,6 +28,7 @@ class FemFileReader:
     nodes_id2node: Dict = {}
     rigid_elements: List[MPC] = []
     node2property = {}
+    force_id2force: Dict = {}
     blocksize: int = None
 
     def __init__(self, file_path, block_size: int):
@@ -165,14 +167,17 @@ class FemFileReader:
             dofs: int = None
             node_ids: List = []
             master_node = None
+            mpc_config = None
 
             if line.startswith("RBE3"):
+                mpc_config = MPC_CONFIG.RBE3
                 master_node_id = int(line_content[3])
                 master_node = self.nodes_id2node[master_node_id]
                 dofs = int(line_content[4])
                 node_ids = line_content[7:]
 
             elif line.startswith("RBE2"):
+                mpc_config = MPC_CONFIG.RBE2
                 master_node_id = int(line_content[2])
                 master_node = self.nodes_id2node[master_node_id]
                 dofs = int(line_content[3])
@@ -201,4 +206,24 @@ class FemFileReader:
             ]
             # cast to int
             nodes = [self.nodes_id2node[id] for id in node_ids]
-            self.rigid_elements.append(MPC(element_id, master_node, nodes, dofs))
+            self.rigid_elements.append(
+                MPC(element_id, mpc_config, master_node, nodes, dofs)
+            )
+
+    def get_forces(self):
+        """
+        This method is used to extract the forces from the .fem file
+        """
+        for i, _ in enumerate(self.file_content):
+            line = self.file_content[i]
+
+            if line.startswith("FORCE"):
+                line_content = self.split_line(line)
+                force_id = int(line_content[1])
+                node_id = int(line_content[2])
+                system_id = int(line_content[3])
+                scale_factor = float(line_content[4])
+                components = line_content[5:8]
+                FemFileReader.force_id2force[force_id] = Force(
+                    force_id, node_id, system_id, scale_factor, components
+                )
