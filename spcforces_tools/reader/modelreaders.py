@@ -207,7 +207,13 @@ class FemFileReader:
             # cast to int
             nodes = [self.nodes_id2node[id] for id in node_ids]
             self.rigid_elements.append(
-                MPC(element_id, mpc_config, master_node, nodes, dofs)
+                MPC(
+                    element_id=element_id,
+                    mpc_config=mpc_config,
+                    master_node=master_node,
+                    nodes=nodes,
+                    dofs=dofs,
+                )
             )
 
     def get_forces(self):
@@ -223,7 +229,13 @@ class FemFileReader:
                 node_id = int(line_content[2])
                 system_id = int(line_content[3])
                 scale_factor = float(line_content[4])
-                components = line_content[5:8]
-                FemFileReader.force_id2force[force_id] = Force(
-                    force_id, node_id, system_id, scale_factor, components
+                components_from_file = line_content[5:8]
+
+                force = Force(
+                    force_id=force_id,
+                    node_id=node_id,
+                    system_id=system_id,
+                    scale_factor=scale_factor,
+                    compenents_from_file=components_from_file,
                 )
+                FemFileReader.force_id2force[force_id] = force

@@ -13,6 +13,7 @@ class Force:
 
     def __init__(
         self,
+        *,
         force_id: int,
         node_id: int,
         system_id: int,

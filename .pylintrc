@@ -4,6 +4,7 @@ max-line-length=120
 [DESIGN]
 # Maximum number of arguments for a function / method
 max-args=10
+max-positional-arguments=5
 
 # Maximum number of local variables for a function / method
 max-locals=25
@@ -15,4 +16,4 @@ ignore-patterns=test_.*.py
 
 [MESSAGES CONTROL]
 disable=
-    missing-module-docstring,too-few-public-methods,broad-exception-caught,duplicate-code,C0103,R0917
+    missing-module-docstring,too-few-public-methods,broad-exception-caught,duplicate-code,C0103

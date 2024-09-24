@@ -9,7 +9,13 @@ class TestRigids(unittest.TestCase):
         """
 
         # Test the init method
-        mpc = MPC(1, 0, MPC_CONFIG.RBE2, [1, 2], "123")
+        mpc = MPC(
+            element_id=1,
+            mpc_config=MPC_CONFIG.RBE2,
+            master_node=0,
+            nodes=[1, 2],
+            dofs="123",
+        )
         self.assertEqual(mpc.element_id, 1)
         self.assertEqual(mpc.nodes, [1, 2])
         self.assertEqual(mpc.dofs, "123")
