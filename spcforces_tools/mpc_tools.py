@@ -139,6 +139,9 @@ class MPCForceExtractor:
 
                 file.write(f"  Slave Nodes: {len(rigid_element.nodes)}\n")
                 for part_id in sorted(part_id2forces.keys()):
+                    number_of_slave_nodes = len(rigid_element.part_id2node_ids[part_id])
+                    if number_of_slave_nodes == 0:
+                        continue
                     forces = part_id2forces[part_id]
                     file.write(f"  Part ID: {part_id}\n")
                     file.write(
@@ -158,7 +161,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "PlateSimpleRigid3DMidBroken"
+    model_name = "flangeContact"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
