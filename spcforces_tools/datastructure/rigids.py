@@ -19,6 +19,7 @@ class MPC:
 
     def __init__(
         self,
+        *,
         element_id: int,
         mpc_config: MPC_CONFIG,
         master_node: Node,
