@@ -41,6 +41,8 @@ class FemFileReader:
         self.__read_nodes()
         self.elements_1D = []
         self.elements_3D = []
+        self.endGridLine = None
+        self.endElementLine = None
 
     def __read_lines(self) -> List:
         """
@@ -58,8 +60,10 @@ class FemFileReader:
         """
         This method is used to read the nodes from the .fem file
         """
-        for line in self.file_content:
+        grids_found = False
+        for i, line in enumerate(self.file_content):
             if line.startswith("GRID"):
+                grids_found = True
                 line_content = self.split_line(line)
                 node_id = int(line_content[1])
                 x = self.__node_coord_parser(line_content[3])
@@ -67,6 +71,9 @@ class FemFileReader:
                 z = self.__node_coord_parser(line_content[5])
                 node = Node(node_id, [x, y, z])
                 self.nodes_id2node[node.id] = node
+                if grids_found and not line.startswith("GRID"):
+                    self.endGridLine = i
+                    break
 
     def __node_coord_parser(self, coord_str: str) -> float:
         """
@@ -97,12 +104,14 @@ class FemFileReader:
         line_content = [line.strip() for line in line_content]
         return line_content
 
-    def bulid_node2property(self):
+    def create_entities(self):
         """
         This method is used to build the node2property dictionary.
         Its the main info needed for getting the forces by property
         """
-        for i, _ in enumerate(self.file_content):
+        elements_found = False
+        for i, _ in enumerate(self.file_content[self.endGridLine :]):
+
             line = self.file_content[i]
 
             line_content = self.split_line(line)
@@ -117,6 +126,7 @@ class FemFileReader:
             property_id = int(line_content[2])
 
             if element_keyword in ["CBEAM", "CBAR", "CTUBE", "CROD"]:
+                elements_found = True
                 element = Element1D(
                     int(line_content[1]),
                     property_id,
@@ -148,6 +158,10 @@ class FemFileReader:
                 if node not in self.node2property:
                     self.node2property[node] = property_id
 
+            if elements_found and line.startswith("**"):
+                self.endElementLine = i
+                break
+
     def get_rigid_elements(self):
         """
         This method is used to extract the rigid elements from the .fem file
@@ -156,7 +170,7 @@ class FemFileReader:
 
         element_keywords = ["RBE2", "RBE3"]
 
-        for i, _ in enumerate(self.file_content):
+        for i, _ in enumerate(self.file_content[self.endGridLine :]):
             line = self.file_content[i]
 
             if line.split(" ")[0] not in element_keywords:
@@ -220,7 +234,7 @@ class FemFileReader:
         """
         This method is used to extract the loads from the .fem file (currently forces and moments)
         """
-        for i, _ in enumerate(self.file_content):
+        for i, _ in enumerate(self.file_content[self.endElementLine :]):
             line = self.file_content[i]
 
             if line.startswith("FORCE"):
