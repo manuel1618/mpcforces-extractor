@@ -62,7 +62,7 @@ class MPCForceExtractor:
         reader = FemFileReader(self.fem_file_path, block_size)
         print("Reading the FEM file")
         start_time = time.time()
-        reader.bulid_node2property()
+        reader.create_entities()
 
         print("..took ", round(time.time() - start_time, 2), "seconds")
         print("Building the mpcs")
@@ -192,7 +192,8 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "flangeMoment"
+    model_name = "PlateSimpleRigid3DBolt"
+    model_name = "flangeFine"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(

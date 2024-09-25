@@ -49,9 +49,9 @@ class TestFemFileReader(unittest.TestCase):
     @patch(
         "spcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
-    def test_bulid_node2property(self, mock_read_lines):
+    def test_create_entities(self, mock_read_lines):
         """
-        Test the bulid_node2property method. Make sure the node2property is built correctly
+        Test the create_entities method. Make sure the node2property is built correctly
         """
         mock_read_lines.return_value = [
             "GRID           1        -16.889186.0    13.11648\n",
@@ -68,7 +68,7 @@ class TestFemFileReader(unittest.TestCase):
 
         fem_file_reader = FemFileReader("test.fem", 8)
 
-        fem_file_reader.bulid_node2property()
+        fem_file_reader.create_entities()
         self.assertEqual(fem_file_reader.node2property, {1: 1, 2: 1, 3: 1, 4: 1, 5: 1})
 
     @patch(
