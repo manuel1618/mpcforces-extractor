@@ -5,6 +5,7 @@ import networkx as nx
 from spcforces_tools.reader.modelreaders import FemFileReader
 from spcforces_tools.reader.mpcforces_reader import MPCForcesReader
 from spcforces_tools.datastructure.entities import Element
+from spcforces_tools.datastructure.loads import Force, Moment
 
 
 class MPCForceExtractor:
@@ -69,6 +70,7 @@ class MPCForceExtractor:
         reader.get_rigid_elements()
         print("..took ", round(time.time() - start_time, 2), "seconds")
 
+        reader.get_loads()
         # Element.get_neighbors()
 
         self.elements_1D = reader.elements_1D
@@ -93,7 +95,8 @@ class MPCForceExtractor:
                 self.output_folder, f"RigidElement_{mpc.element_id}.txt"
             )
             with open(file_path_out, "w", encoding="utf-8") as file:
-                file.write(f"Rigid Element ID: {mpc.element_id}\n")
+                file.write(f"MPC Element ID: {mpc.element_id}\n")
+                file.write(f"  MPC Config: {mpc.mpc_config}\n")
                 master_node = mpc.master_node
                 file.write(f"  Master Node ID: {master_node.id}\n")
                 file.write(f"  Master Node Coords: {master_node.coords}\n")
@@ -103,13 +106,14 @@ class MPCForceExtractor:
                 for part_id in sorted(part_id2node_ids.keys()):
                     node_ids = part_id2node_ids[part_id]
                     file.write(f"  Part ID: {part_id}\n")
+
                     file.write(f"    Slave Nodes: {len(node_ids)}\n")
                     node_ids_str = ", ".join([str(node_id) for node_id in node_ids])
                     file.write(f"    {node_ids_str}\n")
 
         return mpc2forces
 
-    def write_suammry(self, rigid_element2part2forces: dict):
+    def write_suammry(self, mpc_element2part2forces: dict):
         """
         This method writes the summary of the forces extracted from the MPC forces file
         """
@@ -126,9 +130,34 @@ class MPCForceExtractor:
             file.write(f"Input MPC forces file: {self.mpc_file_path}\n")
             file.write("\n")
 
-            for rigid_element, part_id2forces in rigid_element2part2forces.items():
-                file.write(f"Rigid Element ID: {rigid_element.element_id}\n")
-                master_node = rigid_element.master_node
+            for mpc, part_id2forces in mpc_element2part2forces.items():
+                file.write(f"Rigid Element ID: {mpc.element_id}\n")
+                file.write(f"  MPC Config: {mpc.mpc_config.name}\n")
+
+                # Forces present
+                for _, load in FemFileReader.load_id2load.items():
+
+                    load_x = round(load.compenents[0], 3)
+                    load_y = round(load.compenents[1], 3)
+                    load_z = round(load.compenents[2], 3)
+
+                    # check if load is instance of force or a moment
+                    load_type = "None"
+                    if isinstance(load, Force):
+                        load_type = "Force"
+                    if isinstance(load, Moment):
+                        load_type = "Moment"
+
+                    if load.node_id in [mpc.master_node.id]:
+                        file.write(
+                            f"  {load_type} at Master ID: {load.id}; {load_x},{load_y},{load_z}\n"
+                        )
+                    if load.node_id in [node.id for node in mpc.nodes]:
+                        file.write(
+                            f"  {load_type} at Slave ID: {load.id}; {load_x},{load_y},{load_z}\n"
+                        )
+
+                master_node = mpc.master_node
                 file.write(f"  Master Node ID: {master_node.id}\n")
                 file.write(f"  Master Node Coords: {master_node.coords}\n")
                 for element1D in self.elements_1D:
@@ -137,16 +166,18 @@ class MPCForceExtractor:
                             f"  Element ID: {element1D.id} associated with the master Node\n"
                         )
 
-                file.write(f"  Slave Nodes: {len(rigid_element.nodes)}\n")
+                file.write(f"  Slave Nodes: {len(mpc.nodes)}\n")
                 for part_id in sorted(part_id2forces.keys()):
-                    number_of_slave_nodes = len(rigid_element.part_id2node_ids[part_id])
+                    number_of_slave_nodes = len(mpc.part_id2node_ids[part_id])
                     if number_of_slave_nodes == 0:
                         continue
                     forces = part_id2forces[part_id]
                     file.write(f"  Part ID: {part_id}\n")
+                    node_ids = mpc.part_id2node_ids[part_id]
                     file.write(
-                        f"    Slave Nodes: {len(rigid_element.part_id2node_ids[part_id])}\n"
+                        f"    First 5 Slave Nodes for Location {node_ids[1:6]}\n"
                     )
+                    file.write(f"    Slave Nodes: {len(node_ids)}\n")
                     force_names = ["FX", "FY", "FZ", "MX", "MY", "MZ"]
                     for force, force_name in zip(forces, force_names):
                         file.write(f"    {force_name}: {force:.3f}\n")
@@ -161,7 +192,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "flangeContact"
+    model_name = "flangeMoment"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
