@@ -5,6 +5,7 @@ import networkx as nx
 from spcforces_tools.reader.modelreaders import FemFileReader
 from spcforces_tools.reader.mpcforces_reader import MPCForcesReader
 from spcforces_tools.datastructure.entities import Element
+from spcforces_tools.datastructure.loads import Force, Moment
 
 
 class MPCForceExtractor:
@@ -69,7 +70,7 @@ class MPCForceExtractor:
         reader.get_rigid_elements()
         print("..took ", round(time.time() - start_time, 2), "seconds")
 
-        reader.get_forces()
+        reader.get_loads()
         # Element.get_neighbors()
 
         self.elements_1D = reader.elements_1D
@@ -134,19 +135,26 @@ class MPCForceExtractor:
                 file.write(f"  MPC Config: {mpc.mpc_config.name}\n")
 
                 # Forces present
-                for _, force in FemFileReader.force_id2force.items():
+                for _, load in FemFileReader.load_id2load.items():
 
-                    force_x = round(force.compenents[0], 3)
-                    force_y = round(force.compenents[1], 3)
-                    force_z = round(force.compenents[2], 3)
+                    load_x = round(load.compenents[0], 3)
+                    load_y = round(load.compenents[1], 3)
+                    load_z = round(load.compenents[2], 3)
 
-                    if force.node_id in [mpc.master_node.id]:
+                    # check if load is instance of force or a moment
+                    load_type = "None"
+                    if isinstance(load, Force):
+                        load_type = "Force"
+                    if isinstance(load, Moment):
+                        load_type = "Moment"
+
+                    if load.node_id in [mpc.master_node.id]:
                         file.write(
-                            f"  Force at Master ID: {force.id}; {force_x},{force_y},{force_z}\n"
+                            f"  {load_type} at Master ID: {load.id}; {load_x},{load_y},{load_z}\n"
                         )
-                    if force.node_id in [node.id for node in mpc.nodes]:
+                    if load.node_id in [node.id for node in mpc.nodes]:
                         file.write(
-                            f"  Force at Slave ID: {force.id}; {force_x},{force_y},{force_z}\n"
+                            f"  {load_type} at Slave ID: {load.id}; {load_x},{load_y},{load_z}\n"
                         )
 
                 master_node = mpc.master_node
@@ -184,7 +192,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "flangeContact"
+    model_name = "flangeMoment"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(

@@ -19,4 +19,3 @@ class TestRigids(unittest.TestCase):
         self.assertEqual(mpc.element_id, 1)
         self.assertEqual(mpc.nodes, [1, 2])
         self.assertEqual(mpc.dofs, "123")
-        # TODO
