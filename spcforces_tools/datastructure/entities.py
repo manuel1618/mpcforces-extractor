@@ -1,7 +1,31 @@
-from typing import List
+from typing import List, Dict
 from scipy.spatial import KDTree
 import numpy as np
 import networkx as nx
+
+
+class Node:
+    """
+    This class is used to store the nodes
+    """
+
+    id: int
+    coords: List = []
+    node_id2node: Dict = {}
+    connected_elements: List = []
+
+    def __init__(self, node_id: int, coords: List):
+        self.id = node_id
+        self.coords = coords
+        Node.node_id2node[node_id] = self
+        self.connected_elements = []
+
+    def add_element(self, element):
+        """
+        This method adds the element to the connected elements
+        """
+        if element not in self.connected_elements:
+            self.connected_elements.append(element)
 
 
 class Element1D:
@@ -11,11 +35,11 @@ class Element1D:
 
     id: int
     property_id: int
-    node1: int
-    node2: int
+    node1: Node
+    node2: Node
     all_elements = []
 
-    def __init__(self, element_id: int, property_id: int, node1: int, node2: int):
+    def __init__(self, element_id: int, property_id: int, node1: Node, node2: Node):
         self.id = element_id
         self.property_id = property_id
         self.node1 = node1
@@ -130,27 +154,3 @@ class Element:
                     connected_nodes.append(node)
 
         return connected_nodes
-
-
-class Node:
-    """
-    This class is used to store the nodes
-    """
-
-    id: int
-    coords: List = []
-    all_nodes: List = []
-    connected_elements: List = []
-
-    def __init__(self, node_id: int, coords: List):
-        self.id = node_id
-        self.coords = coords
-        Node.all_nodes.append(self)
-        self.connected_elements = []
-
-    def add_element(self, element):
-        """
-        This method adds the element to the connected elements
-        """
-        if element not in self.connected_elements:
-            self.connected_elements.append(element)

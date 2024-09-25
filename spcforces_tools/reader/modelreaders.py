@@ -127,15 +127,17 @@ class FemFileReader:
 
             if element_keyword in ["CBEAM", "CBAR", "CTUBE", "CROD"]:
                 elements_found = True
+                element_id = int(line_content[1])
+                node1 = Node.node_id2node[int(line_content[3])]
+                node2 = Node.node_id2node[int(line_content[4])]
                 element = Element1D(
-                    int(line_content[1]),
+                    element_id,
                     property_id,
-                    int(line_content[3]),
-                    int(line_content[4]),
+                    node1,
+                    node2,
                 )
                 self.elements_1D.append(element)
-                node_ids = line_content[3:5]
-                nodes = [self.nodes_id2node[int(node_id)] for node_id in node_ids]
+                nodes = [node1, node2]
 
             else:
                 node_ids = line_content[3:]
@@ -153,10 +155,8 @@ class FemFileReader:
                     Element(int(line_content[1]), property_id, nodes)
                 )
 
-            for node in node_ids:
-                node = int(node)  # cast to int
-                if node not in self.node2property:
-                    self.node2property[node] = property_id
+            for node in nodes:
+                self.node2property[node.id] = property_id
 
             if elements_found and line.startswith("**"):
                 self.endElementLine = i
