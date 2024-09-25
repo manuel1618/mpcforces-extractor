@@ -15,9 +15,10 @@ class MPCForceExtractor:
     """
 
     def __init__(self, fem_file_path, mpc_file_path, output_folder: str):
-        self.fem_file_path = fem_file_path
-        self.mpc_file_path = mpc_file_path
-        self.output_folder = output_folder
+        self.fem_file_path: str = fem_file_path
+        self.mpc_file_path: str = mpc_file_path
+        self.output_folder: str = output_folder
+        self.reader: FemFileReader = None
 
         # create output folder if it does not exist, otherwise delete the content
         if os.path.exists(output_folder):
@@ -30,8 +31,6 @@ class MPCForceExtractor:
                     print(e)
         else:
             os.makedirs(output_folder, exist_ok=True)
-
-        self.elements_1D = []
 
     def get_part_id2node_ids_graph(self, graph: nx.Graph) -> Dict:
         """
@@ -59,21 +58,19 @@ class MPCForceExtractor:
         This method reads the FEM File and the MPCF file and extracts the forces
         in a dictory with the rigid element as the key and the property2forces dict as the value
         """
-        reader = FemFileReader(self.fem_file_path, block_size)
+        self.reader = FemFileReader(self.fem_file_path, block_size)
         print("Reading the FEM file")
         start_time = time.time()
-        reader.bulid_node2property()
+        self.reader.create_entities()
 
         print("..took ", round(time.time() - start_time, 2), "seconds")
         print("Building the mpcs")
         start_time = time.time()
-        reader.get_rigid_elements()
+        self.reader.get_rigid_elements()
         print("..took ", round(time.time() - start_time, 2), "seconds")
 
-        reader.get_loads()
+        self.reader.get_loads()
         # Element.get_neighbors()
-
-        self.elements_1D = reader.elements_1D
 
         mpc2forces = {}
 
@@ -81,7 +78,7 @@ class MPCForceExtractor:
         graph = Element.graph.copy()
         part_id2connected_node_ids = self.get_part_id2node_ids_graph(graph)
 
-        for mpc in reader.rigid_elements:
+        for mpc in self.reader.rigid_elements:
             node2forces = MPCForcesReader(self.mpc_file_path).get_nodes2forces()
 
             part_id2forces = mpc.sum_forces_by_connected_parts(
@@ -136,11 +133,9 @@ class MPCForceExtractor:
 
                 # Forces present
                 for _, load in FemFileReader.load_id2load.items():
-
                     load_x = round(load.compenents[0], 3)
                     load_y = round(load.compenents[1], 3)
                     load_z = round(load.compenents[2], 3)
-
                     # check if load is instance of force or a moment
                     load_type = "None"
                     if isinstance(load, Force):
@@ -157,14 +152,16 @@ class MPCForceExtractor:
                             f"  {load_type} at Slave ID: {load.id}; {load_x},{load_y},{load_z}\n"
                         )
 
+                # 1D elements associated with the master node
+                for element1D in self.reader.elements_1D:
+                    if mpc.master_node in [element1D.node1, element1D.node2]:
+                        file.write(
+                            f"  1D Element ID: {element1D.id} associated with the master Node\n"
+                        )
+
                 master_node = mpc.master_node
                 file.write(f"  Master Node ID: {master_node.id}\n")
                 file.write(f"  Master Node Coords: {master_node.coords}\n")
-                for element1D in self.elements_1D:
-                    if master_node.id in [element1D.node1, element1D.node2]:
-                        file.write(
-                            f"  Element ID: {element1D.id} associated with the master Node\n"
-                        )
 
                 file.write(f"  Slave Nodes: {len(mpc.nodes)}\n")
                 for part_id in sorted(part_id2forces.keys()):
@@ -192,7 +189,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "flangeMoment"
+    model_name = "PlateSimpleRigid3DBolt"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
