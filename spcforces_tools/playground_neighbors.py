@@ -26,7 +26,7 @@ def main():
     mpc_file_path = input_folder + "/PlateSimpleRigid.mpcf"
 
     reader = FemFileReader(fem_file_path, blocksize)
-    reader.bulid_node2property()
+    reader.create_entities()
     reader.get_rigid_elements()
 
     Element.get_neighbors()
