@@ -1,6 +1,6 @@
-from spcforces_tools.reader.modelreaders import FemFileReader
-from spcforces_tools.reader.mpcforces_reader import MPCForcesReader
-from spcforces_tools.datastructure.entities import Element
+from mpcforces_tools.reader.modelreaders import FemFileReader
+from mpcforces_tools.reader.mpcforces_reader import MPCForcesReader
+from mpcforces_tools.datastructure.entities import Element
 
 
 def main():

@@ -1,5 +1,5 @@
 import unittest
-from spcforces_tools.datastructure.rigids import MPC, MPC_CONFIG
+from mpcforces_tools.datastructure.rigids import MPC, MPC_CONFIG
 
 
 class TestRigids(unittest.TestCase):
