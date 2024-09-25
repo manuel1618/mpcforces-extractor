@@ -2,10 +2,10 @@ import os
 import time
 from typing import Dict
 import networkx as nx
-from spcforces_tools.reader.modelreaders import FemFileReader
-from spcforces_tools.reader.mpcforces_reader import MPCForcesReader
-from spcforces_tools.datastructure.entities import Element
-from spcforces_tools.datastructure.loads import Force, Moment
+from mpcforces_tools.reader.modelreaders import FemFileReader
+from mpcforces_tools.reader.mpcforces_reader import MPCForcesReader
+from mpcforces_tools.datastructure.entities import Element
+from mpcforces_tools.datastructure.loads import Force, Moment
 
 
 class MPCForceExtractor:
