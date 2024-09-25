@@ -1,5 +1,15 @@
 from typing import Dict, List
+from enum import Enum
 from spcforces_tools.datastructure.entities import Node
+
+
+class MPC_CONFIG(Enum):
+    """
+    Enum to represent the MPC configuration
+    """
+
+    RBE2 = 1
+    RBE3 = 2
 
 
 class MPC:
@@ -7,8 +17,17 @@ class MPC:
     This class is a Multiple Point Constraint (MPC) class that is used to store the nodes and the dofs
     """
 
-    def __init__(self, element_id: int, master_node: Node, nodes: List, dofs: str):
+    def __init__(
+        self,
+        *,
+        element_id: int,
+        mpc_config: MPC_CONFIG,
+        master_node: Node,
+        nodes: List,
+        dofs: str,
+    ):
         self.element_id: int = element_id
+        self.mpc_config: MPC_CONFIG = mpc_config
         if master_node is None:
             print("Master_node2coords is None for element_id", element_id)
         self.master_node = master_node
