@@ -1,7 +1,7 @@
 from typing import List, Dict
 from spcforces_tools.datastructure.rigids import MPC, MPC_CONFIG
 from spcforces_tools.datastructure.entities import Element1D, Element, Node
-from spcforces_tools.datastructure.forces import Force
+from spcforces_tools.datastructure.loads import Moment, Force
 
 
 class FemFileReader:
@@ -28,7 +28,7 @@ class FemFileReader:
     nodes_id2node: Dict = {}
     rigid_elements: List[MPC] = []
     node2property = {}
-    force_id2force: Dict = {}
+    load_id2load: Dict = {}
     blocksize: int = None
 
     def __init__(self, file_path, block_size: int):
@@ -216,9 +216,9 @@ class FemFileReader:
                 )
             )
 
-    def get_forces(self):
+    def get_loads(self):
         """
-        This method is used to extract the forces from the .fem file
+        This method is used to extract the loads from the .fem file (currently forces and moments)
         """
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i]
@@ -238,4 +238,21 @@ class FemFileReader:
                     scale_factor=scale_factor,
                     compenents_from_file=components_from_file,
                 )
-                FemFileReader.force_id2force[force_id] = force
+                FemFileReader.load_id2load[force_id] = force
+
+            if line.startswith("MOMENT"):
+                line_content = self.split_line(line)
+                moment_id = int(line_content[1])
+                node_id = int(line_content[2])
+                system_id = int(line_content[3])
+                scale_factor = float(line_content[4])
+                components_from_file = line_content[5:8]
+
+                moment = Moment(
+                    moment_id=moment_id,
+                    node_id=node_id,
+                    system_id=system_id,
+                    scale_factor=scale_factor,
+                    compenents_from_file=components_from_file,
+                )
+                FemFileReader.load_id2load[moment_id] = moment
