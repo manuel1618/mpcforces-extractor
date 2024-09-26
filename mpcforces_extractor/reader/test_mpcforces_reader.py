@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import patch
 
-from mpcforces_tools.reader.mpcforces_reader import MPCForcesReader
+from mpcforces_extractor.reader.mpcforces_reader import MPCForcesReader
 
 
 @patch(
-    "mpcforces_tools.reader.mpcforces_reader.MPCForcesReader._MPCForcesReader__read_lines"
+    "mpcforces_extractor.reader.mpcforces_reader.MPCForcesReader._MPCForcesReader__read_lines"
 )
 class TestMPCForcesReader(unittest.TestCase):
     def test_get_nodes2forces(self, mock_read_lines):

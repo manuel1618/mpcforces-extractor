@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import patch
-from mpcforces_tools.reader.modelreaders import FemFileReader
-from mpcforces_tools.datastructure.entities import Node
+from mpcforces_extractor.reader.modelreaders import FemFileReader
+from mpcforces_extractor.datastructure.entities import Node
 
 
 class TestFemFileReader(unittest.TestCase):
 
     # the __read_lines method is a private method, so we need to mock it and return propper file_content
     @patch(
-        "mpcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
+        "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
     def test_init(self, mock_read_lines):
         """
@@ -25,10 +25,10 @@ class TestFemFileReader(unittest.TestCase):
         self.assertEqual(fem_file_reader.blocksize, 8)
 
     @patch(
-        "mpcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
+        "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
     @patch(
-        "mpcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_nodes"
+        "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_nodes"
     )
     def test_split_line(self, mock_read_lines, mock_read_nodes):
         """
@@ -47,7 +47,7 @@ class TestFemFileReader(unittest.TestCase):
         self.assertEqual(line_content, ["12345678", "9"])
 
     @patch(
-        "mpcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
+        "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
     def test_create_entities(self, mock_read_lines):
         """
@@ -72,7 +72,7 @@ class TestFemFileReader(unittest.TestCase):
         self.assertEqual(fem_file_reader.node2property, {1: 1, 2: 1, 3: 1, 4: 1, 5: 1})
 
     @patch(
-        "mpcforces_tools.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
+        "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
     def test_get_rigid_elements(self, mock_read_lines):
         """

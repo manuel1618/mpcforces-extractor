@@ -1,6 +1,6 @@
 from typing import Dict, List
 from enum import Enum
-from mpcforces_tools.datastructure.entities import Node
+from mpcforces_extractor.datastructure.entities import Node
 
 
 class MPC_CONFIG(Enum):
