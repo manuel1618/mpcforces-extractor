@@ -10,28 +10,28 @@ tasks:
   format:
     desc: Format the code
     cmds:
-      - python -m poetry run black mpcforces_tools
+      - python -m poetry run black mpcforces_extractor
 
   lint:
     desc: Lint the code
     cmds:
-      - python -m poetry run black --check mpcforces_tools
+      - python -m poetry run black --check mpcforces_extractor
       - |
-        python -m poetry run flake8 mpcforces_tools \
+        python -m poetry run flake8 mpcforces_extractor \
            --show-source \
            --statistics \
            --count
-      - python -m poetry run pylint mpcforces_tools
+      - python -m poetry run pylint mpcforces_extractor
 
   test:
     desc: Run tests
     cmds:
       - >
         python -m poetry run pytest 
-        --cov=mpcforces_tools 
+        --cov=mpcforces_extractor 
         --cov-report=html
 
   run:
     desc: Run the application
     cmds:
-      - poetry run python -m mpcforces_tools.mpc_tools
+      - poetry run python -m mpcforces_extractor.main

@@ -2,10 +2,10 @@ import os
 import time
 from typing import Dict
 import networkx as nx
-from mpcforces_tools.reader.modelreaders import FemFileReader
-from mpcforces_tools.reader.mpcforces_reader import MPCForcesReader
-from mpcforces_tools.datastructure.entities import Element
-from mpcforces_tools.datastructure.loads import Force, Moment
+from mpcforces_extractor.reader.modelreaders import FemFileReader
+from mpcforces_extractor.reader.mpcforces_reader import MPCForcesReader
+from mpcforces_extractor.datastructure.entities import Element
+from mpcforces_extractor.datastructure.loads import Force, Moment
 
 
 class MPCForceExtractor:
@@ -179,28 +179,3 @@ class MPCForceExtractor:
                     for force, force_name in zip(forces, force_names):
                         file.write(f"    {force_name}: {force:.3f}\n")
                 file.write("\n")
-
-
-def main():
-    """ "
-    This is the main function that is used to test the MPCForceExtractor class
-    Its there because of a entry point in the toml file
-    """
-
-    input_folder = "data/input"
-    output_folder = "data/output"
-    model_name = "PlateSimpleRigid3DBolt"
-    blocksize = 8
-
-    mpc_force_extractor = MPCForceExtractor(
-        input_folder + f"/{model_name}.fem",
-        input_folder + f"/{model_name}.mpcf",
-        output_folder + f"/{model_name}",
-    )
-
-    rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
-    mpc_force_extractor.write_suammry(rigidelement2forces)
-
-
-if __name__ == "__main__":
-    main()

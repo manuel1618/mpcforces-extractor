@@ -1,7 +1,7 @@
 from typing import List, Dict
-from mpcforces_tools.datastructure.rigids import MPC, MPC_CONFIG
-from mpcforces_tools.datastructure.entities import Element1D, Element, Node
-from mpcforces_tools.datastructure.loads import Moment, Force
+from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
+from mpcforces_extractor.datastructure.entities import Element1D, Element, Node
+from mpcforces_extractor.datastructure.loads import Moment, Force
 
 
 class FemFileReader:
