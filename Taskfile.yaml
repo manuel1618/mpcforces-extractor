@@ -35,3 +35,15 @@ tasks:
     desc: Run the application
     cmds:
       - poetry run python -m mpcforces_extractor.main
+
+  docs-serve:
+    desc: Serve the documentation locally
+    deps:
+      - test
+    cmds:
+      - poetry run mkdocs serve
+
+  # docs-publish:
+  #   desc: Publish the documentation to gh-pages
+  #   cmds:
+  #     - poetry run mkdocs gh-deploy --force
