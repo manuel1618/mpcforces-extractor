@@ -24,6 +24,10 @@ pre-commit = "^3.8.0"
 numpy = "^2.1.1"
 scipy = "^1.14.1"
 matplotlib = "^3.9.2"
+mkdocs = "^1.6.1"
+mkdocs-material = "^9.5.38"
+mkdocstrings = {extras = ["python"], version = "^0.26.1"}
+mkdocs-coverage = "^1.1.0"
 
 [build-system]
 requires = ["poetry-core"]
