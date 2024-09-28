@@ -36,5 +36,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-my-script = "mpcforces-extractor.mpcforces_extractor:main"
-mpcforces-extractor = "mpcforces-extractor.mpcforces_extractor.cli.main:app"
+mpcforces-extractor = "mpcforces_extractor.cli.__main__:app"
