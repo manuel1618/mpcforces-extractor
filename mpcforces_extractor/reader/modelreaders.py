@@ -141,9 +141,11 @@ class FemFileReader:
 
             else:
                 node_ids = line_content[3:]
+                element_id = int(line_content[1])
 
                 if i < len(self.file_content) - 1:
-                    line2 = self.file_content[i + 1]
+                    i += 1
+                    line2 = self.file_content[i]
                     while line2.startswith("+"):
                         line_content = self.split_line(line2)
                         node_ids += self.split_line(line2)[1:]
@@ -151,9 +153,7 @@ class FemFileReader:
                         line2 = self.file_content[i]
 
                 nodes = [self.nodes_id2node[int(node_id)] for node_id in node_ids]
-                self.elements_3D.append(
-                    Element(int(line_content[1]), property_id, nodes)
-                )
+                self.elements_3D.append(Element(element_id, property_id, nodes))
 
             for node in nodes:
                 self.node2property[node.id] = property_id
