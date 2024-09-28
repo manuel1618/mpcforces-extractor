@@ -57,7 +57,7 @@ class VisualizerConnectedParts:
         Creates the tcl code for visualizing the connected parts
         in Hypermesh
         """
-        if not hasattr(self, "part_id2connected_element_ids"):
+        if self.part_id2connected_element_ids == {}:
             self.__transform_nodes_to_elements()
 
         commands = []
