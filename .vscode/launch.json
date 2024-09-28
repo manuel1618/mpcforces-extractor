@@ -5,7 +5,7 @@
         "name": "Python: Poetry",
         "type": "debugpy",
         "request": "launch",
-        "module": "spcforces_tools.mpc_tools",
+        "module": "mpcforces_extractor.main",
         "cwd": "${workspaceFolder}",
         "args": [],
         "console": "integratedTerminal"
