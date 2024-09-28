@@ -126,7 +126,7 @@ jobs:
           python -m pip install \
             --index-url https://test.pypi.org/simple/ \
             --extra-index-url https://pypi.org/simple \
-            hyperworks-tools=="$VERSION"
+            mpcforces-extractor=="$VERSION"
 
   publish:
     needs: [test-install]
