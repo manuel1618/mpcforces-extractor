@@ -55,7 +55,7 @@ class Element:
     id: int
     property_id: int
     nodes: list = []
-    all_elements = []
+    element_id2element: Dict = {}
     graph = nx.Graph()
     centroid: list = []
 
@@ -78,7 +78,7 @@ class Element:
 
         self.centroid = self.__calculate_centroid()
         self.neighbors = []
-        Element.all_elements.append(self)
+        self.element_id2element[self.id] = self
 
     def __calculate_centroid(self):
         """
@@ -100,13 +100,15 @@ class Element:
         checking if they share nodes
         """
 
-        coords = [element.centroid for element in Element.all_elements]
+        coords = [element.centroid for _, element in Element.element_id2element.items()]
         tree = KDTree(np.array(coords))
-        for element in Element.all_elements:
+        for _, element in Element.element_id2element.items():
             neighbors = tree.query(element.centroid, k=30)
 
             for potential_neighbor_index in neighbors[1]:
-                potential_neighbor = Element.all_elements[potential_neighbor_index]
+                potential_neighbor = Element.element_id2element[
+                    potential_neighbor_index
+                ]
 
                 # contition to avoid self as neighbor
                 if element.id == potential_neighbor.id:
