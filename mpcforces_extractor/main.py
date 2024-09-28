@@ -9,7 +9,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "flange4by4"
+    model_name = "m"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
