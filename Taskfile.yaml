@@ -43,7 +43,12 @@ tasks:
     cmds:
       - poetry run mkdocs serve
 
-  # docs-publish:
-  #   desc: Publish the documentation to gh-pages
-  #   cmds:
-  #     - poetry run mkdocs gh-deploy --force
+  docs-publish:
+    desc: Publish the documentation to gh-pages
+    cmds:
+      - poetry run mkdocs gh-deploy --force
+
+  build:
+    desc: Builds the python package
+    cmds:
+      - poetry build
