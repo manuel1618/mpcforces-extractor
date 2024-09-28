@@ -6,6 +6,7 @@ from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.reader.mpcforces_reader import MPCForcesReader
 from mpcforces_extractor.datastructure.entities import Element
 from mpcforces_extractor.datastructure.loads import Force, Moment
+from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
 
 
 class MPCForceExtractor:
@@ -19,6 +20,7 @@ class MPCForceExtractor:
         self.mpc_file_path: str = mpc_file_path
         self.output_folder: str = output_folder
         self.reader: FemFileReader = None
+        self.part_id2connected_node_ids: Dict = {}
 
         # create output folder if it does not exist, otherwise delete the content
         if os.path.exists(output_folder):
@@ -76,13 +78,13 @@ class MPCForceExtractor:
 
         # Get the connected Nodes for all nodes
         graph = Element.graph.copy()
-        part_id2connected_node_ids = self.get_part_id2node_ids_graph(graph)
+        self.part_id2connected_node_ids = self.get_part_id2node_ids_graph(graph)
 
         for mpc in self.reader.rigid_elements:
             node2forces = MPCForcesReader(self.mpc_file_path).get_nodes2forces()
 
             part_id2forces = mpc.sum_forces_by_connected_parts(
-                node2forces, part_id2connected_node_ids
+                node2forces, self.part_id2connected_node_ids
             )
             mpc2forces[mpc] = part_id2forces
 
@@ -114,6 +116,8 @@ class MPCForceExtractor:
         """
         This method writes the summary of the forces extracted from the MPC forces file
         """
+        start_time = time.time()
+
         file_path_out = os.path.join(self.output_folder, "summary.txt")
 
         timestamp = time.time()
@@ -179,3 +183,22 @@ class MPCForceExtractor:
                     for force, force_name in zip(forces, force_names):
                         file.write(f"    {force_name}: {force:.3f}\n")
                 file.write("\n")
+
+        print("Summary written to", file_path_out)
+        print("..took ", round(time.time() - start_time, 2), "seconds")
+
+    def write_tcl_vis_lines(self):
+        """
+        This method writes the tcl visualization lines
+        """
+
+        start_time = time.time()
+
+        output_vis = os.path.join(self.output_folder, "tcl_visualization")
+        visualizer = VisualizerConnectedParts(
+            self.part_id2connected_node_ids, output_vis
+        )
+        visualizer.output_tcl_lines_for_part_vis()
+
+        print("TCL visualization lines written to", output_vis)
+        print("..took ", round(time.time() - start_time, 2), "seconds")

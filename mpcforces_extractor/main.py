@@ -9,7 +9,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "PlateSimpleRigid3DBolt"
+    model_name = "flange4by4"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
@@ -20,6 +20,7 @@ def main():
 
     rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
     mpc_force_extractor.write_suammry(rigidelement2forces)
+    mpc_force_extractor.write_tcl_vis_lines()
 
 
 if __name__ == "__main__":
