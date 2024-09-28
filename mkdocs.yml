@@ -1,4 +1,5 @@
 site_name: MpcForces-Extractor
+site_url: https://manuel618.github.io/mpcforces-extractor/
 
 theme:
   name: material
