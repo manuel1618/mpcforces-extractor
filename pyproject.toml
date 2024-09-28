@@ -11,6 +11,7 @@ python = "^3.10"
 numpy = "^2.1.1"
 scipy = "^1.14.1"
 networkx = "^3.3"
+typer = "^0.12.5"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -35,4 +36,5 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-my-script = "spcforces_tools.mpc_tools:main"
+my-script = "mpcforces-extractor.mpcforces_extractor:main"
+mpcforces-extractor = "mpcforces-extractor.mpcforces_extractor.cli.main:app"
