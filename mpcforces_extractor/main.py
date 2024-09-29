@@ -2,6 +2,7 @@ import os
 import time
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
+from mpcforces_extractor.writer.summary_writer import SummaryWriter
 
 
 def main():
@@ -21,8 +22,14 @@ def main():
         output_folder + f"/{model_name}",
     )
 
+    # Write Summary
     rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
-    mpc_force_extractor.write_suammry(rigidelement2forces)
+    summary_writer = SummaryWriter(
+        mpc_force_extractor, mpc_force_extractor.output_folder
+    )
+    summary_writer.add_header()
+    summary_writer.add_mpc_lines(rigidelement2forces)
+    summary_writer.write_lines()
 
     # Visualize the connected parts
     start_time = time.time()
