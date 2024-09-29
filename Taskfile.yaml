@@ -36,6 +36,11 @@ tasks:
     cmds:
       - poetry run python -m mpcforces_extractor.main
 
+  cli:
+    desc: Run the CLI
+    cmds:
+      - poetry run python -m mpcforces_extractor.cli
+
   docs-serve:
     desc: Serve the documentation locally
     deps:
