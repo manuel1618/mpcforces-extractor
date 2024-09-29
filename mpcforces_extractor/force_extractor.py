@@ -21,6 +21,7 @@ class MPCForceExtractor:
         self.output_folder: str = output_folder
         self.reader: FemFileReader = None
         self.part_id2connected_node_ids: Dict = {}
+        self.node_id2forces = {}
 
         # create output folder if it does not exist, otherwise delete the content
         if os.path.exists(output_folder):
@@ -60,6 +61,7 @@ class MPCForceExtractor:
         This method reads the FEM File and the MPCF file and extracts the forces
         in a dictory with the rigid element as the key and the property2forces dict as the value
         """
+        self.node_id2forces = MPCForcesReader(self.mpc_file_path).get_nodes2forces()
         self.reader = FemFileReader(self.fem_file_path, block_size)
         print("Reading the FEM file")
         start_time = time.time()
@@ -81,10 +83,9 @@ class MPCForceExtractor:
         self.part_id2connected_node_ids = self.get_part_id2node_ids_graph(graph)
 
         for mpc in self.reader.rigid_elements:
-            node2forces = MPCForcesReader(self.mpc_file_path).get_nodes2forces()
 
             part_id2forces = mpc.sum_forces_by_connected_parts(
-                node2forces, self.part_id2connected_node_ids
+                self.node_id2forces, self.part_id2connected_node_ids
             )
             mpc2forces[mpc] = part_id2forces
 
@@ -97,7 +98,13 @@ class MPCForceExtractor:
                 file.write(f"MPC Element ID: {mpc.element_id}\n")
                 file.write(f"  MPC Config: {mpc.mpc_config}\n")
                 master_node = mpc.master_node
-                file.write(f"  Master Node ID: {master_node.id}\n")
+                if master_node.id in self.node_id2forces:
+                    forces = self.node_id2forces[master_node.id]
+                    file.write(
+                        f"  Master Node ID: {master_node.id}, Forces: {forces}\n"
+                    )
+                else:
+                    file.write(f"  Master Node ID: {master_node.id}\n")
                 file.write(f"  Master Node Coords: {master_node.coords}\n")
 
                 file.write(f"  Slave Nodes: {len(mpc.nodes)}\n")
@@ -164,7 +171,15 @@ class MPCForceExtractor:
                         )
 
                 master_node = mpc.master_node
-                file.write(f"  Master Node ID: {master_node.id}\n")
+
+                if master_node.id in self.node_id2forces:
+                    forces = self.node_id2forces[master_node.id]
+                    file.write(
+                        f"  Master Node ID: {master_node.id}, Forces: {forces}\n"
+                    )
+                else:
+                    file.write(f"  Master Node ID: {master_node.id}\n")
+
                 file.write(f"  Master Node Coords: {master_node.coords}\n")
 
                 file.write(f"  Slave Nodes: {len(mpc.nodes)}\n")

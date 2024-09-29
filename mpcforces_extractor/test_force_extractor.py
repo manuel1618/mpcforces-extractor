@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 
 
@@ -19,10 +20,19 @@ class TestFMPCForceExtractor(unittest.TestCase):
         self.assertEqual(force_extractor.mpc_file_path, "test.mpc")
         self.assertEqual(force_extractor.output_folder, "test")
 
-    def test_extract_forces(self):
+    @patch(
+        "mpcforces_extractor.reader.mpcforces_reader.MPCForcesReader._MPCForcesReader__read_lines"
+    )
+    @patch(
+        "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
+    )
+    def test_extract_forces(self, mock_read_lines_mpc, mock_read_lines_fem):
         """
         Test the extract_forces method. Make sure the forces are extracted correctly
         """
+
+        mock_read_lines_fem.return_value = ["1"]
+        mock_read_lines_mpc.return_value = ["1"]
 
         # Test the extract_forces method
         force_extractor = MPCForceExtractor(
@@ -30,8 +40,12 @@ class TestFMPCForceExtractor(unittest.TestCase):
             mpc_file_path="test.mpc",
             output_folder="test",
         )
-        blocksize = 9
+        blocksize = 8
         forces = force_extractor.get_mpc_forces(blocksize)
         force_extractor.write_suammry(forces)
         force_extractor.write_tcl_vis_lines()
         self.assertEqual(forces, {})
+
+
+if __name__ == "__main__":
+    unittest.main()
