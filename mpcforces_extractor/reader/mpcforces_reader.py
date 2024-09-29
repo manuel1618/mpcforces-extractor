@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 
 class MPCForcesReader:
@@ -13,14 +13,15 @@ class MPCForcesReader:
     def __init__(self, file_path):
         self.file_path = file_path
         self.nodes2forces = {}
-        self.__read_lines()
+        self.file_content = self.__read_lines()
 
-    def __read_lines(self):
+    def __read_lines(self) -> List[str]:
         """
         This method reads the lines of the MPC forces file
         """
         with open(self.file_path, "r", encoding="utf-8") as file:
-            self.file_content = file.readlines()
+            return file.readlines()
+        return []
 
     def get_nodes2forces(self) -> Dict:
         """
