@@ -117,10 +117,6 @@ class FemFileReader:
             if line.strip().startswith("+") and elements_found:
                 continue
 
-            if elements_found and line.strip().startswith("$$"):
-                self.endElementLine = i
-                break
-
             line_content = self.split_line(line)
             if len(line_content) < 2:
                 continue
