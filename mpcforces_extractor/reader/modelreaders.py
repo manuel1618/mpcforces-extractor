@@ -71,9 +71,9 @@ class FemFileReader:
                 z = self.__node_coord_parser(line_content[5])
                 node = Node(node_id, [x, y, z])
                 self.nodes_id2node[node.id] = node
-                if grids_found and not line.startswith("GRID"):
-                    self.endGridLine = i
-                    break
+            if grids_found and not line.startswith("GRID"):
+                self.endGridLine = i
+                break
 
     def __node_coord_parser(self, coord_str: str) -> float:
         """
@@ -114,19 +114,27 @@ class FemFileReader:
 
             line = self.file_content[i]
 
+            if line.strip().startswith("+") and elements_found:
+                continue
+
+            if elements_found and line.strip().startswith("$$"):
+                self.endElementLine = i
+                break
+
             line_content = self.split_line(line)
             if len(line_content) < 2:
                 continue
+            line_content = self.split_line(line)
             element_keyword = line_content[0]
 
             if element_keyword not in self.element_keywords:
                 continue
 
-            line_content = self.split_line(line)
+            elements_found = True
+
             property_id = int(line_content[2])
 
             if element_keyword in ["CBEAM", "CBAR", "CTUBE", "CROD"]:
-                elements_found = True
                 element_id = int(line_content[1])
                 node1 = Node.node_id2node[int(line_content[3])]
                 node2 = Node.node_id2node[int(line_content[4])]
@@ -157,10 +165,6 @@ class FemFileReader:
 
             for node in nodes:
                 self.node2property[node.id] = property_id
-
-            if elements_found and line.startswith("**"):
-                self.endElementLine = i
-                break
 
     def get_rigid_elements(self):
         """
