@@ -16,4 +16,4 @@ ignore-patterns=test_.*.py
 
 [MESSAGES CONTROL]
 disable=
-    missing-module-docstring,too-few-public-methods,broad-exception-caught,duplicate-code,C0103,R0912
+    missing-module-docstring,too-few-public-methods,broad-exception-caught,duplicate-code,C0103

@@ -1,3 +1,4 @@
+import time
 from typing import List, Dict
 from scipy.spatial import KDTree
 import numpy as np
@@ -159,3 +160,25 @@ class Element:
                     connected_nodes.append(node)
 
         return connected_nodes
+
+    @staticmethod
+    def get_part_id2node_ids_graph() -> Dict:
+        """
+        This method is used to get the part_id2node_ids using the graph
+        """
+        start_time = time.time()
+        print("Building the part_id2node_ids using the graph")
+        part_id2node_ids = {}
+
+        print("...Calculating connected components")
+        connected_components = list(nx.connected_components(Element.graph.copy()))
+
+        print(
+            "Finished calculating the connected components, returning part_id2node_ids"
+        )
+        print("..took ", round(time.time() - start_time, 2), "seconds")
+
+        for i, connected_component in enumerate(connected_components):
+            part_id2node_ids[i + 1] = [node.id for node in connected_component]
+
+        return part_id2node_ids
