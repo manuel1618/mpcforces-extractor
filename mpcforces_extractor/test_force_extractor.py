@@ -42,7 +42,6 @@ class TestFMPCForceExtractor(unittest.TestCase):
         )
         blocksize = 8
         forces = force_extractor.get_mpc_forces(blocksize)
-        force_extractor.write_suammry(forces)
         self.assertEqual(forces, {})
 
 
