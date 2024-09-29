@@ -54,7 +54,7 @@ class Element:
 
     id: int
     property_id: int
-    nodes: list = []
+    nodes: list[Node] = []
     element_id2element: Dict = {}
     graph = nx.Graph()
     centroid: list = []
@@ -106,6 +106,9 @@ class Element:
             neighbors = tree.query(element.centroid, k=30)
 
             for potential_neighbor_index in neighbors[1]:
+                if potential_neighbor_index not in Element.element_id2element:
+                    continue
+
                 potential_neighbor = Element.element_id2element[
                     potential_neighbor_index
                 ]
