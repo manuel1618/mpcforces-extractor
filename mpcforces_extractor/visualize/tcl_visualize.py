@@ -39,8 +39,6 @@ class VisualizerConnectedParts:
             for node_id in connected_node_ids:
                 node_id2part_id[node_id] = part_id
 
-        print("len(node_id2part_id)", len(node_id2part_id))
-
         for _, element in Element.element_id2element.items():
             node = element.nodes[0]
             node_id = node.id
@@ -57,7 +55,7 @@ class VisualizerConnectedParts:
         Creates the tcl code for visualizing the connected parts
         in Hypermesh
         """
-        if self.part_id2connected_element_ids == {}:
+        if not self.part_id2connected_element_ids:
             self.__transform_nodes_to_elements()
 
         commands = []
