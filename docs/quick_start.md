@@ -21,7 +21,7 @@ Additionally the tcl code needed for visualizing the connected parts in HyperMes
 The command wants you to provide the path to the .fem model file as well as the path to the .mpcf file. Lastly, the output file path is needed.
 The blocksize is optional and is needed for reading the files. The default value is 8 (8 chars per field in line). For long ouptut it is recommended to increase the blocksize to 16 (not tested).
 
-### Command: ```mpcforces-extractor visualize``` 
+### Command: ```mpcforces-extractor visualize```
 
 The command ```visualize``` visualizes the connected parts in HyperMesh. The command wants you to provide the path to the .fem model file as well as the path to the output directory. The tcl file is the output of the extract command.
 Know issue: If a compornent in the hypermesh model is named part1, part2, etc. the tcl script might not work as intended. This is due to the fact that the tcl script is using the part name to create the groups.
