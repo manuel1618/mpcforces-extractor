@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://manuel618.github.io/mpcforces-extractor/quick_start/">
+        <link rel="canonical" href="https://manuel1618.github.io/mpcforces-extractor/quick_start/">
       
       
         <link rel="prev" href="..">
@@ -275,6 +275,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="CLI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-mpcforces-extractor-extract" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command: mpcforces-extractor extract
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-mpcforces-extractor-visualize" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command: mpcforces-extractor visualize
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -367,6 +391,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="CLI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-mpcforces-extractor-extract" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command: mpcforces-extractor extract
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-mpcforces-extractor-visualize" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command: mpcforces-extractor visualize
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -395,8 +443,21 @@
 
 <h1 id="quickstart">Quickstart</h1>
 <h2 id="cli">CLI</h2>
-<p>To be defined - will be added later</p>
+<p>To install this tool, you can simply use the pip install command like so:</p>
+<pre><code class="language-bash">pip install mpcforces-extractor
+</code></pre>
+<p>After installing it, you can access the cli tool via: <code>mpcforces-extractor</code> which will give you the following output:</p>
+<p><img alt="cli-ouput" src="../assets/img_cli_help.png" /></p>
+<h3 id="command-mpcforces-extractor-extract">Command: <code>mpcforces-extractor extract</code></h3>
+<p>The main command is the <code>extract</code> command. This command will extract the mpc forces from the mpcf file and will output the summed up forces per connected part. The ouptput will be a text file with the summed up forces per connected part.</p>
+<p>Additionally the tcl code needed for visualizing the connected parts in HyperMesh will be generated. The tcl code will be saved in the same directory as the output file in the subfolder tcl-visualization.</p>
+<p>The command wants you to provide the path to the .fem model file as well as the path to the .mpcf file. Lastly, the output file path is needed.
+The blocksize is optional and is needed for reading the files. The default value is 8 (8 chars per field in line). For long ouptut it is recommended to increase the blocksize to 16 (not tested).</p>
+<h3 id="command-mpcforces-extractor-visualize">Command: <code>mpcforces-extractor visualize</code></h3>
+<p>The command <code>visualize</code> visualizes the connected parts in HyperMesh. The command wants you to provide the path to the .fem model file as well as the path to the output directory. The tcl file is the output of the extract command.
+Know issue: If a compornent in the hypermesh model is named part1, part2, etc. the tcl script might not work as intended. This is due to the fact that the tcl script is using the part name to create the groups.</p>
 <h2 id="taskfile">Taskfile</h2>
+<p>The below described approach is for more development oriented people. If you are not interested in this, you can skip this section and use the CLI tool described above.</p>
 <p>The project has a Taskfile.yaml for your conveinience. Taskfile is an executeable file which you can download on: <a href="https://taskfile.dev/">Taskfile</a> and it makes your life easier.</p>
 <p>In the Taskfile you have commands available to start the program namely:</p>
 <pre><code class="language-bash">task run
