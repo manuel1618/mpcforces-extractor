@@ -4,7 +4,6 @@ from mpcforces_extractor.force_extractor import MPCForceExtractor
 
 
 class TestFMPCForceExtractor(unittest.TestCase):
-
     def test_init(self):
         """
         Test the init method. Make sure all variables are set correctly (correct type)

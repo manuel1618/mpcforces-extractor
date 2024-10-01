@@ -37,7 +37,6 @@ class MPCForcesReader:
                     not self.file_content[i].startswith("---")
                     and not self.file_content[i].strip() == ""
                 ):
-
                     line = self.file_content[i]
 
                     # take the first 8 characters as the node id
