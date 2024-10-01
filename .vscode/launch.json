@@ -1,0 +1,14 @@
+{
+    "version": "0.2",
+    "configurations": [
+      {
+        "name": "Python: Poetry",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "mpcforces_extractor.main",
+        "cwd": "${workspaceFolder}",
+        "args": [],
+        "console": "integratedTerminal"
+      }
+    ]
+  }

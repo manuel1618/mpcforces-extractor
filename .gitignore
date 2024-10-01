@@ -168,4 +168,6 @@ cython_debug/
 *.spcf
 *.mpcf
 
-/output/**
+data/output/**
+data/models/**
+test/**

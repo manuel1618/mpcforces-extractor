@@ -5,27 +5,55 @@ tasks:
     desc: Install dependencies
     cmds:
       - poetry install
+      - poetry run pre-commit install
+
+  format:
+    desc: Format the code
+    cmds:
+      - python -m poetry run ruff format mpcforces_extractor
 
   lint:
     desc: Lint the code
     cmds:
-      - python -m  poetry run black --check spcforces_tools
+      - python -m poetry run black --check mpcforces_extractor
       - |
-        python -m poetry run flake8 spcforces_tools \
+        python -m poetry run flake8 mpcforces_extractor \
            --show-source \
            --statistics \
            --count
-      - python -m poetry run pylint spcforces_tools
+      - python -m poetry run ruff check mpcforces_extractor
 
   test:
     desc: Run tests
     cmds:
       - >
-        poetry run pytest 
-        --cov=spcforces_tools 
+        python -m poetry run pytest 
+        --cov=mpcforces_extractor 
         --cov-report=html
 
   run:
     desc: Run the application
     cmds:
-      - poetry run python -m spcforces_tools.mpc_tools
+      - poetry run python -m mpcforces_extractor.main
+
+  cli:
+    desc: Run the CLI
+    cmds:
+      - poetry run python -m mpcforces_extractor.cli
+
+  docs-serve:
+    desc: Serve the documentation locally
+    deps:
+      - test
+    cmds:
+      - poetry run mkdocs serve
+
+  docs-publish:
+    desc: Publish the documentation to gh-pages
+    cmds:
+      - poetry run mkdocs gh-deploy --force
+
+  build:
+    desc: Builds the python package
+    cmds:
+      - poetry build

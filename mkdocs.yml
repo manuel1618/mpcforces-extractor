@@ -1,0 +1,19 @@
+site_name: MpcForces-Extractor
+site_url: https://manuel1618.github.io/mpcforces-extractor/
+
+theme:
+  name: material
+  palette:
+    primary: "blue"
+    accent: "light-blue"
+
+nav:
+  - Home: index.md
+  - Quick-Start: quick_start.md
+  - Sorce Code: source_code.md
+  - Coverage report: coverage.md
+
+plugins:
+  - search
+  - mkdocstrings
+  - coverage
