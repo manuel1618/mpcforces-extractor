@@ -7,7 +7,6 @@ from mpcforces_extractor.datastructure.loads import Force, Moment
 
 
 class TestFemFileReader(unittest.TestCase):
-
     # the __read_lines method is a private method, so we need to mock it and return propper file_content
     @patch(
         "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"

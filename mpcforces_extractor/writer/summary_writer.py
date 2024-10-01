@@ -35,7 +35,6 @@ class SummaryWriter:
         This method adds the lines for each MPC element to the summary
         """
         for mpc, part_id2forces in mpc_element2part2forces.items():
-
             self.add_mpc_line(mpc, part_id2forces)
 
     def add_mpc_line(self, mpc, part_id2forces):

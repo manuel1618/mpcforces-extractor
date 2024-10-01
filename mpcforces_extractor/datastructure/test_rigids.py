@@ -22,7 +22,6 @@ class TestRigids(unittest.TestCase):
         self.assertEqual(mpc.dofs, "123")
 
     def test_sum_forces_by_connected_parts(self):
-
         node_id2force = {
             1: [1, 1, 1, 0, 0, 0],
             2: [2, 2, 2, 0, 0, 0],

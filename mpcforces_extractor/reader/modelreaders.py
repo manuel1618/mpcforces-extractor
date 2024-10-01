@@ -111,7 +111,6 @@ class FemFileReader:
         """
         elements_found = False
         for i, _ in enumerate(self.file_content[self.endGridLine :]):
-
             line = self.file_content[i]
 
             if line.strip().startswith("+") and elements_found:
