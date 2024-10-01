@@ -30,7 +30,7 @@ After installing it, you can access the cli tool via: ```mpcforces-extractor``` 
 
 ![cli-ouput](docs/assets/img_cli_help.png)
 
-If you need more documentation, you can access it [here](https://manuel618.github.io/mpcforces-extractor/)
+If you need more documentation, you can access it [here](https://manuel1618.github.io/mpcforces-extractor/)
 
 ## Questions?
 
