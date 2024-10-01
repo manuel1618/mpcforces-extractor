@@ -15,6 +15,7 @@ class VisualizerConnectedParts:
         self.part_id2connected_node_ids = part_id2connected_node_ids
         self.output_folder = output_folder
         self.part_id2connected_element_ids = {}
+        self.commands = []
 
         # create output folder if it does not exist, otherwise delete the content
         if os.path.exists(output_folder):
@@ -58,20 +59,19 @@ class VisualizerConnectedParts:
         if not self.part_id2connected_element_ids:
             self.__transform_nodes_to_elements()
 
-        commands = []
         for (
             part_id,
             connected_element_ids,
         ) in self.part_id2connected_element_ids.items():
-            commands.append(f"*createentity comps name=part{part_id}")
+            self.commands.append(f"*createentity comps name=part{part_id}")
 
             # mark and move blocks of max 1000 elements
-            commands.append(
+            self.commands.append(
                 f"*createmark elements 1 {' '.join([str(i) for i in connected_element_ids])}"
             )
-            commands.append(f'*movemark elements 1 "part{part_id}"')
+            self.commands.append(f'*movemark elements 1 "part{part_id}"')
 
         with open(
             os.path.join(self.output_folder, "commands.tcl"), "w", encoding="utf-8"
         ) as file:
-            file.write("\n".join(commands))
+            file.write("\n".join(self.commands))
