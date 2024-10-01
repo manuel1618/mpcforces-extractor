@@ -60,6 +60,13 @@ class Element:
     graph = nx.Graph()
     centroid: list = []
 
+    @staticmethod
+    def reset_graph():
+        """
+        This method is used to reset the graph (very important for testing)
+        """
+        Element.graph = nx.Graph()
+
     def __init__(self, element_id: int, property_id: int, nodes: list):
         self.id = element_id
         self.property_id = property_id
