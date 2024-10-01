@@ -10,18 +10,17 @@ tasks:
   format:
     desc: Format the code
     cmds:
-      - python -m poetry run black mpcforces_extractor
+      - python -m poetry run ruff format mpcforces_extractor
 
   lint:
     desc: Lint the code
     cmds:
-      - python -m poetry run black --check mpcforces_extractor
       - |
         python -m poetry run flake8 mpcforces_extractor \
            --show-source \
            --statistics \
            --count
-      - python -m poetry run pylint mpcforces_extractor
+      - python -m poetry run ruff check mpcforces_extractor
 
   test:
     desc: Run tests
