@@ -19,6 +19,8 @@ class MPCForceExtractor:
         self.reader: FemFileReader = None
         self.part_id2connected_node_ids: Dict = {}
         self.node_id2forces = {}
+        # reset the graph (very important)
+        Element.reset_graph()
 
         # create output folder if it does not exist, otherwise delete the content
         if os.path.exists(output_folder):
