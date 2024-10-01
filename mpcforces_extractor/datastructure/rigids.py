@@ -50,7 +50,6 @@ class MPC:
 
         # add the forces for each part
         for part_id, node_ids in self.part_id2node_ids.items():
-
             forces[part_id] = [0, 0, 0, 0, 0, 0]
 
             for node_id in node_ids:

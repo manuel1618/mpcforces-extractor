@@ -58,7 +58,6 @@ class MPCForceExtractor:
         self.part_id2connected_node_ids = Element.get_part_id2node_ids_graph()
 
         for mpc in self.reader.rigid_elements:
-
             part_id2forces = mpc.sum_forces_by_connected_parts(
                 self.node_id2forces, self.part_id2connected_node_ids
             )
