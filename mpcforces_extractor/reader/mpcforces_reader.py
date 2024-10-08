@@ -13,6 +13,7 @@ class MPCForcesReader:
     def __init__(self, file_path):
         self.file_path = file_path
         self.file_content = self.__read_lines()
+        self.node_ids = []
 
     def __read_lines(self) -> List[str]:
         """
@@ -72,5 +73,6 @@ class MPCForcesReader:
                     force = [force_x, force_y, force_z, moment_x, moment_y, moment_z]
 
                     subcase.add_force(node_id, force)
+                    self.node_ids.append(node_id)
 
                     i += 1

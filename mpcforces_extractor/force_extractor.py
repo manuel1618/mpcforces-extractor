@@ -18,6 +18,7 @@ class MPCForceExtractor:
         self.mpc_file_path: str = mpc_file_path
         self.output_folder: str = output_folder
         self.reader: FemFileReader = None
+        self.mpc_forces_reader = None
         self.part_id2connected_node_ids: Dict = {}
         self.subcases = []
         # reset the graph (very important)
@@ -40,8 +41,8 @@ class MPCForceExtractor:
         This method reads the FEM File and the MPCF file and extracts the forces
         in a dictory with the rigid element as the key and the property2forces dict as the value
         """
-        mpc_forces_reader = MPCForcesReader(self.mpc_file_path)
-        mpc_forces_reader.bulid_subcases()
+        self.mpc_forces_reader = MPCForcesReader(self.mpc_file_path)
+        self.mpc_forces_reader.bulid_subcases()
         self.subcases = Subcase.subcases
 
         self.reader = FemFileReader(self.fem_file_path, block_size)

@@ -73,11 +73,12 @@ class SummaryWriter:
                 )
         master_node = mpc.master_node
 
-        # if master_node.id in
-        #     forces = self.instance.node_id2forces[master_node.id]
-        #     self.lines.append(f"  Master Node ID: {master_node.id}, Forces: {forces}\n")
-        # else:
-        #     self.lines.append(f"  Master Node ID: {master_node.id}\n")
+        if master_node.id in self.instance.mpc_forces_reader.node_ids:
+            self.lines.append(
+                f"  Master Node ID: {master_node.id} with external Forces\n"
+            )
+        else:
+            self.lines.append(f"  Master Node ID: {master_node.id}\n")
         self.lines.append(f"  Master Node Coords: {master_node.coords}\n")
         self.lines.append(f"  Slave Nodes: {len(mpc.nodes)}\n")
         self.add_mpc_parts(mpc, part_id2forces)
