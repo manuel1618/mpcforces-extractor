@@ -48,24 +48,26 @@ class TestFMPCForceExtractor(unittest.TestCase):
             output_folder="test",
         )
         blocksize = 8
-        forces = force_extractor.get_mpc_forces(blocksize)
-        print(forces)
+        mpc2subcase2forces = force_extractor.get_mpc2subcase_id2forces(blocksize)
 
         force_1 = [0.00, 0.00, -1.00, -0.91, 0.00, 0.00]
         force_2 = [0.00, 0.00, 1.00, 1.32, 5.84, 1.94]
 
-        for _, part2force in forces.items():  # only one mpc here
-            for _, force in part2force.items():
-                diff_1 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_1, force)])
-                diff_2 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_2, force)])
-                print(diff_1, diff_2)
-                self.assertTrue(diff_1 < 0.01 or diff_2 < 0.01)
+        for _, subcase2forces in mpc2subcase2forces.items():
+            for _, forces in subcase2forces.items():
+                for _, force in forces.items():
+                    diff_1 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_1, force)])
+                    diff_2 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_2, force)])
+                    print(diff_1, diff_2)
+                    self.assertTrue(diff_1 < 0.01 or diff_2 < 0.01)
 
         summary_writer = SummaryWriter(force_extractor, force_extractor.output_folder)
         summary_writer.add_header()
-        summary_writer.add_mpc_lines(forces)
+        summary_writer.add_mpc_lines(mpc2subcase2forces)
 
         lines = [line.strip() for line in summary_writer.lines]
+        for line in lines:
+            print(line)
 
         self.assertTrue("FZ: -1.000" in lines)
         self.assertTrue("MX: -0.907" in lines)

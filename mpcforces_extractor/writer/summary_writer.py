@@ -34,8 +34,8 @@ class SummaryWriter:
         """
         This method adds the lines for each MPC element to the summary
         """
-        for mpc, part_id2forces in mpc_element2part2forces.items():
-            self.add_mpc_line(mpc, part_id2forces)
+        for mpc, subcase_id2forces in mpc_element2part2forces.items():
+            self.add_mpc_line(mpc, subcase_id2forces)
 
     def add_mpc_line(self, mpc, part_id2forces):
         """
@@ -73,32 +73,34 @@ class SummaryWriter:
                 )
         master_node = mpc.master_node
 
-        if master_node.id in self.instance.node_id2forces:
-            forces = self.instance.node_id2forces[master_node.id]
-            self.lines.append(f"  Master Node ID: {master_node.id}, Forces: {forces}\n")
-        else:
-            self.lines.append(f"  Master Node ID: {master_node.id}\n")
+        # if master_node.id in
+        #     forces = self.instance.node_id2forces[master_node.id]
+        #     self.lines.append(f"  Master Node ID: {master_node.id}, Forces: {forces}\n")
+        # else:
+        #     self.lines.append(f"  Master Node ID: {master_node.id}\n")
         self.lines.append(f"  Master Node Coords: {master_node.coords}\n")
         self.lines.append(f"  Slave Nodes: {len(mpc.nodes)}\n")
         self.add_mpc_parts(mpc, part_id2forces)
         self.lines.append("\n")
 
-    def add_mpc_parts(self, mpc, part_id2forces):
+    def add_mpc_parts(self, mpc, part_id2subcase_id2forces):
         """
         Add info for each part of the MPC element
         """
-        for part_id in sorted(part_id2forces.keys()):
+        for part_id in sorted(part_id2subcase_id2forces.keys()):
             number_of_slave_nodes = len(mpc.part_id2node_ids[part_id])
             if number_of_slave_nodes == 0:
                 continue
-            forces = part_id2forces[part_id]
+            subcase_id2forces = part_id2subcase_id2forces[part_id]
             self.lines.append(f"  Part ID: {part_id}\n")
             node_ids = mpc.part_id2node_ids[part_id]
             self.lines.append(f"    First 5 Slave Nodes for Location {node_ids[1:6]}\n")
             self.lines.append(f"    Slave Nodes: {len(node_ids)}\n")
             force_names = ["FX", "FY", "FZ", "MX", "MY", "MZ"]
-            for force, force_name in zip(forces, force_names):
-                self.lines.append(f"    {force_name}: {force:.3f}\n")
+            for subcase_id, forces in subcase_id2forces.items():
+                self.lines.append(f"    Subcase ID: {subcase_id}\n")
+                for i, force in enumerate(forces):
+                    self.lines.append(f"      {force_names[i]}: {force:.3f}\n")
 
     def write_lines(self):
         """

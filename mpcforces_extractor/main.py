@@ -13,7 +13,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "flange"
+    model_name = "PlateSimpleRigid2ls"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
@@ -23,12 +23,12 @@ def main():
     )
 
     # Write Summary
-    rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
+    mpc2subcaseid2forces = mpc_force_extractor.get_mpc2subcase_id2forces(blocksize)
     summary_writer = SummaryWriter(
         mpc_force_extractor, mpc_force_extractor.output_folder
     )
     summary_writer.add_header()
-    summary_writer.add_mpc_lines(rigidelement2forces)
+    summary_writer.add_mpc_lines(mpc2subcaseid2forces)
     summary_writer.write_lines()
 
     # Visualize the connected parts
