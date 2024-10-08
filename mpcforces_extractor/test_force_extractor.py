@@ -5,6 +5,7 @@ from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.entities import Element
 from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
+from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.test_ressources.simple_model import (
     get_simple_model_fem,
     get_simple_model_mpc,
@@ -47,23 +48,24 @@ class TestFMPCForceExtractor(unittest.TestCase):
             mpc_file_path="test.mpc",
             output_folder="test",
         )
-        blocksize = 8
-        mpc2subcase2forces = force_extractor.get_mpc2subcase_id2forces(blocksize)
+        force_extractor.build_fem_and_subcase_data(8)
 
         force_1 = [0.00, 0.00, -1.00, -0.91, 0.00, 0.00]
         force_2 = [0.00, 0.00, 1.00, 1.32, 5.84, 1.94]
 
-        for _, subcase2forces in mpc2subcase2forces.items():
-            for _, forces in subcase2forces.items():
-                for _, force in forces.items():
-                    diff_1 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_1, force)])
-                    diff_2 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_2, force)])
-                    print(diff_1, diff_2)
-                    self.assertTrue(diff_1 < 0.01 or diff_2 < 0.01)
+        for subcase in Subcase.subcases:
+            part_id2forces = subcase.part_id2sum_forces
+            force_calc_1 = part_id2forces[1]
+            force_calc_2 = part_id2forces[2]
+
+            diff_1 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_1, force_calc_1)])
+            diff_2 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_2, force_calc_2)])
+            print(diff_1, diff_2)
+            self.assertTrue(diff_1 < 0.01 or diff_2 < 0.01)
 
         summary_writer = SummaryWriter(force_extractor, force_extractor.output_folder)
         summary_writer.add_header()
-        summary_writer.add_mpc_lines(mpc2subcase2forces)
+        summary_writer.add_mpc_lines()
 
         lines = [line.strip() for line in summary_writer.lines]
         for line in lines:

@@ -23,12 +23,12 @@ def main():
     )
 
     # Write Summary
-    mpc2subcaseid2forces = mpc_force_extractor.get_mpc2subcase_id2forces(blocksize)
+    mpc_force_extractor.build_fem_and_subcase_data(blocksize)
     summary_writer = SummaryWriter(
         mpc_force_extractor, mpc_force_extractor.output_folder
     )
     summary_writer.add_header()
-    summary_writer.add_mpc_lines(mpc2subcaseid2forces)
+    summary_writer.add_mpc_lines()
     summary_writer.write_lines()
 
     # Visualize the connected parts

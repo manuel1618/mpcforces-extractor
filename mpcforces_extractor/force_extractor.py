@@ -36,7 +36,7 @@ class MPCForceExtractor:
         else:
             os.makedirs(output_folder, exist_ok=True)
 
-    def get_mpc2subcase_id2forces(self, block_size: int) -> dict:
+    def build_fem_and_subcase_data(self, block_size: int) -> None:
         """
         This method reads the FEM File and the MPCF file and extracts the forces
         in a dictory with the rigid element as the key and the property2forces dict as the value
@@ -58,21 +58,13 @@ class MPCForceExtractor:
 
         self.reader.get_loads()
 
-        mpc2subcase_id2forces = {}
-
         # Get the connected Nodes for all nodes
         self.part_id2connected_node_ids = Element.get_part_id2node_ids_graph()
 
         for mpc in self.reader.rigid_elements:
-
+            # Calculate the node_ids for each part
             part_id2slaveNodes = mpc.get_slave_nodes_intersection(
                 self.part_id2connected_node_ids
             )
-
             for subcase in Subcase.subcases:
-                part_id2forces = subcase.get_part_id2sum_forces(part_id2slaveNodes)
-                if mpc not in mpc2subcase_id2forces:
-                    mpc2subcase_id2forces[mpc] = {}
-                mpc2subcase_id2forces[mpc][subcase.subcase_id] = part_id2forces
-
-        return mpc2subcase_id2forces
+                subcase.add_part_id2sum_forces(part_id2slaveNodes)
