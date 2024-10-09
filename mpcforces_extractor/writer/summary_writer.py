@@ -2,6 +2,7 @@ import os
 import time
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.loads import Force, Moment
+from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 
@@ -38,7 +39,7 @@ class SummaryWriter:
         for mpc in self.instance.reader.rigid_elements:
             self.add_mpc_line(mpc)
 
-    def add_mpc_line(self, mpc):
+    def add_mpc_line(self, mpc: MPC) -> None:
         """
         Add info for a single MPC element
         """
@@ -82,10 +83,9 @@ class SummaryWriter:
         for subcase in Subcase.subcases:
             subcase_id = subcase.subcase_id
             subcase_time = subcase.time
-            part_id2forces = subcase.part_id2sum_forces
             self.lines.append(f"  Subcase ID: {subcase_id}\n")
             self.lines.append(f"    Time: {subcase_time}\n")
-            for part_id, forces in part_id2forces.items():
+            for part_id, forces in mpc.get_part_id2force(subcase).items():
                 self.lines.append(f"    Part ID: {part_id}\n")
                 node_ids = mpc.part_id2node_ids[part_id]
                 self.lines.append(
