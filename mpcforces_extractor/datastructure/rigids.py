@@ -1,6 +1,7 @@
 from typing import Dict, List
 from enum import Enum
-from mpcforces_extractor.datastructure.entities import Node
+from mpcforces_extractor.datastructure.entities import Node, Element
+from mpcforces_extractor.datastructure.subcases import Subcase
 
 
 class MPC_CONFIG(Enum):
@@ -16,6 +17,8 @@ class MPC:
     """
     This class is a Multiple Point Constraint (MPC) class that is used to store the nodes and the dofs
     """
+
+    instances = []
 
     def __init__(
         self,
@@ -33,56 +36,36 @@ class MPC:
         self.master_node = master_node
         self.nodes: List = nodes
         self.dofs: int = dofs
-        self.part_id2force = {}
         self.part_id2node_ids = {}
+        MPC.instances.append(self)
 
-    def sum_forces_by_connected_parts(
-        self, node_id2force: Dict, part_id2connected_node_ids: Dict
-    ) -> Dict:
+    @staticmethod
+    def reset():
         """
-        This method is used to sum the forces by connected - parts NEW
+        This method is used to reset the instances
         """
-        forces = {}
+        MPC.instances = []
 
-        self.part_id2node_ids = self.__get_slave_nodes_intersection(
-            part_id2connected_node_ids
-        )
+    def get_part_id2force(self, subcase: Subcase) -> Dict:
+        """
+        This method is used to get the forces for each part of the MPC (connected slave nodes)
+        """
 
-        # add the forces for each part
+        if not self.part_id2node_ids:
+            # Connected groups of nodes - get then the intersection with the slave nodes
+            part_id2connected_node_ids = Element.get_part_id2node_ids_graph()
+            part_id2node_ids = {}
+            slave_node_ids = [node.id for node in self.nodes]
+            for part_id, node_ids in part_id2connected_node_ids.items():
+                part_id2node_ids[part_id] = list(
+                    set(node_ids).intersection(slave_node_ids)
+                )
+
+            self.part_id2node_ids = part_id2node_ids
+
+        # Calculate the summed forces for each part
+        part_id2forces = {}
         for part_id, node_ids in self.part_id2node_ids.items():
-            forces[part_id] = [0, 0, 0, 0, 0, 0]
-
-            for node_id in node_ids:
-                if node_id not in node_id2force:
-                    print(
-                        f"Node {node_id} not found in the MPC forces file - bug or zero - you decide!"
-                    )
-                    continue
-
-                force = node_id2force[node_id]
-                force_x = force[0]
-                force_y = force[1]
-                force_z = force[2]
-                moment_x = force[3]
-                moment_y = force[4]
-                moment_z = force[5]
-
-                forces[part_id][0] += force_x
-                forces[part_id][1] += force_y
-                forces[part_id][2] += force_z
-                forces[part_id][3] += moment_x
-                forces[part_id][4] += moment_y
-                forces[part_id][5] += moment_z
-
-        self.part_id2force = forces
-        return forces
-
-    def __get_slave_nodes_intersection(self, part_id2connected_node_ids: Dict) -> Dict:
-        """
-        This method is used to get the slave nodes intersection
-        """
-        part_id2node_ids = {}
-        slave_node_ids = [node.id for node in self.nodes]
-        for part_id, node_ids in part_id2connected_node_ids.items():
-            part_id2node_ids[part_id] = list(set(node_ids).intersection(slave_node_ids))
-        return part_id2node_ids
+            sum_forces = subcase.get_sum_forces(node_ids)
+            part_id2forces[part_id] = sum_forces
+        return part_id2forces

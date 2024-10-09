@@ -1,5 +1,4 @@
 import os
-from typing import Dict
 from mpcforces_extractor.datastructure.entities import Element
 
 
@@ -8,11 +7,11 @@ class VisualizerConnectedParts:
     This class is used to visualize the connected parts in Hypermesh
     """
 
-    def __init__(self, part_id2connected_node_ids: Dict, output_folder: str):
+    def __init__(self, output_folder: str):
         """
         This class is used to visualize the connected parts in Hypermesh
         """
-        self.part_id2connected_node_ids = part_id2connected_node_ids
+        self.part_id2connected_node_ids = Element.get_part_id2node_ids_graph()
         self.output_folder = output_folder
         self.part_id2connected_element_ids = {}
         self.commands = []

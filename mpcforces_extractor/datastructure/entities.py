@@ -66,6 +66,7 @@ class Element:
         This method is used to reset the graph (very important for testing)
         """
         Element.graph = nx.Graph()
+        Element.element_id2element = {}
 
     def __init__(self, element_id: int, property_id: int, nodes: list):
         self.id = element_id
@@ -87,6 +88,7 @@ class Element:
         self.centroid = self.__calculate_centroid()
         self.neighbors = []
         self.element_id2element[self.id] = self
+        Element.part_id2node_ids = {}
 
     def __calculate_centroid(self):
         """
@@ -169,23 +171,27 @@ class Element:
         return connected_nodes
 
     @staticmethod
-    def get_part_id2node_ids_graph() -> Dict:
+    def get_part_id2node_ids_graph(force_update: bool = False) -> Dict:
         """
         This method is used to get the part_id2node_ids using the graph
         """
-        start_time = time.time()
-        print("Building the part_id2node_ids using the graph")
-        part_id2node_ids = {}
 
-        print("...Calculating connected components")
-        connected_components = list(nx.connected_components(Element.graph.copy()))
+        if force_update or not Element.part_id2node_ids:
+            start_time = time.time()
+            print("Building the part_id2node_ids using the graph")
 
-        print(
-            "Finished calculating the connected components, returning part_id2node_ids"
-        )
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+            print("...Calculating connected components")
+            connected_components = list(nx.connected_components(Element.graph.copy()))
 
-        for i, connected_component in enumerate(connected_components):
-            part_id2node_ids[i + 1] = [node.id for node in connected_component]
+            print(
+                "Finished calculating the connected components, returning part_id2node_ids"
+            )
+            print("..took ", round(time.time() - start_time, 2), "seconds")
 
-        return part_id2node_ids
+            for i, connected_component in enumerate(connected_components):
+                Element.part_id2node_ids[i + 1] = [
+                    node.id for node in connected_component
+                ]
+
+            return Element.part_id2node_ids
+        return Element.part_id2node_ids
