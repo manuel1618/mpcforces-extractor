@@ -6,6 +6,7 @@ from mpcforces_extractor.datastructure.entities import Element
 from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
 from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.test_ressources.simple_model import (
     get_simple_model_fem,
     get_simple_model_mpc,
@@ -54,7 +55,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
         force_2 = [0.00, 0.00, 1.00, 1.32, 5.84, 1.94]
 
         for subcase in Subcase.subcases:
-            part_id2forces = subcase.part_id2sum_forces
+            part_id2forces = MPC.instances[0].get_part_id2force(subcase)
             force_calc_1 = part_id2forces[1]
             force_calc_2 = part_id2forces[2]
 
@@ -92,7 +93,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
         self.assertTrue(part_id2connected_node_ids is not None)
         self.assertTrue(len(part_id2connected_node_ids) == 2)
 
-        visualizer = VisualizerConnectedParts(part_id2connected_node_ids, "dummy_path")
+        visualizer = VisualizerConnectedParts("dummy_path")
         visualizer.output_tcl_lines_for_part_vis()
 
         commands = visualizer.commands

@@ -34,9 +34,7 @@ def main():
     # Visualize the connected parts
     start_time = time.time()
     output_vis = os.path.join(output_folder, "tcl_visualization")
-    visualizer = VisualizerConnectedParts(
-        mpc_force_extractor.part_id2connected_node_ids, output_vis
-    )
+    visualizer = VisualizerConnectedParts(output_vis)
     visualizer.output_tcl_lines_for_part_vis()
 
     print("TCL visualization lines written to", output_vis)

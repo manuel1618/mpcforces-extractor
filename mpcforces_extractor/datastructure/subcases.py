@@ -1,3 +1,6 @@
+from typing import List
+
+
 class Subcase:
     """
     This class is used to store the subcase information
@@ -17,7 +20,6 @@ class Subcase:
         self.subcase_id = subcase_id
         self.time = time
         self.node_id2forces = {}
-        self.part_id2sum_forces = {}
         Subcase.subcases.append(self)
 
     def add_force(self, node_id, forces):
@@ -26,17 +28,15 @@ class Subcase:
         """
         self.node_id2forces[node_id] = forces
 
-    def add_part_id2sum_forces(self, part_id2connected_node_ids) -> None:
+    def get_sum_forces(self, node_ids: List) -> None:
         """
         This method is used to sum the forces for all nodes
         """
-        for part_id, part_node_ids in part_id2connected_node_ids.items():
-            sum_forces = [0, 0, 0, 0, 0, 0]
-            for node_id in part_node_ids:
-                forces = self.node_id2forces[node_id]
-                for i, _ in enumerate(forces):
-                    sum_forces[i] += forces[i]
-            self.part_id2sum_forces[part_id] = sum_forces
+        sum_forces = [0, 0, 0, 0, 0, 0]
+        for node_id in node_ids:
+            forces = self.node_id2forces[node_id]
+            sum_forces = [sf + f for sf, f in zip(sum_forces, forces)]
+        return sum_forces
 
     @staticmethod
     def get_subcase_by_id(subcase_id: int):

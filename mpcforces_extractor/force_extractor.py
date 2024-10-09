@@ -1,9 +1,9 @@
 import os
 import time
-from typing import Dict
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.reader.mpcforces_reader import MPCForcesReader
 from mpcforces_extractor.datastructure.entities import Element
+from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.subcases import Subcase
 
 
@@ -19,10 +19,10 @@ class MPCForceExtractor:
         self.output_folder: str = output_folder
         self.reader: FemFileReader = None
         self.mpc_forces_reader = None
-        self.part_id2connected_node_ids: Dict = {}
         self.subcases = []
-        # reset the graph (very important)
+        # reset the graph (very important) and the MPCs
         Element.reset_graph()
+        MPC.reset()
 
         # create output folder if it does not exist, otherwise delete the content
         if os.path.exists(output_folder):
@@ -57,14 +57,3 @@ class MPCForceExtractor:
         print("..took ", round(time.time() - start_time, 2), "seconds")
 
         self.reader.get_loads()
-
-        # Get the connected Nodes for all nodes
-        self.part_id2connected_node_ids = Element.get_part_id2node_ids_graph()
-
-        for mpc in self.reader.rigid_elements:
-            # Calculate the node_ids for each part
-            part_id2slaveNodes = mpc.get_slave_nodes_intersection(
-                self.part_id2connected_node_ids
-            )
-            for subcase in Subcase.subcases:
-                subcase.add_part_id2sum_forces(part_id2slaveNodes)
