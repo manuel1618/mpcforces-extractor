@@ -13,7 +13,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "PlateSimpleRigid2ls"
+    model_name = "Flange"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
@@ -33,7 +33,7 @@ def main():
 
     # Visualize the connected parts
     start_time = time.time()
-    output_vis = os.path.join(output_folder, "tcl_visualization")
+    output_vis = os.path.join(output_folder, model_name, "tcl_visualization")
     visualizer = VisualizerConnectedParts(output_vis)
     visualizer.output_tcl_lines_for_part_vis()
 
