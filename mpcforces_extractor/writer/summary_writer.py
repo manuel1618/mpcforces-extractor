@@ -3,7 +3,6 @@ import time
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.loads import Force, Moment
 from mpcforces_extractor.datastructure.rigids import MPC
-from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 
 
@@ -80,7 +79,7 @@ class SummaryWriter:
         self.lines.append(f"  Slave Nodes: {len(mpc.nodes)}\n")
 
         # add the force data
-        for subcase in Subcase.subcases:
+        for subcase in self.instance.subcases:
             subcase_id = subcase.subcase_id
             subcase_time = subcase.time
             self.lines.append(f"  Subcase ID: {subcase_id}\n")
