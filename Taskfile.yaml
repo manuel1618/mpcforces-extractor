@@ -21,7 +21,18 @@ tasks:
            --show-source \
            --statistics \
            --count
-      - python -m poetry run ruff check mpcforces_extractor
+      - python -m poetry run ruff check
+
+  lint2:
+    desc: Lint the code with pylint
+    cmds:
+      - python -m poetry run black --check mpcforces_extractor
+      - |
+        python -m poetry run flake8 mpcforces_extractor \
+           --show-source \
+           --statistics \
+           --count
+      - python -m poetry run pylint mpcforces_extractor
 
   test:
     desc: Run tests
