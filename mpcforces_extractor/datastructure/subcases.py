@@ -8,8 +8,6 @@ class Subcase:
     in the mpcforces_extractor
     """
 
-    subcase_id = 0
-    time = 0
     node_id2forces = {}
     subcases = []
 
