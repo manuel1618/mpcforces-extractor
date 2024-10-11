@@ -1,0 +1,41 @@
+<!-- /mpcforces_extractor/playground/frontend/templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPC List</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1>MPC List</h1>
+        <ul id="mpc-list" class="list-group mt-3"></ul>
+    </div>
+
+    <script>
+        async function fetchMPCs() {
+            try {
+                const response = await fetch('/api/v1/mpcs');
+                const mpcs = await response.json();
+                const list = document.getElementById('mpc-list');
+
+                mpcs.forEach(mpc => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-group-item';
+                    listItem.textContent = `ID: ${mpc.id}, Config: ${mpc.config}, Master Node: ${mpc.master_node}, Nodes: ${mpc.nodes}`;
+                    list.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching MPCs:', error);
+            }
+        }
+
+        fetchMPCs();
+    </script>
+</body>
+
+</html>
