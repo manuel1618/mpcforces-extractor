@@ -55,7 +55,9 @@ class TestFMPCForceExtractor(unittest.TestCase):
         force_2 = [0.00, 0.00, 1.00, 1.32, 5.84, 1.94]
 
         for subcase in Subcase.subcases:
-            part_id2forces = MPC.instances[0].get_part_id2force(subcase)
+            part_id2forces = list(MPC.id_2_instance.values())[0].get_part_id2force(
+                subcase
+            )
             force_calc_1 = part_id2forces[1]
             force_calc_2 = part_id2forces[2]
 
