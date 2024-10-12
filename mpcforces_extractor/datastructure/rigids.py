@@ -18,7 +18,7 @@ class MPC:
     This class is a Multiple Point Constraint (MPC) class that is used to store the nodes and the dofs
     """
 
-    instances = []
+    id_2_instance: Dict = {}
 
     def __init__(
         self,
@@ -37,14 +37,16 @@ class MPC:
         self.nodes: List = nodes
         self.dofs: int = dofs
         self.part_id2node_ids = {}
-        MPC.instances.append(self)
+        if element_id in MPC.id_2_instance:
+            print("MPC element_id already exists", element_id)
+        MPC.id_2_instance[element_id] = self
 
     @staticmethod
     def reset():
         """
         This method is used to reset the instances
         """
-        MPC.instances = []
+        MPC.id_2_instance = {}
 
     def get_part_id2force(self, subcase: Subcase) -> Dict:
         """

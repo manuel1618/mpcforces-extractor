@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node List</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h1>Node List</h1>
+
+        <!-- Button to fetch Nodes -->
+        <button id="fetch-button" class="btn btn-primary">Fetch Nodes</button>
+
+        <!-- Table to display the Nodes -->
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Coordinates (X, Y, Z)</th>
+                </tr>
+            </thead>
+            <tbody id="node-table-body">
+                <!-- Rows will be inserted here -->
+            </tbody>
+        </table>
+
+        <!-- Button to switch to MPC view -->
+        <a href="/" class="btn btn-secondary mt-3">Switch to MPC View</a>
+    </div>
+
+    <script>
+        async function fetchNodes() {
+            try {
+                const response = await fetch('/api/v1/nodes');
+                const nodes = await response.json();
+                const tableBody = document.getElementById('node-table-body');
+
+                // Clear the table before appending new rows
+                tableBody.innerHTML = '';
+
+                nodes.forEach(node => {
+                    const row = document.createElement('tr');
+
+                    // Create individual table cells
+                    const idCell = document.createElement('td');
+                    idCell.textContent = node.id;
+
+                    const coordsCell = document.createElement('td');
+                    coordsCell.textContent = `${node.coord_x}, ${node.coord_y}, ${node.coord_z}`;
+
+                    // Append cells to the row
+                    row.appendChild(idCell);
+                    row.appendChild(coordsCell);
+
+                    // Append row to the table body
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching Nodes:', error);
+            }
+        }
+
+        // Add event listener to the button
+        document.getElementById('fetch-button').addEventListener('click', fetchNodes);
+    </script>
+</body>
+
+</html>

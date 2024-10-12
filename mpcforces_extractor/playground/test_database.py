@@ -1,11 +1,11 @@
 import pytest
-from mpcforces_extractor.playground.database import FakeMPCDatabase
+from mpcforces_extractor.playground.database import FakeDatabase
 from fastapi import HTTPException
 
 
 @pytest.fixture
 def db():
-    return FakeMPCDatabase()
+    return FakeDatabase()
 
 
 @pytest.mark.asyncio
