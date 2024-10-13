@@ -7,6 +7,7 @@
     <title>MPC List</title>
     <link rel="stylesheet" href="/static/styles.css"> <!-- Link to external CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon"> <!-- Add this line for favicon -->
 </head>
 
 <body>
@@ -17,7 +18,7 @@
         <button id="fetch-button" class="btn btn-primary mt-3">Fetch MPCs</button>
         <!-- Button to switch to Nodes view -->
         <a href="/nodes" class="btn btn-secondary float-right mt-3">Switch to Nodes View</a>
-        
+
         <!-- Table to display the MPCs -->
         <table class="table mt-3">
             <thead>
@@ -25,7 +26,8 @@
                     <th>ID</th>
                     <th>Master Node</th>
                     <th>Slave Nodes</th>
-                    <th>Visualization Script</th> <!-- New column -->
+                    <th>Part Id to Nodes</th>
+                    <th>Visualization Script</th>
                 </tr>
             </thead>
             <tbody id="mpc-table-body">
@@ -34,10 +36,10 @@
         </table>
 
     </div>
-    
+
     <!-- Link to the external JavaScript file -->
     <script src="/static/scripts.js"></script>
-    
+
     <script>
         // Add event listener to the button
         document.getElementById('fetch-button').addEventListener('click', fetchMPCs);

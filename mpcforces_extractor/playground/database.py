@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Dict
 from fastapi import HTTPException
-from sqlmodel import Session, create_engine, SQLModel, Field, select
+from sqlmodel import Session, create_engine, SQLModel, Field, select, Column, JSON
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
-from mpcforces_extractor.datastructure.entities import Node
+from mpcforces_extractor.datastructure.entities import Node, Element
 
 
 class MPCDBModel(SQLModel, table=True):
@@ -16,6 +16,9 @@ class MPCDBModel(SQLModel, table=True):
     config: str = Field()  # Store MPC_CONFIG as a string
     master_node: int = Field()  # Store master node as an integer
     nodes: str = Field()  # Store nodes as a string
+    part_id2nodes: Dict = Field(
+        default_factory=dict, sa_column=Column(JSON)
+    )  # Store part_id2nodes as a dictionary
 
     def to_mpc(self):
         """
@@ -25,7 +28,7 @@ class MPCDBModel(SQLModel, table=True):
         nodes_list = (
             str(self.nodes).split(",") if self.nodes else []
         )  # Add a check to avoid splitting None
-        return MPC(
+        mpc = MPC(
             element_id=self.id,
             mpc_config=MPC_CONFIG[self.config],  # Convert string back to enum
             master_node=Node.node_id2node[
@@ -34,6 +37,8 @@ class MPCDBModel(SQLModel, table=True):
             nodes=[Node.node_id2node[int(node_id)] for node_id in nodes_list],
             dofs="",
         )
+        mpc.part_id2node_ids = self.part_id2nodes
+        return mpc
 
 
 class NodeDBModel(SQLModel, table=True):
@@ -107,6 +112,9 @@ class FakeDatabase(MPCForcesExtractorDatabase):
             nodes=[node5, node6],
             dofs="",
         )
+
+        Element(1, 1, [node2, node3])
+        Element(2, 2, [node6, node5])
         self.populate_database()
 
         # Read from the database
@@ -130,12 +138,16 @@ class FakeDatabase(MPCForcesExtractorDatabase):
                 session.add(db_node)
 
             for mpc in MPC.id_2_instance.values():
+
+                mpc.get_part_id2force(None)
+
                 # Convert MPC instance to MPCDBModel
                 db_mpc = MPCDBModel(
                     id=mpc.element_id,
                     config=mpc.mpc_config.name,  # Store enum as string
                     master_node=mpc.master_node.id,
                     nodes=",".join([str(node.id) for node in mpc.nodes]),
+                    part_id2nodes=mpc.part_id2node_ids,
                 )
                 # Add to the session
                 session.add(db_mpc)
