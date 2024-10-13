@@ -1,3 +1,15 @@
 body {
     background-color: #f8f9fa;
 }
+
+/* Style for the "Copied" message */
+.copied-msg {
+    display: inline-block;   /* Ensures the message appears next to the button */
+    color: green;            /* Green color for success indication */
+    margin-left: 10px;       /* Adds some space between the button and the message */
+    font-weight: bold;       /* Makes the text bold for emphasis */
+}
+
+.hidden {
+    display: none;           /* Hides the message when the 'hidden' class is applied */
+}
