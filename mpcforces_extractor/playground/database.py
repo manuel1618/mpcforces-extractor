@@ -147,7 +147,7 @@ class FakeDatabase(MPCForcesExtractorDatabase):
         """
         Get all MPCs
         """
-        return list(self.mpcs)
+        return list(self.mpcs.values())
 
     async def get_mpc(self, mpc_id: int) -> MPCDBModel:
         """
