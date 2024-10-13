@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MPC List</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Link to external CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 
@@ -14,8 +14,10 @@
         <h1>MPC List</h1>
 
         <!-- Button to fetch MPCs -->
-        <button id="fetch-button" class="btn btn-primary">Fetch MPCs</button>
-
+        <button id="fetch-button" class="btn btn-primary mt-3">Fetch MPCs</button>
+        <!-- Button to switch to Nodes view -->
+        <a href="/nodes" class="btn btn-secondary float-right mt-3">Switch to Nodes View</a>
+        
         <!-- Table to display the MPCs -->
         <table class="table mt-3">
             <thead>
@@ -23,6 +25,7 @@
                     <th>ID</th>
                     <th>Master Node</th>
                     <th>Slave Nodes</th>
+                    <th>Visualization Script</th> <!-- New column -->
                 </tr>
             </thead>
             <tbody id="mpc-table-body">
@@ -30,48 +33,17 @@
             </tbody>
         </table>
 
-        <!-- Button to switch to Nodes view -->
-        <a href="/nodes" class="btn btn-secondary mt-3">Switch to Nodes View</a>
     </div>
-
+    
+    <!-- Link to the external JavaScript file -->
+    <script src="/static/scripts.js"></script>
+    
     <script>
-        async function fetchMPCs() {
-            try {
-                const response = await fetch('/api/v1/mpcs');
-                const mpcs = await response.json();
-                const tableBody = document.getElementById('mpc-table-body');
-
-                // Clear the table before appending new rows
-                tableBody.innerHTML = '';
-
-                mpcs.forEach(mpc => {
-                    const row = document.createElement('tr');
-
-                    // Create individual table cells
-                    const idCell = document.createElement('td');
-                    idCell.textContent = mpc.id;
-
-                    const masterNodeCell = document.createElement('td');
-                    masterNodeCell.textContent = mpc.master_node;
-
-                    const nodesCell = document.createElement('td');
-                    nodesCell.textContent = mpc.nodes.split(",").join(", ");
-
-                    // Append cells to the row
-                    row.appendChild(idCell);
-                    row.appendChild(masterNodeCell);
-                    row.appendChild(nodesCell);
-
-                    // Append row to the table body
-                    tableBody.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Error fetching MPCs:', error);
-            }
-        }
-
         // Add event listener to the button
         document.getElementById('fetch-button').addEventListener('click', fetchMPCs);
+
+        // Automatically fetch MPCs when the page loads
+        window.onload = fetchMPCs;
     </script>
 </body>
 

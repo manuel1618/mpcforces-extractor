@@ -14,7 +14,11 @@
         <h1>Node List</h1>
 
         <!-- Button to fetch Nodes -->
-        <button id="fetch-button" class="btn btn-primary">Fetch Nodes</button>
+        <button id="fetch-button" class="btn btn-primary mt-3">Fetch Nodes</button>
+        
+        <!-- Button to switch to MPC view, align it right -->
+        <a href="/" class="btn btn-secondary mt-3 float-right">Switch to MPC View</a>
+        
 
         <!-- Table to display the Nodes -->
         <table class="table mt-3">
@@ -29,44 +33,17 @@
             </tbody>
         </table>
 
-        <!-- Button to switch to MPC view -->
-        <a href="/" class="btn btn-secondary mt-3">Switch to MPC View</a>
     </div>
 
+    <!-- Link to the external JavaScript file -->
+    <script src="/static/scripts.js"></script>
+    
     <script>
-        async function fetchNodes() {
-            try {
-                const response = await fetch('/api/v1/nodes');
-                const nodes = await response.json();
-                const tableBody = document.getElementById('node-table-body');
-
-                // Clear the table before appending new rows
-                tableBody.innerHTML = '';
-
-                nodes.forEach(node => {
-                    const row = document.createElement('tr');
-
-                    // Create individual table cells
-                    const idCell = document.createElement('td');
-                    idCell.textContent = node.id;
-
-                    const coordsCell = document.createElement('td');
-                    coordsCell.textContent = `${node.coord_x}, ${node.coord_y}, ${node.coord_z}`;
-
-                    // Append cells to the row
-                    row.appendChild(idCell);
-                    row.appendChild(coordsCell);
-
-                    // Append row to the table body
-                    tableBody.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Error fetching Nodes:', error);
-            }
-        }
-
         // Add event listener to the button
         document.getElementById('fetch-button').addEventListener('click', fetchNodes);
+
+        // Automatically fetch nodes when the page loads
+        window.onload = fetchNodes;
     </script>
 </body>
 
