@@ -4,13 +4,13 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from mpcforces_extractor.playground.database import (
-    FakeDatabase,
+    MPCDatabase,
     MPCDBModel,
     NodeDBModel,
 )
 
 app = FastAPI()
-db = FakeDatabase()
+db = MPCDatabase()
 
 # Mount the static files directory
 app.mount(
