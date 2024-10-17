@@ -7,9 +7,21 @@
     <title>Node List</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+    <script>
+        // Apply the correct theme immediately before rendering the page
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode');  // Apply to <html> or <body> right away
+            } else {
+                document.documentElement.classList.add('light-mode'); // Set default to light mode
+            }
+        })();
+    </script>
 </head>
 
-<body>
+<body class="light-mode">
     <div class="container mt-5">
         <h1>Node List</h1>
 
@@ -18,6 +30,9 @@
         
         <!-- Button to switch to MPC view, align it right -->
         <a href="/" class="btn btn-secondary mt-3 float-right">Switch to MPC View</a>
+
+        <!-- Dark Mode Toggle Button -->
+        <button id="dark-mode-toggle" class="btn btn-dark dark-mode-toggle">Dark Mode</button>
         
 
         <!-- Table to display the Nodes -->
