@@ -2,9 +2,8 @@ import os
 import time
 from pathlib import Path
 import typer
-from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
+from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.reader.modelreaders import FemFileReader
-from mpcforces_extractor.datastructure.entities import Element
 
 visualize_cmd = typer.Typer(name="visualize", invoke_without_command=True)
 
@@ -32,8 +31,7 @@ def visualize(
     reader.create_entities()
 
     # Visualize
-    part_id2connected_node_ids = Element.get_part_id2node_ids_graph()
-    visualizer = VisualizerConnectedParts(part_id2connected_node_ids, output_vis)
+    visualizer = VisualizerConnectedParts(output_vis)
     visualizer.output_tcl_lines_for_part_vis()
 
     print("TCL visualization lines written to", output_vis)

@@ -1,10 +1,7 @@
-import os
 from pathlib import Path
 import typer
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
-from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
-from mpcforces_extractor.datastructure.entities import Element
 
 extractor_cmd = typer.Typer(name="extract", invoke_without_command=True)
 
@@ -26,21 +23,16 @@ def extract(
     if not Path(input_path_mpcf).exists():
         raise FileNotFoundError(f"File {input_path_mpcf} not found")
 
+    # Extract the forces
     mpc_force_extractor = MPCForceExtractor(
         input_path_fem, input_path_mpcf, output_path
     )
+    mpc_force_extractor.build_fem_and_subcase_data(blocksize)
 
-    rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
     # Write Summary
-    rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
     summary_writer = SummaryWriter(
         mpc_force_extractor, mpc_force_extractor.output_folder
     )
     summary_writer.add_header()
-    summary_writer.add_mpc_lines(rigidelement2forces)
+    summary_writer.add_mpc_lines()
     summary_writer.write_lines()
-    # Visualization
-    part_id2connected_node_ids = Element.get_part_id2node_ids_graph()
-    output_vis = os.path.join(output_path, "tcl_visualization")
-    visualizer = VisualizerConnectedParts(part_id2connected_node_ids, output_vis)
-    visualizer.output_tcl_lines_for_part_vis()

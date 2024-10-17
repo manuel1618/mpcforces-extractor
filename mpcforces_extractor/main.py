@@ -1,8 +1,10 @@
 import os
 import time
+import uvicorn
 from mpcforces_extractor.force_extractor import MPCForceExtractor
-from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
+from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
+from mpcforces_extractor.visualization.api import app
 
 
 def main():
@@ -13,7 +15,7 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "Flange"
+    model_name = "m"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
@@ -43,3 +45,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=False)
