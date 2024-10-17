@@ -3,7 +3,7 @@ from unittest.mock import patch, mock_open
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.entities import Element
-from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
+from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
 from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.datastructure.rigids import MPC
@@ -79,7 +79,9 @@ class TestFMPCForceExtractor(unittest.TestCase):
         self.assertTrue("FZ: 1.000" in lines)
         self.assertTrue("MX: 1.319" in lines)
 
-    @patch("mpcforces_extractor.visualize.tcl_visualize.open", new_callable=mock_open)
+    @patch(
+        "mpcforces_extractor.visualization.tcl_visualize.open", new_callable=mock_open
+    )
     @patch(
         "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )

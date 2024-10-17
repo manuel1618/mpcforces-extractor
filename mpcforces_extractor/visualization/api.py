@@ -3,25 +3,36 @@ from fastapi import FastAPI, HTTPException, status, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from mpcforces_extractor.playground.database import (
+from mpcforces_extractor.database.database import (
     MPCDatabase,
     MPCDBModel,
     NodeDBModel,
 )
 
+
+# Setup Jinja2 templates
+templates = Jinja2Templates(
+    directory="mpcforces_extractor/visualization/frontend/templates"
+)
+
+
 app = FastAPI()
-db = MPCDatabase()
+
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    Connect to the database when the application starts
+    """
+    print("Connecting to the database")
+    app.db = MPCDatabase()
+
 
 # Mount the static files directory
 app.mount(
     "/static",
-    StaticFiles(directory="mpcforces_extractor/playground/frontend/static"),
+    StaticFiles(directory="mpcforces_extractor/visualization/frontend/static"),
     name="static",
-)
-
-# Setup Jinja2 templates
-templates = Jinja2Templates(
-    directory="mpcforces_extractor/playground/frontend/templates"
 )
 
 
@@ -36,14 +47,14 @@ async def read_root(request: Request):
 @app.get("/api/v1/mpcs", response_model=List[MPCDBModel])
 async def get_mpcs() -> List[MPCDBModel]:
     """Get all MPCs"""
-    return await db.get_mpcs()
+    return await app.db.get_mpcs()
 
 
 # API endpoint to get a specific MPC by ID
 @app.get("/api/v1/mpcs/{mpc_id}", response_model=MPCDBModel)
 async def get_mpc(mpc_id: int) -> MPCDBModel:
     """Get info about a specific MPC"""
-    mpc = await db.get_mpc(mpc_id)
+    mpc = await app.db.get_mpc(mpc_id)
     if mpc is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -57,7 +68,7 @@ async def get_mpc(mpc_id: int) -> MPCDBModel:
 @app.delete("/api/v1/mpcs/{mpc_id}")
 async def remove_mpc(mpc_id: int):
     """Remove an MPC"""
-    await db.remove_mpc(mpc_id)
+    await app.db.remove_mpc(mpc_id)
     return {"message": f"MPC with id: {mpc_id} removed"}
 
 
@@ -65,7 +76,7 @@ async def remove_mpc(mpc_id: int):
 @app.get("/api/v1/nodes", response_model=List[NodeDBModel])
 async def get_nodes() -> List[NodeDBModel]:
     """Get all nodes"""
-    return await db.get_nodes()
+    return await app.db.get_nodes()
 
 
 # Route for nodes view (HTML)
