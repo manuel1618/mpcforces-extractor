@@ -1,10 +1,9 @@
-from abc import ABC, abstractmethod
 from typing import List, Dict
 from fastapi import HTTPException
 from sqlmodel import Session, create_engine, SQLModel, Field, select, Column, JSON
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
-from mpcforces_extractor.datastructure.entities import Node, Element
+from mpcforces_extractor.datastructure.entities import Node
 
 
 class MPCDBModel(SQLModel, table=True):
@@ -58,20 +57,7 @@ class NodeDBModel(SQLModel, table=True):
         return Node(node_id=self.id, coords=[self.coord_x, self.coord_y, self.coord_z])
 
 
-class MPCForcesExtractorDatabase(ABC):
-    """
-    This class represents a generic MPC database.
-    """
-
-    @abstractmethod
-    async def get_mpcs(self) -> List[MPCDBModel]:
-        """
-        Get all MPCs
-        """
-        raise NotImplementedError
-
-
-class FakeDatabase(MPCForcesExtractorDatabase):
+class MPCDatabase:
     """
     A fake Database used for development
     """
@@ -89,32 +75,6 @@ class FakeDatabase(MPCForcesExtractorDatabase):
         # Create the tables
         SQLModel.metadata.create_all(self.engine)
 
-        # Define the initial MPC instances
-        node1 = Node(1, [0, 0, 0])
-        node2 = Node(2, [1, 2, 3])
-        node3 = Node(3, [4, 5, 6])
-        node4 = Node(4, [0, 0, 0])
-        node5 = Node(5, [1, 2, 3])
-        node6 = Node(6, [4, 5, 6])
-
-        MPC.reset()
-        MPC(
-            element_id=1,
-            mpc_config=MPC_CONFIG.RBE2,
-            master_node=node1,
-            nodes=[node2, node3],
-            dofs="",
-        )
-        MPC(
-            element_id=2,
-            mpc_config=MPC_CONFIG.RBE3,
-            master_node=node4,
-            nodes=[node5, node6],
-            dofs="",
-        )
-
-        Element(1, 1, [node2, node3])
-        Element(2, 2, [node6, node5])
         self.populate_database()
 
         # Read from the database
