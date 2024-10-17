@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPC List</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- External CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+
+    <script>
+        // Apply the correct theme immediately before rendering the page
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode');  // Apply to <html> or <body> right away
+            } else {
+                document.documentElement.classList.add('light-mode'); // Set default to light mode
+            }
+        })();
+    </script>
+</head>
+
+<body class="light-mode">
+    <div class="container mt-5">
+        <h1>MPC List</h1>
+
+        <!-- Button to fetch MPCs -->
+        <button id="fetch-button" class="btn btn-primary mt-3">Fetch MPCs</button>
+        <!-- Button to switch to Nodes view -->
+        <a href="/nodes" class="btn btn-secondary float-right mt-3">Switch to Nodes View</a>
+
+        <!-- Dark Mode Toggle Button -->
+        <button id="dark-mode-toggle" class="btn btn-dark dark-mode-toggle">Dark Mode</button>
+
+        <!-- Table to display the MPCs -->
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Master Node</th>
+                    <th>Slave Nodes</th>
+                    <th>Part Id to Nodes</th>
+                    <th>Visualization Script</th>
+                </tr>
+            </thead>
+            <tbody id="mpc-table-body">
+                <!-- Rows will be inserted here -->
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="/static/scripts.js"></script>
+
+    <script>
+        // Add event listener to the button
+        document.getElementById('fetch-button').addEventListener('click', fetchMPCs);
+
+        // Automatically fetch MPCs when the page loads
+        window.onload = fetchMPCs;
+    </script>
+</body>
+
+</html>

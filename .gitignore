@@ -171,3 +171,4 @@ cython_debug/
 data/output/**
 data/models/**
 test/**
+db.db

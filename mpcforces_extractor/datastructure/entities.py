@@ -53,12 +53,9 @@ class Element:
     This class is used to store the 2D/3D elements
     """
 
-    id: int
-    property_id: int
-    nodes: list[Node] = []
     element_id2element: Dict = {}
     graph = nx.Graph()
-    centroid: list = []
+    part_id2node_ids = {}
 
     @staticmethod
     def reset_graph():
