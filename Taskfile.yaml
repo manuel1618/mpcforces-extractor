@@ -68,3 +68,8 @@ tasks:
     desc: Builds the python package
     cmds:
       - poetry build
+
+  api:
+    desc: Run the API
+    cmds:
+      - poetry run uvicorn mpcforces_extractor.playground.api:app --reload
