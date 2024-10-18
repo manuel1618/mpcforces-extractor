@@ -37,9 +37,6 @@ async function fetchMPCs() {
         const response = await fetch('/api/v1/mpcs');
         const mpcs = await response.json();
         
-        // Log the MPC data to check if it's being fetched properly
-        console.log("MPCs fetched:", mpcs);
-
         const tableBody = document.getElementById('mpc-table-body');
 
         // Clear the table before appending new rows
@@ -58,9 +55,6 @@ async function fetchMPCs() {
             const nodeCell = document.createElement('td');
             const slaveNodesButton = createCopyButton(mpc.nodes.split(",").join(", "), 'Copy Slave Nodes');
             nodeCell.appendChild(slaveNodesButton);
-
-            // Log part_id2nodes to ensure it's correct
-            console.log("Part ID to Nodes for MPC", mpc.id, ":", mpc.part_id2nodes);
 
             // Create the part_id2nodes cell
             const partId2NodesCell = document.createElement('td');
@@ -96,23 +90,37 @@ async function fetchMPCs() {
             }
 
 
+            // Create the part_id2forces cell
 
-            // Create the visualization script cell with a button
-            const scriptCell = document.createElement('td');
-            const scriptButton = createCopyButton(
-                `Visualize MPC ${mpc.id} with Master Node ${mpc.master_node} and Nodes ${mpc.nodes}`,
-                'Copy Script'
-            );
 
-            // Append the button to the script cell
-            scriptCell.appendChild(scriptButton);
+            const partId2ForcesCell = document.createElement('td');
+            subcase_id2part_id2forces = mpc.subcase_id2part_id2forces;
+            for (const [subcaseId,partId2Forces] of Object.entries(subcase_id2part_id2forces)) {
+                for (const [partId, forces] of Object.entries(partId2Forces)) {
+                    force_x = parseFloat(forces[0]);
+                    force_y = parseFloat(forces[1]);
+                    force_z = parseFloat(forces[2]);
+                    force = Math.sqrt(force_x**2 + force_y**2 + force_z**2);
+                    force = force.toFixed(4);
+
+                    // Create a label like "Part X: "
+                    const label = document.createElement('span');
+                    label.textContent = `Subcase ${subcaseId}, Part ${partId}: ${force} `;
+                    label.style.marginRight = '5px'; // Add a little space between the label and the button
+                    // Append the label and button to the partId2NodesCell
+                    partId2ForcesCell.appendChild(label);
+                    partId2ForcesCell.appendChild(document.createElement('br'));
+                }
+            }
+
+
 
             // Append cells to the row
             row.appendChild(idCell);
             row.appendChild(masterNodeCell);
             row.appendChild(nodeCell); // Add the slaveNodesButton cell
             row.appendChild(partId2NodesCell); // Add the partId2Nodes cell
-            row.appendChild(scriptCell);
+            row.appendChild(partId2ForcesCell);
 
             // Append row to the table body
             tableBody.appendChild(row);
