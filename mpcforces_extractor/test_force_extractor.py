@@ -23,11 +23,11 @@ class TestFMPCForceExtractor(unittest.TestCase):
         force_extractor = MPCForceExtractor(
             fem_file_path="test.fem",
             mpc_file_path="test.mpc",
-            output_folder="test",
+            output_folder=None,
         )
         self.assertEqual(force_extractor.fem_file_path, "test.fem")
         self.assertEqual(force_extractor.mpc_file_path, "test.mpc")
-        self.assertEqual(force_extractor.output_folder, "test")
+        self.assertEqual(force_extractor.output_folder, None)
 
     @patch(
         "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
@@ -47,7 +47,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
         force_extractor = MPCForceExtractor(
             fem_file_path="test.fem",
             mpc_file_path="test.mpc",
-            output_folder="test",
+            output_folder=None,
         )
         force_extractor.build_fem_and_subcase_data(8)
 
@@ -89,7 +89,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
 
         mock_read_lines_fem.return_value = get_simple_model_fem()
 
-        reader = FemFileReader("dummy_path", 8)
+        reader = FemFileReader(None, 8)
         reader.create_entities()
 
         # Visualize
@@ -97,7 +97,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
         self.assertTrue(part_id2connected_node_ids is not None)
         self.assertTrue(len(part_id2connected_node_ids) == 2)
 
-        visualizer = VisualizerConnectedParts("dummy_path")
+        visualizer = VisualizerConnectedParts(None)
         visualizer.output_tcl_lines_for_part_vis()
 
         commands = visualizer.commands

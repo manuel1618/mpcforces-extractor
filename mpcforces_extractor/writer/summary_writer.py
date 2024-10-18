@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.loads import Force, Moment
 from mpcforces_extractor.datastructure.rigids import MPC
@@ -11,9 +12,14 @@ class SummaryWriter:
     This class is used to write the summary of the forces extracted from the MPC forces file
     """
 
-    def __init__(self, instance: MPCForceExtractor, output_folder: str):
+    def __init__(
+        self, instance: MPCForceExtractor, output_folder: Optional[str] = None
+    ):
         self.instance = instance
-        self.output_path = os.path.join(output_folder, "summary.txt")
+        if output_folder:
+            self.output_path = os.path.join(output_folder, "summary.txt")
+        else:
+            self.output_path = None
         self.lines = []
         self.start_time = time.time()
 
@@ -102,6 +108,10 @@ class SummaryWriter:
         """
         This method writes the lines to the file
         """
+        if not self.output_path:
+            print("No output path specified - not writing summary")
+            return
+
         with open(self.output_path, "w", encoding="utf-8") as file:
             for line in self.lines:
                 file.write(line)
