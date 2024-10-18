@@ -55,8 +55,9 @@ async function fetchMPCs() {
             const masterNodeCell = document.createElement('td');
             masterNodeCell.textContent = mpc.master_node;
 
-            const nodesCell = document.createElement('td');
-            nodesCell.textContent = mpc.nodes.split(",").join(", ");
+            const nodeCell = document.createElement('td');
+            const slaveNodesButton = createCopyButton(mpc.nodes.split(",").join(", "), 'Copy Slave Nodes');
+            nodeCell.appendChild(slaveNodesButton);
 
             // Log part_id2nodes to ensure it's correct
             console.log("Part ID to Nodes for MPC", mpc.id, ":", mpc.part_id2nodes);
@@ -64,60 +65,52 @@ async function fetchMPCs() {
             // Create the part_id2nodes cell
             const partId2NodesCell = document.createElement('td');
 
-            // Convert part_id2nodes dictionary into a readable format
+            // Convert part_id2nodes dictionary into a set of copy buttons
             const partId2Nodes = mpc.part_id2nodes;
-            let partId2NodesText = "";
 
-            // Loop through the part_id2nodes dictionary
+            // Clear any existing content in the partId2NodesCell (if necessary)
+            partId2NodesCell.innerHTML = "";
+
+            // Loop through the part_id2nodes dictionary and create buttons for each part's node IDs
             for (const [partId, nodeIds] of Object.entries(partId2Nodes)) {
-                if (nodeIds.length > 0) {
-                    partId2NodesText += `Part ${partId}: ${nodeIds.join(", ")}<br>`;
-                } else {
-                    partId2NodesText += `Part ${partId}: No nodes<br>`;
-                }
+                const nodesText = nodeIds.length > 0 ? nodeIds.join(", ") : "No nodes";
+
+                // Create a label like "Part X: "
+                const label = document.createElement('span');
+                label.textContent = `Part ${partId}: `;
+                label.style.marginRight = '5px'; // Add a little space between the label and the button
+
+                // Use createCopyButton() to generate the button
+                const button = createCopyButton(nodesText, `Copy Nodes`);
+
+                // Add some margin to the button for spacing between them
+                button.style.marginBottom = '5px';
+                button.style.marginRight = '10px'; // Space between buttons
+
+                // Append the label and button to the partId2NodesCell
+                partId2NodesCell.appendChild(label);
+                partId2NodesCell.appendChild(button);
+                
+                // Optional: Add a line break between sets for better readability
+                partId2NodesCell.appendChild(document.createElement('br'));
             }
 
-            // Set the text of the partId2NodesCell
-            partId2NodesCell.innerHTML = partId2NodesText;
+
 
             // Create the visualization script cell with a button
             const scriptCell = document.createElement('td');
-            const copyButton = document.createElement('button');
-            copyButton.className = 'btn btn-secondary btn-sm';
-            copyButton.textContent = 'Copy Script';
-
-            // Placeholder visualization script
-            const visualizationScript = `Visualize MPC ${mpc.id} with Master Node ${mpc.master_node} and Nodes ${mpc.nodes}`;
-
-            // Copy to clipboard function
-            copyButton.addEventListener('click', () => {
-                navigator.clipboard.writeText(visualizationScript).then(() => {
-                    // Store the original text
-                    const originalText = copyButton.textContent;
-
-                    // Change the button text to 'Copied!' and update its style
-                    copyButton.textContent = 'Copied!';
-                    copyButton.style.backgroundColor = '#4CAF50'; // Change background to green
-                    copyButton.style.color = '#fff'; // Change text color to white
-
-                    // Revert back to original text after 1.5 seconds
-                    setTimeout(() => {
-                        copyButton.textContent = originalText;
-                        copyButton.style.backgroundColor = ''; // Reset to original background
-                        copyButton.style.color = ''; // Reset to original text color
-                    }, 1500);
-                }).catch(err => {
-                    console.error('Failed to copy text:', err);
-                });
-            });
+            const scriptButton = createCopyButton(
+                `Visualize MPC ${mpc.id} with Master Node ${mpc.master_node} and Nodes ${mpc.nodes}`,
+                'Copy Script'
+            );
 
             // Append the button to the script cell
-            scriptCell.appendChild(copyButton);
+            scriptCell.appendChild(scriptButton);
 
             // Append cells to the row
             row.appendChild(idCell);
             row.appendChild(masterNodeCell);
-            row.appendChild(nodesCell);
+            row.appendChild(nodeCell); // Add the slaveNodesButton cell
             row.appendChild(partId2NodesCell); // Add the partId2Nodes cell
             row.appendChild(scriptCell);
 
@@ -128,6 +121,32 @@ async function fetchMPCs() {
         console.error('Error fetching MPCs:', error);
     }
 }
+
+function createCopyButton(textToCopy, buttonText = 'Copy', copiedText = 'Copied!') {
+    const button = document.createElement('button');
+    button.className = 'btn btn-secondary btn-sm';
+    button.textContent = buttonText;
+
+    button.addEventListener('click', () => {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = button.textContent;
+            button.textContent = copiedText;
+            button.style.backgroundColor = '#4CAF50';
+            button.style.color = '#fff';
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.backgroundColor = '';
+                button.style.color = '';
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy text:', err);
+        });
+    });
+
+    return button;
+}
+
 
 
 document.addEventListener('DOMContentLoaded', function() {
