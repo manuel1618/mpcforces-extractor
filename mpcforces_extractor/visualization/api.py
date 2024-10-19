@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import FastAPI, HTTPException, status, Request
+from fastapi import FastAPI, HTTPException, status, Request, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -8,6 +8,8 @@ from mpcforces_extractor.database.database import (
     MPCDBModel,
     NodeDBModel,
 )
+
+ITEMS_PER_PAGE = 100  # Define a fixed number of items per page
 
 
 # Setup Jinja2 templates
@@ -39,8 +41,8 @@ app.mount(
 # Route for the main page (MPC list)
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    """Render the index.html template"""
-    return templates.TemplateResponse("index.html", {"request": request})
+    """Render the mpcs.html template"""
+    return templates.TemplateResponse("mpcs.html", {"request": request})
 
 
 # API endpoint to get all MPCs
@@ -72,11 +74,22 @@ async def remove_mpc(mpc_id: int):
     return {"message": f"MPC with id: {mpc_id} removed"}
 
 
-# API endpoint to get all nodes
 @app.get("/api/v1/nodes", response_model=List[NodeDBModel])
-async def get_nodes() -> List[NodeDBModel]:
-    """Get all nodes"""
-    return await app.db.get_nodes()
+async def get_nodes(page: int = Query(1, ge=1)) -> List[NodeDBModel]:
+    """
+    Get nodes with pagination (fixed 100 items per page)
+    """
+    # Calculate offset based on the current page
+    offset = (page - 1) * ITEMS_PER_PAGE
+
+    # Fetch nodes from the database with the calculated offset and limit (fixed at 100)
+    nodes = await app.db.get_nodes(offset=offset, limit=ITEMS_PER_PAGE)
+
+    # Handle case when no nodes are found
+    if not nodes:
+        raise HTTPException(status_code=404, detail="No nodes found")
+
+    return nodes
 
 
 # Route for nodes view (HTML)

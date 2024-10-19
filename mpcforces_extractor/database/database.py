@@ -84,7 +84,6 @@ class MPCDatabase:
         with Session(self.engine) as session:
             statement = select(MPCDBModel)
             self.mpcs = {mpc.id: mpc for mpc in session.exec(statement).all()}
-            print(self.mpcs)
 
     def populate_database(self):
         """
@@ -136,13 +135,21 @@ class MPCDatabase:
             status_code=404, detail=f"MPC with id {mpc_id} does not exist"
         )
 
-    async def get_nodes(self) -> List[NodeDBModel]:
+    async def get_nodes(self, offset: int, limit: int = 100) -> List[NodeDBModel]:
         """
         Get all nodes
         """
         with Session(self.engine) as session:
-            statement = select(NodeDBModel)
+            statement = select(NodeDBModel).offset(offset).limit(limit)
             return session.exec(statement).all()
+
+    async def get_total_nodes(self) -> int:
+        """
+        Get total count of nodes in the database. Used for pagination
+        """
+        with Session(self.engine) as session:
+            statement = select(NodeDBModel)
+            return len(session.exec(statement).all())
 
     async def remove_mpc(self, mpc_id: int):
         """
