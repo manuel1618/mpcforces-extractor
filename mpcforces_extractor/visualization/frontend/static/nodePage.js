@@ -9,8 +9,6 @@ async function fetchAllNodes() {
         const nodes = await response.json();
         allNodes = nodes;  // Store all nodes for client-side filtering
         total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
-
-        displayNodes(nodes);  // Initially display all nodes
     } catch (error) {
         console.error('Error fetching all Nodes:', error);
     }
@@ -78,12 +76,13 @@ function updatePageNumber() {
     paginationInfo.textContent = `Page ${currentPage} of ${total_pages}`;
 }
 
-
-
 // Automatically fetch nodes when the page loads, and fetch all nodes if there are no total pages
-document.addEventListener('DOMContentLoaded', () => {
-    fetchNodes();
+document.addEventListener('DOMContentLoaded', async () => {
+    fetchNodes(1);
     if (total_pages === 0) {
-        fetchAllNodes();
+        await fetchAllNodes();
+        currentPage = 1;
+        updatePageNumber();
+        console.log('Total pages:', total_pages);
     }
 });
