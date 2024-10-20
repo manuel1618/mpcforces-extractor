@@ -20,29 +20,7 @@ async function fetchNodes(page = 1) {
         const nodes = await response.json();
         const tableBody = document.getElementById('node-table-body');
 
-        // Clear the table before appending new rows
-        tableBody.innerHTML = '';
-
-        nodes.forEach(node => {
-            const row = document.createElement('tr');
-
-            const idCell = document.createElement('td');
-            idCell.textContent = node.id;
-
-            const coordsXCell = document.createElement('td');
-            coordsXCell.textContent = node.coord_x;
-            const coordsYCell = document.createElement('td');
-            coordsYCell.textContent = node.coord_y;
-            const coordsZCell = document.createElement('td');
-            coordsZCell.textContent = node.coord_z;
-
-            row.appendChild(idCell);
-            row.appendChild(coordsXCell);
-            row.appendChild(coordsYCell);
-            row.appendChild(coordsZCell);
-
-            tableBody.appendChild(row);
-        });
+        addNodesToTable(nodes);
 
         currentPage = page;
         updatePaginationButtons();
@@ -50,6 +28,61 @@ async function fetchNodes(page = 1) {
         console.error('Error fetching Nodes:', error);
     }
 }
+
+async function fetchNodesFiltered(filterValue) {
+    try {
+        const response = await fetch(`/api/v1/nodes/filter/${filterValue}`);
+        const nodes = await response.json();
+        addNodesToTable(nodes);
+    } catch (error) {
+        console.error('Error fetching Nodes:', error );
+    }
+}
+
+function addNodesToTable(nodes) {
+    // Clear the table before appending new rows
+    const tableBody = document.getElementById('node-table-body');
+    tableBody.innerHTML = '';
+
+    nodes.forEach(node => {
+        const row = document.createElement('tr');
+
+        const idCell = document.createElement('td');
+        idCell.textContent = node.id;
+
+        const coordsXCell = document.createElement('td');
+        coordsXCell.textContent = node.coord_x;
+        const coordsYCell = document.createElement('td');
+        coordsYCell.textContent = node.coord_y;
+        const coordsZCell = document.createElement('td');
+        coordsZCell.textContent = node.coord_z;
+
+        row.appendChild(idCell);
+        row.appendChild(coordsXCell);
+        row.appendChild(coordsYCell);
+        row.appendChild(coordsZCell);
+
+        tableBody.appendChild(row);
+    });
+}
+
+
+
+// fistering nodes by id
+// Filter nodes by ID
+document.getElementById('filter-by-node-id-button').addEventListener('click', async () => {
+    const filterValue = document.getElementById('filter-id').value.trim();
+    fetchNodesFiltered(filterValue);
+   
+});
+
+// Reset filter and display all nodes
+document.getElementById('filter-reset-button').addEventListener('click', () => {
+   fetchNodes(1);
+   updatePageNumber();
+});
+
+
 
 function updatePaginationButtons() {
     const prevButton = document.getElementById('prev-button');
