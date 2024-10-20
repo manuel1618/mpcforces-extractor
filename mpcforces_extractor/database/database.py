@@ -137,19 +137,19 @@ class MPCDatabase:
 
     async def get_nodes(self, offset: int, limit: int = 100) -> List[NodeDBModel]:
         """
-        Get all nodes
+        Get nodes for pagination
         """
         with Session(self.engine) as session:
             statement = select(NodeDBModel).offset(offset).limit(limit)
             return session.exec(statement).all()
 
-    async def get_total_nodes(self) -> int:
+    async def get_all_nodes(self) -> List[NodeDBModel]:
         """
-        Get total count of nodes in the database. Used for pagination
+        Get all nodes
         """
         with Session(self.engine) as session:
             statement = select(NodeDBModel)
-            return len(session.exec(statement).all())
+            return session.exec(statement).all()
 
     async def remove_mpc(self, mpc_id: int):
         """

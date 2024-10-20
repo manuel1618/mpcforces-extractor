@@ -35,13 +35,22 @@
         <!-- Dark Mode Toggle Button -->
         <button id="dark-mode-toggle" class="btn btn-dark dark-mode-toggle">Dark Mode</button>
 
+        <!-- Filter by ID Input Field -->
+        <div class="row mt-3">
+            <div class="col">
+                <input type="text" id="filter-id" class="form-control" placeholder="Filter by ID">
+            </div>
+        </div>
+
 
         <!-- Table to display the Nodes -->
         <table class="table mt-3">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Coordinates (X, Y, Z)</th>
+                    <th>x (global)</th>
+                    <th>y (global)</th>
+                    <th>z (global)</th>
                 </tr>
             </thead>
             <tbody id="node-table-body">

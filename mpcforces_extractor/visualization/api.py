@@ -92,6 +92,19 @@ async def get_nodes(page: int = Query(1, ge=1)) -> List[NodeDBModel]:
     return nodes
 
 
+@app.get("/api/v1/nodes/all", response_model=List[NodeDBModel])
+async def get_all_nodes() -> int:
+    """
+    Get all nodes
+    """
+    nodes = await app.db.get_all_nodes()
+
+    if not nodes:
+        raise HTTPException(status_code=404, detail="No nodes found")
+
+    return nodes
+
+
 # Route for nodes view (HTML)
 @app.get("/nodes", response_class=HTMLResponse)
 async def read_nodes(request: Request):
