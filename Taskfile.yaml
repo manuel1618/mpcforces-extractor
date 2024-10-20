@@ -72,4 +72,4 @@ tasks:
   api:
     desc: Run the API
     cmds:
-      - poetry run uvicorn mpcforces_extractor.playground.api:app --reload
+      - poetry run uvicorn mpcforces_extractor.visualization.api:app --reload

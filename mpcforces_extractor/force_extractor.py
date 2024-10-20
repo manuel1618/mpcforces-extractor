@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.reader.mpcforces_reader import MPCForcesReader
 from mpcforces_extractor.datastructure.entities import Element
@@ -13,7 +14,9 @@ class MPCForceExtractor:
     and calculate the forces for each rigid element by property
     """
 
-    def __init__(self, fem_file_path, mpc_file_path, output_folder: str):
+    def __init__(
+        self, fem_file_path, mpc_file_path, output_folder: Optional[str] = None
+    ):
         self.fem_file_path: str = fem_file_path
         self.mpc_file_path: str = mpc_file_path
         self.output_folder: str = output_folder
@@ -24,17 +27,18 @@ class MPCForceExtractor:
         Element.reset_graph()
         MPC.reset()
 
-        # create output folder if it does not exist, otherwise delete the content
-        if os.path.exists(output_folder):
-            for file in os.listdir(output_folder):
-                file_path = os.path.join(output_folder, file)
-                try:
-                    if os.path.isfile(file_path):
-                        os.unlink(file_path)
-                except Exception as e:
-                    print(e)
-        else:
-            os.makedirs(output_folder, exist_ok=True)
+        if output_folder:
+            # create output folder if it does not exist, otherwise delete the content
+            if os.path.exists(output_folder):
+                for file in os.listdir(output_folder):
+                    file_path = os.path.join(output_folder, file)
+                    try:
+                        if os.path.isfile(file_path):
+                            os.unlink(file_path)
+                    except Exception as e:
+                        print(e)
+            else:
+                os.makedirs(output_folder, exist_ok=True)
 
     def build_fem_and_subcase_data(self, block_size: int) -> None:
         """

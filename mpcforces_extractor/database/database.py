@@ -18,6 +18,9 @@ class MPCDBModel(SQLModel, table=True):
     part_id2nodes: Dict = Field(
         default_factory=dict, sa_column=Column(JSON)
     )  # Store part_id2nodes as a dictionary
+    subcase_id2part_id2forces: Dict = Field(
+        default_factory=dict, sa_column=Column(JSON)
+    )  # Store subcase_id2part_id2forces as a dictionary
 
     def to_mpc(self):
         """
@@ -81,7 +84,6 @@ class MPCDatabase:
         with Session(self.engine) as session:
             statement = select(MPCDBModel)
             self.mpcs = {mpc.id: mpc for mpc in session.exec(statement).all()}
-            print(self.mpcs)
 
     def populate_database(self):
         """
@@ -100,6 +102,7 @@ class MPCDatabase:
             for mpc in MPC.id_2_instance.values():
 
                 mpc.get_part_id2force(None)
+                sub2part2force = mpc.get_subcase_id2part_id2force()
 
                 # Convert MPC instance to MPCDBModel
                 db_mpc = MPCDBModel(
@@ -108,6 +111,7 @@ class MPCDatabase:
                     master_node=mpc.master_node.id,
                     nodes=",".join([str(node.id) for node in mpc.nodes]),
                     part_id2nodes=mpc.part_id2node_ids,
+                    subcase_id2part_id2forces=sub2part2force,
                 )
                 # Add to the session
                 session.add(db_mpc)
@@ -131,7 +135,15 @@ class MPCDatabase:
             status_code=404, detail=f"MPC with id {mpc_id} does not exist"
         )
 
-    async def get_nodes(self) -> List[NodeDBModel]:
+    async def get_nodes(self, offset: int, limit: int = 100) -> List[NodeDBModel]:
+        """
+        Get nodes for pagination
+        """
+        with Session(self.engine) as session:
+            statement = select(NodeDBModel).offset(offset).limit(limit)
+            return session.exec(statement).all()
+
+    async def get_all_nodes(self) -> List[NodeDBModel]:
         """
         Get all nodes
         """
