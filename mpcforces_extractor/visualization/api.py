@@ -105,7 +105,7 @@ async def get_all_nodes() -> int:
     return nodes
 
 
-@app.get("/api/v1/nodes/filter/{filter}", response_model=List[NodeDBModel])
+@app.get("/api/v1/nodes/filter/{filter_input}", response_model=List[NodeDBModel])
 async def get_nodes_filtered(filter_input: str) -> List[NodeDBModel]:
     """
     Get nodes filtered by a string, get it from all nodes, not paginated.
@@ -142,7 +142,6 @@ async def get_nodes_filtered(filter_input: str) -> List[NodeDBModel]:
                 raise HTTPException(
                     status_code=400, detail="Invalid ID in filter"
                 ) from ValueError
-
     return filtered_nodes
 
 
