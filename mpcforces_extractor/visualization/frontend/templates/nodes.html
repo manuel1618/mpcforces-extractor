@@ -7,10 +7,11 @@
     <title>Node List</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 
     <script>
         // Apply the correct theme immediately before rendering the page
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark-mode');  // Apply to <html> or <body> right away
@@ -27,20 +28,35 @@
 
         <!-- Button to fetch Nodes -->
         <button id="fetch-button" class="btn btn-primary mt-3">Fetch Nodes</button>
-        
+
         <!-- Button to switch to MPC view, align it right -->
         <a href="/" class="btn btn-secondary mt-3 float-right">Switch to MPC View</a>
 
         <!-- Dark Mode Toggle Button -->
         <button id="dark-mode-toggle" class="btn btn-dark dark-mode-toggle">Dark Mode</button>
-        
+
+        <!-- Filter by ID Input Field -->
+        <div class="row mt-3">
+            <div class="col">
+                <input type="text" id="filter-id" class="form-control" placeholder="Filter by Node ID">
+            </div>
+
+            <!-- Filter Button and Reset Button -->
+            <div class="col">
+                <button id="filter-by-node-id-button" class="btn btn-secondary">Filter</button>
+                <button id="filter-reset-button" class="btn btn-secondary">Reset</button>
+            </div>
+        </div>
+
 
         <!-- Table to display the Nodes -->
         <table class="table mt-3">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Coordinates (X, Y, Z)</th>
+                    <th>x (global)</th>
+                    <th>y (global)</th>
+                    <th>z (global)</th>
                 </tr>
             </thead>
             <tbody id="node-table-body">
@@ -48,17 +64,27 @@
             </tbody>
         </table>
 
+        <!-- Pagination Buttons -->
+        <div class="pagination mt-3">
+            <button id="prev-button" class="btn btn-secondary">Previous</button>
+            <span id="pagination-info" class="mx-3">Page 1 of X</span>
+            <button id="next-button" class="btn btn-secondary">Next</button>
+        </div>
+
     </div>
 
     <!-- Link to the external JavaScript file -->
-    <script src="/static/scripts.js"></script>
-    
+    <script src="/static/common.js"></script>
+    <script src="/static/nodePage.js"></script>
+
     <script>
         // Add event listener to the button
-        document.getElementById('fetch-button').addEventListener('click', fetchNodes);
+        document.getElementById('fetch-button').addEventListener('click', () => fetchNodes(1));
 
         // Automatically fetch nodes when the page loads
-        window.onload = fetchNodes;
+        window.onload = () => fetchNodes(1);
+
+
     </script>
 </body>
 

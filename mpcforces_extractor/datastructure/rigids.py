@@ -73,3 +73,14 @@ class MPC:
                 sum_forces = subcase.get_sum_forces(node_ids)
             part_id2forces[part_id] = sum_forces
         return part_id2forces
+
+    def get_subcase_id2part_id2force(self) -> Dict:
+        """
+        This method is used to get the forces for each part of the MPC (connected slave nodes)
+        """
+
+        subcase_id2part_id2forces = {}
+        for subcase in Subcase.subcases:
+            part_id2forces = self.get_part_id2force(subcase)
+            subcase_id2part_id2forces[subcase.subcase_id] = part_id2forces
+        return subcase_id2part_id2forces

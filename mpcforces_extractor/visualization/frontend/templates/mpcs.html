@@ -11,7 +11,7 @@
 
     <script>
         // Apply the correct theme immediately before rendering the page
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark-mode');  // Apply to <html> or <body> right away
@@ -42,7 +42,7 @@
                     <th>Master Node</th>
                     <th>Slave Nodes</th>
                     <th>Part Id to Nodes</th>
-                    <th>Visualization Script</th>
+                    <th>Extracted Forces</th>
                 </tr>
             </thead>
             <tbody id="mpc-table-body">
@@ -53,7 +53,8 @@
     </div>
 
     <!-- External JavaScript -->
-    <script src="/static/scripts.js"></script>
+    <script src="/static/common.js"></script>
+    <script src="/static/mpcPage.js"></script>
 
     <script>
         // Add event listener to the button

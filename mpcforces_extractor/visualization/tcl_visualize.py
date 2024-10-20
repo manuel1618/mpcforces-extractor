@@ -16,7 +16,13 @@ class VisualizerConnectedParts:
         self.part_id2connected_element_ids = {}
         self.commands = []
 
-        # create output folder if it does not exist, otherwise delete the content
+        if output_folder:
+            self.__prepare_output_folder(output_folder)
+
+    def __prepare_output_folder(self, output_folder: str):
+        """
+        Creates output folder if it does not exist, otherwise delete the content
+        """
         if os.path.exists(output_folder):
             for file in os.listdir(output_folder):
                 file_path = os.path.join(output_folder, file)
@@ -55,6 +61,7 @@ class VisualizerConnectedParts:
         Creates the tcl code for visualizing the connected parts
         in Hypermesh
         """
+
         if not self.part_id2connected_element_ids:
             self.__transform_nodes_to_elements()
 
@@ -69,6 +76,10 @@ class VisualizerConnectedParts:
                 f"*createmark elements 1 {' '.join([str(i) for i in connected_element_ids])}"
             )
             self.commands.append(f'*movemark elements 1 "part{part_id}"')
+
+        if not self.output_folder:
+            print("No output folder specified - not running tcl commands")
+            return
 
         with open(
             os.path.join(self.output_folder, "commands.tcl"), "w", encoding="utf-8"

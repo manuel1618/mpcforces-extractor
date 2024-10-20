@@ -20,7 +20,7 @@ class Subcase:
         self.node_id2forces = {}
         Subcase.subcases.append(self)
 
-    def add_force(self, node_id, forces):
+    def add_force(self, node_id: int, forces: List) -> None:
         """
         This method is used to add the forces for a node
         """
