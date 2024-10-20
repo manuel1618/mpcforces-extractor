@@ -18,8 +18,6 @@ async function fetchNodes(page = 1) {
     try {
         const response = await fetch(`/api/v1/nodes?page=${page}`);
         const nodes = await response.json();
-        const tableBody = document.getElementById('node-table-body');
-
         addNodesToTable(nodes);
 
         currentPage = page;
@@ -33,6 +31,7 @@ async function fetchNodesFiltered(filterValue) {
     try {
         const response = await fetch(`/api/v1/nodes/filter/${filterValue}`);
         const nodes = await response.json();
+        console.log('Filtered nodes:', nodes);
         addNodesToTable(nodes);
     } catch (error) {
         console.error('Error fetching Nodes:', error );
@@ -44,6 +43,7 @@ function addNodesToTable(nodes) {
     const tableBody = document.getElementById('node-table-body');
     tableBody.innerHTML = '';
 
+    console.log('Nodes:', nodes);
     nodes.forEach(node => {
         const row = document.createElement('tr');
 
