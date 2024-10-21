@@ -146,7 +146,7 @@ async def get_subcases() -> List[SubcaseDBModel]:
     return await app.db.get_subcases()
 
 
-## HMTL Section
+# HMTL Section
 # Route for the main page (MPC list)
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
