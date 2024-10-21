@@ -14,6 +14,24 @@ async function fetchAllNodes() {
     }
 }
 
+async function fetchSubcases(){
+    try {
+        const response = await fetch('/api/v1/subcases');	
+        const subcases = await response.json();
+        // populate the Dropdown with Subcase ids
+        const subcaseDropdown = document.getElementById('subcase-dropdown');
+        subcaseDropdown.innerHTML = ''; // clear it before populating
+        subcases.forEach(subcase => {
+            const option = document.createElement('option');
+            option.value = subcase.id;
+            option.textContent = subcase.id;
+            subcaseDropdown.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error fetching Subcases:', error);
+    }
+}
+
 async function fetchNodes(page = 1) {
     try {
         const response = await fetch(`/api/v1/nodes?page=${page}`);
@@ -38,12 +56,17 @@ async function fetchNodesFiltered(filterValue) {
     }
 }
 
-function addNodesToTable(nodes) {
+async function addNodesToTable(nodes) {
     // Clear the table before appending new rows
     const tableBody = document.getElementById('node-table-body');
     tableBody.innerHTML = '';
 
-    console.log('Nodes:', nodes);
+    // Info for forces
+    const subcaseId = document.getElementById('subcase-dropdown').value;
+    const response = await fetch('/api/v1/subcases');	
+    const subcases = await response.json();
+    const subcase = subcases.find(subcase => subcase.id == subcaseId);
+    
     nodes.forEach(node => {
         const row = document.createElement('tr');
 
@@ -51,16 +74,30 @@ function addNodesToTable(nodes) {
         idCell.textContent = node.id;
 
         const coordsXCell = document.createElement('td');
-        coordsXCell.textContent = node.coord_x;
+        coordsXCell.textContent = node.coord_x.toFixed(3);
         const coordsYCell = document.createElement('td');
-        coordsYCell.textContent = node.coord_y;
+        coordsYCell.textContent = node.coord_y.toFixed(3);
         const coordsZCell = document.createElement('td');
-        coordsZCell.textContent = node.coord_z;
+        coordsZCell.textContent = node.coord_z.toFixed(3);
+
+
+        const forsAbsCell = document.createElement('td');
+        forces = subcase.node_id2forces[node.id];
+        if (forces === undefined){
+            forces = [0,0,0,0,0,0];
+        }   
+        forsAbsCell.textContent = Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2).toFixed(2);
+
+        const momentAbsCell = document.createElement('td');
+        momentAbsCell.textContent = Math.sqrt(forces[3]**2 + forces[4]**2 + forces[5]**2).toFixed(2);
+
 
         row.appendChild(idCell);
         row.appendChild(coordsXCell);
         row.appendChild(coordsYCell);
         row.appendChild(coordsZCell);
+        row.appendChild(forsAbsCell);
+        row.appendChild(momentAbsCell);
 
         tableBody.appendChild(row);
     });
@@ -73,13 +110,24 @@ function addNodesToTable(nodes) {
 document.getElementById('filter-by-node-id-button').addEventListener('click', async () => {
     const filterValue = document.getElementById('filter-id').value.trim();
     fetchNodesFiltered(filterValue);
+
+    // hide the page buttons and pagination info
+    document.getElementById('next-button').style.display = 'none';
+    document.getElementById('prev-button').style.display = 'none';
+    document.getElementById('pagination-info').textContent = '';
+
    
 });
 
 // Reset filter and display all nodes
 document.getElementById('filter-reset-button').addEventListener('click', () => {
-   fetchNodes(1);
-   updatePageNumber();
+    fetchNodes(1);
+    updatePageNumber();
+
+    // show the page buttons and pagination info
+    document.getElementById('next-button').style.display = 'block';
+    document.getElementById('prev-button').style.display = 'block';
+    document.getElementById('filter-id').value = '';
 });
 
 
@@ -111,6 +159,7 @@ function updatePageNumber() {
 
 // Automatically fetch nodes when the page loads, and fetch all nodes if there are no total pages
 document.addEventListener('DOMContentLoaded', async () => {
+    fetchSubcases();
     fetchNodes(1);
     if (total_pages === 0) {
         await fetchAllNodes();
