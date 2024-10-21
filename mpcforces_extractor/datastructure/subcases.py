@@ -11,7 +11,7 @@ class Subcase:
     node_id2forces = {}
     subcases = []
 
-    def __init__(self, subcase_id, time):
+    def __init__(self, subcase_id: int, time: float):
         """
         Constructor
         """

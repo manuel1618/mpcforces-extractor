@@ -7,6 +7,7 @@ from mpcforces_extractor.database.database import (
     MPCDatabase,
     MPCDBModel,
     NodeDBModel,
+    SubcaseDBModel,
 )
 
 ITEMS_PER_PAGE = 100  # Define a fixed number of items per page
@@ -36,13 +37,6 @@ app.mount(
     StaticFiles(directory="mpcforces_extractor/visualization/frontend/static"),
     name="static",
 )
-
-
-# Route for the main page (MPC list)
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    """Render the mpcs.html template"""
-    return templates.TemplateResponse("mpcs.html", {"request": request})
 
 
 # API endpoint to get all MPCs
@@ -143,6 +137,21 @@ async def get_nodes_filtered(filter_input: str) -> List[NodeDBModel]:
                     status_code=400, detail="Invalid ID in filter"
                 ) from ValueError
     return filtered_nodes
+
+
+# API endpoint to get all subcases
+@app.get("/api/v1/subcases", response_model=List[SubcaseDBModel])
+async def get_subcases() -> List[SubcaseDBModel]:
+    """Get all subcases"""
+    return await app.db.get_subcases()
+
+
+## HMTL Section
+# Route for the main page (MPC list)
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Render the mpcs.html template"""
+    return templates.TemplateResponse("mpcs.html", {"request": request})
 
 
 # Route for nodes view (HTML)
