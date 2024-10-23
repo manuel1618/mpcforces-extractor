@@ -4,6 +4,7 @@ from sqlmodel import Session, create_engine, SQLModel, Field, select, Column, JS
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Node
+from mpcforces_extractor.datastructure.subcases import Subcase
 
 
 class MPCDBModel(SQLModel, table=True):
@@ -60,6 +61,25 @@ class NodeDBModel(SQLModel, table=True):
         return Node(node_id=self.id, coords=[self.coord_x, self.coord_y, self.coord_z])
 
 
+class SubcaseDBModel(SQLModel, table=True):
+    """
+    Database Representation of Subcase Class
+    """
+
+    id: int = Field(primary_key=True)
+    node_id2forces: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+    time: float = Field()
+
+    def to_subcase(self):
+        """
+        Method to convert SubcaseDBModel back to Subcase object if needed
+        """
+        subcase = Subcase(subcase_id=self.id, time=self.time)
+        for node_id, forces in self.node_id2forces.items():
+            subcase.add_force(node_id, forces)
+        return subcase
+
+
 class MPCDatabase:
     """
     A fake Database used for development
@@ -82,22 +102,42 @@ class MPCDatabase:
 
         # Read from the database
         with Session(self.engine) as session:
-            statement = select(MPCDBModel)
-            self.mpcs = {mpc.id: mpc for mpc in session.exec(statement).all()}
+            self.mpcs = {mpc.id: mpc for mpc in session.exec(select(MPCDBModel)).all()}
+            self.subcases = {
+                subcase.id: subcase
+                for subcase in session.exec(select(SubcaseDBModel)).all()
+            }
 
-    def populate_database(self):
+    def populate_database(self, load_all_nodes=False):
         """
         Function to populate the database from MPC instances
         """
         with Session(self.engine) as session:
-            for node in Node.node_id2node.values():
-                db_node = NodeDBModel(
-                    id=node.id,
-                    coord_x=node.coords[0],
-                    coord_y=node.coords[1],
-                    coord_z=node.coords[2],
-                )
-                session.add(db_node)
+
+            if load_all_nodes:  # Load in all the nodes
+                for node in Node.node_id2node.values():
+                    db_node = NodeDBModel(
+                        id=node.id,
+                        coord_x=node.coords[0],
+                        coord_y=node.coords[1],
+                        coord_z=node.coords[2],
+                    )
+                    session.add(db_node)
+            else:  # load in just the nodes that are used in the MPCs
+                unique_nodes = set()
+                for mpc in MPC.id_2_instance.values():
+                    for node in mpc.nodes:
+                        unique_nodes.add(node)
+                    unique_nodes.add(mpc.master_node)
+
+                for node in unique_nodes:
+                    db_node = NodeDBModel(
+                        id=node.id,
+                        coord_x=node.coords[0],
+                        coord_y=node.coords[1],
+                        coord_z=node.coords[2],
+                    )
+                    session.add(db_node)
 
             for mpc in MPC.id_2_instance.values():
 
@@ -115,6 +155,15 @@ class MPCDatabase:
                 )
                 # Add to the session
                 session.add(db_mpc)
+
+            # Subcases
+            for subcase in Subcase.subcases:
+                db_subcase = SubcaseDBModel(
+                    id=subcase.subcase_id,
+                    node_id2forces=subcase.node_id2forces,
+                    time=subcase.time,
+                )
+                session.add(db_subcase)
 
             # Commit to the database
             session.commit()
@@ -161,3 +210,9 @@ class MPCDatabase:
             raise HTTPException(
                 status_code=404, detail=f"MPC with id {mpc_id} does not exist"
             )
+
+    async def get_subcases(self) -> List[SubcaseDBModel]:
+        """
+        Get all subcases
+        """
+        return list(self.subcases.values())
