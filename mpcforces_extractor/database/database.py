@@ -108,19 +108,36 @@ class MPCDatabase:
                 for subcase in session.exec(select(SubcaseDBModel)).all()
             }
 
-    def populate_database(self):
+    def populate_database(self, load_all_nodes=False):
         """
         Function to populate the database from MPC instances
         """
         with Session(self.engine) as session:
-            for node in Node.node_id2node.values():
-                db_node = NodeDBModel(
-                    id=node.id,
-                    coord_x=node.coords[0],
-                    coord_y=node.coords[1],
-                    coord_z=node.coords[2],
-                )
-                session.add(db_node)
+
+            if load_all_nodes:  # Load in all the nodes
+                for node in Node.node_id2node.values():
+                    db_node = NodeDBModel(
+                        id=node.id,
+                        coord_x=node.coords[0],
+                        coord_y=node.coords[1],
+                        coord_z=node.coords[2],
+                    )
+                    session.add(db_node)
+            else:  # load in just the nodes that are used in the MPCs
+                unique_nodes = set()
+                for mpc in MPC.id_2_instance.values():
+                    for node in mpc.nodes:
+                        unique_nodes.add(node)
+                    unique_nodes.add(mpc.master_node)
+
+                for node in unique_nodes:
+                    db_node = NodeDBModel(
+                        id=node.id,
+                        coord_x=node.coords[0],
+                        coord_y=node.coords[1],
+                        coord_z=node.coords[2],
+                    )
+                    session.add(db_node)
 
             for mpc in MPC.id_2_instance.values():
 
