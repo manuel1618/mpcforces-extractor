@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- External CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.add('light-mode');
+            }
+        })();
+    </script>
+</head>
+
+<body class="light-mode">
+    <div class="container mt-5">
+        <h1>Main Page</h1>
+
+        <div class="page-navigation">
+            <div class="btn-group" role="group">
+                <a href="/mpcs" class="btn btn-secondary">MPCs</a>
+                <a href="/nodes" class="btn btn-secondary">Nodes View</a>
+            </div>
+        </div>
+
+        <!-- Section 1: Load Files -->
+        <div class="mt-4">
+            <h2>Load Files</h2>
+            <div class="form-group">
+                <label for="fem-file">Select .fem file:</label>
+                <input type="file" id="fem-file" class="form-control" />
+                <p id="fem-path" class="mt-2"></p>
+            </div>
+            <div class="form-group">
+                <label for="mpcf-file">Select .mpcf file:</label>
+                <input type="file" id="mpcf-file" class="form-control" />
+                <p id="mpcf-path" class="mt-2"></p>
+            </div>
+            <button id="load-button" class="btn btn-primary mt-3">Run</button>
+        </div>
+
+        <hr>
+
+        <!-- Section 2: Import/Export Database -->
+        <div class="mt-4">
+            <h2>Import / Export Database</h2>
+            <div class="form-group">
+                <label for="database-file">Select database file:</label>
+                <input type="file" id="database-file" class="form-control" />
+            </div>
+            <div class="btn-group">
+                <button id="import-button" class="btn btn-success">Import</button>
+                <button id="export-button" class="btn btn-warning">Export</button>
+            </div>
+        </div>
+
+        <!-- Dark Mode Toggle Button -->
+        <button id="dark-mode-toggle" class="btn btn-dark dark-mode-toggle mt-3">Dark Mode</button>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="/static/common.js"></script>
+    <script src="/static/mainPage.js"></script>
+
+    <script>
+        // Dark mode toggle functionality
+        document.getElementById('dark-mode-toggle').addEventListener('click', function () {
+            const currentTheme = document.documentElement.classList.toggle('dark-mode') ? 'dark' : 'light';
+            localStorage.setItem('theme', currentTheme);
+        });
+
+        // File input change event handlers
+        document.getElementById('fem-file').addEventListener('change', function (event) {
+            document.getElementById('fem-path').textContent = event.target.files[0].name;
+        });
+
+        document.getElementById('mpcf-file').addEventListener('change', function (event) {
+            document.getElementById('mpcf-path').textContent = event.target.files[0].name;
+        });
+    </script>
+</body>
+
+</html>

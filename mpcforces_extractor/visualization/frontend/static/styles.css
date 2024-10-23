@@ -49,3 +49,11 @@ body.dark-mode .table {
     right: 10px;
 }
 
+.main-button {
+    text-align: center; /* Center the content within the div */
+    margin: 20px 0;    /* Optional margin for spacing */
+}
+
+.main-button a {
+    display: inline-block; /* Ensure it behaves like a block for centering */
+}
