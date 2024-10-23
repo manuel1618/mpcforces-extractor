@@ -35,24 +35,27 @@ async function fetchMPCs() {
             for (const [partId, nodeIds] of Object.entries(partId2Nodes)) {
                 const nodesText = nodeIds.length > 0 ? nodeIds.join(", ") : "No nodes";
 
-                // Create a label like "Part X: "
-                const label = document.createElement('span');
-                label.textContent = `Part ${partId}: `;
-                label.style.marginRight = '5px'; // Add a little space between the label and the button
+                const number_of_nodes = nodeIds.length;
+                if (number_of_nodes > 1) {
+                    // Create a label like "Part X: "
+                    const label = document.createElement('span');
+                    label.textContent = `Part ${partId}: `;
+                    label.style.marginRight = '5px'; // Add a little space between the label and the button
 
-                // Use createCopyButton() to generate the button
-                const button = createCopyButton(nodesText, `Copy Nodes`);
+                    // Use createCopyButton() to generate the button
+                    const button = createCopyButton(nodesText, `Copy Nodes`);
 
-                // Add some margin to the button for spacing between them
-                button.style.marginBottom = '5px';
-                button.style.marginRight = '10px'; // Space between buttons
+                    // Add some margin to the button for spacing between them
+                    button.style.marginBottom = '5px';
+                    button.style.marginRight = '10px'; // Space between buttons
 
-                // Append the label and button to the partId2NodesCell
-                partId2NodesCell.appendChild(label);
-                partId2NodesCell.appendChild(button);
-                
-                // Optional: Add a line break between sets for better readability
-                partId2NodesCell.appendChild(document.createElement('br'));
+                    // Append the label and button to the partId2NodesCell
+                    partId2NodesCell.appendChild(label);
+                    partId2NodesCell.appendChild(button);
+                    
+                    // Optional: Add a line break between sets for better readability
+                    partId2NodesCell.appendChild(document.createElement('br'));
+                }
             }
 
 
