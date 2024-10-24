@@ -1,10 +1,19 @@
 from typing import List, Dict
 from fastapi import HTTPException
-from sqlmodel import Session, create_engine, SQLModel, Field, select, Column, JSON
+from sqlmodel import Session, create_engine, SQLModel, Field, select, Column, JSON, text
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Node
 from mpcforces_extractor.datastructure.subcases import Subcase
+
+
+class RunExtractorRequest(SQLModel, table=False):
+    """
+    Request model for running the extractor
+    """
+
+    fem_filename: str
+    mpcf_filename: str
 
 
 class MPCDBModel(SQLModel, table=True):
@@ -82,15 +91,24 @@ class SubcaseDBModel(SQLModel, table=True):
 
 class MPCDatabase:
     """
-    A fake Database used for development
+    A Database class to store MPC instances, Nodes and Subcases
     """
 
     def __init__(self):
         """
         Development database creation and population
         """
+
         # Create the SQLite engine
         self.engine = create_engine("sqlite:///db.db")
+
+        # remover all values from the database
+        with Session(self.engine) as session:
+
+            session.exec(text("DELETE FROM mpcdbmodel"))
+            session.exec(text("DELETE FROM nodedbmodel"))
+            session.exec(text("DELETE FROM subcasedbmodel"))
+            session.commit()
 
         # Drop existing tables for development purposes
         SQLModel.metadata.drop_all(self.engine)
@@ -112,6 +130,8 @@ class MPCDatabase:
         """
         Function to populate the database from MPC instances
         """
+        # delete the existing data
+
         with Session(self.engine) as session:
 
             if load_all_nodes:  # Load in all the nodes

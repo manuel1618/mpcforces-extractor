@@ -46,7 +46,7 @@ class MPCForceExtractor:
         in a dictory with the rigid element as the key and the property2forces dict as the value
         """
         self.mpc_forces_reader = MPCForcesReader(self.mpc_file_path)
-        self.mpc_forces_reader.bulid_subcases()
+        self.mpc_forces_reader.build_subcases()
         self.subcases = Subcase.subcases
 
         self.reader = FemFileReader(self.fem_file_path, block_size)

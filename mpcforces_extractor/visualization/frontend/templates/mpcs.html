@@ -26,9 +26,7 @@
     <div class="container mt-5">
         <h1>MPC List</h1>
 
-        <div class="main-button">
-            <a href="/main" class="btn btn-secondary mt-3">Switch to Main Run Page</a>
-        </div>
+        <a href="/" class="btn btn-secondary mt-3">Switch to Main Run Page</a>
         <!-- Button to switch to Nodes view -->
         <a href="/nodes" class="btn btn-secondary float-right mt-3">Switch to Nodes View</a>
 
@@ -59,9 +57,6 @@
     <script src="/static/mpcPage.js"></script>
 
     <script>
-        // Add event listener to the button
-        document.getElementById('fetch-button').addEventListener('click', fetchMPCs);
-
         // Automatically fetch MPCs when the page loads
         window.onload = fetchMPCs;
     </script>
