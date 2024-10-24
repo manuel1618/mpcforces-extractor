@@ -1,5 +1,14 @@
+import os
 from typing import List
-from fastapi import FastAPI, HTTPException, status, Request, Query
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    status,
+    Request,
+    Query,
+    Form,
+    UploadFile,
+)
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
@@ -8,7 +17,13 @@ from mpcforces_extractor.database.database import (
     MPCDBModel,
     NodeDBModel,
     SubcaseDBModel,
+    RunExtractorRequest,
 )
+from mpcforces_extractor.force_extractor import MPCForceExtractor
+from mpcforces_extractor.datastructure.entities import Element, Node, Element1D
+from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.rigids import MPC
+
 
 ITEMS_PER_PAGE = 100  # Define a fixed number of items per page
 
@@ -146,10 +161,77 @@ async def get_subcases() -> List[SubcaseDBModel]:
     return await app.db.get_subcases()
 
 
+@app.post("/api/v1/upload-chunk")
+async def upload_chunk(
+    file: UploadFile, filename: str = Form(...), offset: int = Form(...)
+):
+    """
+    Upload a chunk of a file
+    """
+    upload_folder = "data/uploads"
+    file_path = os.path.join(upload_folder, filename)
+
+    # check if the file exists, if so, delete it
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    # Create the upload directory if it doesn't exist
+    os.makedirs(upload_folder, exist_ok=True)
+
+    # Open the file in append mode to write the chunk at the correct offset
+    with open(file_path, "ab") as f:
+        f.seek(offset)
+        content = await file.read()
+        f.write(content)
+
+    return {"message": "Chunk uploaded successfully!"}
+
+
+@app.post("/api/v1/run-extractor")
+async def run_extractor(request: RunExtractorRequest):
+    """
+    Run the extractor with the provided filenames
+    """
+    fem_file = request.fem_filename
+    mpcf_file = request.mpcf_filename
+
+    print(f"Running extractor with files: {fem_file}, {mpcf_file}")
+
+    # Clear all Instances
+    Node.reset()
+    Element1D.reset()
+    Element.reset_graph()
+    Subcase.reset()
+    MPC.reset()
+
+    input_folder = "data/uploads"
+    output_folder = "data/output"
+    blocksize = 8
+
+    mpc_force_extractor = MPCForceExtractor(
+        input_folder + f"/{fem_file}",
+        input_folder + f"/{mpcf_file}",
+        output_folder + f"/FRONTEND_{fem_file.split('.')[0]}",
+    )
+
+    # Write Summary
+    mpc_force_extractor.build_fem_and_subcase_data(blocksize)
+    app.db = MPCDatabase()
+
+    # Implement your logic here to run the extractor using the provided filenames
+    # For example, call your main routine here
+    try:
+        # Assuming you have a function called run_extractor_function
+        # run_extractor_function(fem_file, mpcf_file)
+        return {"message": "Extractor run successfully!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
 # HMTL Section
 # Route for the main page (MPC list)
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+@app.get("/mpcs", response_class=HTMLResponse)
+async def read_mpcs(request: Request):
     """Render the mpcs.html template"""
     return templates.TemplateResponse("mpcs.html", {"request": request})
 
@@ -159,3 +241,10 @@ async def read_root(request: Request):
 async def read_nodes(request: Request):
     """Render the nodes.html template"""
     return templates.TemplateResponse("nodes.html", {"request": request})
+
+
+# Route for main view (HTML)
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Render the nodes.html template"""
+    return templates.TemplateResponse("main.html", {"request": request})

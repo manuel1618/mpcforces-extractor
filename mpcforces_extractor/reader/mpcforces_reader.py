@@ -23,7 +23,7 @@ class MPCForcesReader:
             return file.readlines()
         return []
 
-    def bulid_subcases(self) -> None:
+    def build_subcases(self) -> None:
         """
         This method is used to extract the forces from the MPC forces file
         and build the subcases
