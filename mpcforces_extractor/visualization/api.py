@@ -35,10 +35,7 @@ OUTPUT_FOLDER = "data/output"
 templates = Jinja2Templates(
     directory="mpcforces_extractor/visualization/frontend/templates"
 )
-
-
 app = FastAPI()
-
 
 # Mount the static files directory
 app.mount(
@@ -52,6 +49,8 @@ app.mount(
 @app.get("/api/v1/mpcs", response_model=List[MPCDBModel])
 async def get_mpcs() -> List[MPCDBModel]:
     """Get all MPCs"""
+    if not hasattr(app, "db"):
+        raise HTTPException(status_code=500, detail="Database not initialized")
     return await app.db.get_mpcs()
 
 
@@ -59,6 +58,8 @@ async def get_mpcs() -> List[MPCDBModel]:
 @app.get("/api/v1/mpcs/{mpc_id}", response_model=MPCDBModel)
 async def get_mpc(mpc_id: int) -> MPCDBModel:
     """Get info about a specific MPC"""
+    if not hasattr(app, "db"):
+        raise HTTPException(status_code=500, detail="Database not initialized")
     mpc = await app.db.get_mpc(mpc_id)
     if mpc is None:
         raise HTTPException(
@@ -73,6 +74,9 @@ async def get_mpc(mpc_id: int) -> MPCDBModel:
 @app.delete("/api/v1/mpcs/{mpc_id}")
 async def remove_mpc(mpc_id: int):
     """Remove an MPC"""
+    if not hasattr(app, "db"):
+        raise HTTPException(status_code=500, detail="Database not initialized")
+
     await app.db.remove_mpc(mpc_id)
     return {"message": f"MPC with id: {mpc_id} removed"}
 
@@ -82,6 +86,10 @@ async def get_nodes(page: int = Query(1, ge=1)) -> List[NodeDBModel]:
     """
     Get nodes with pagination (fixed 100 items per page)
     """
+
+    if not hasattr(app, "db"):
+        raise HTTPException(status_code=500, detail="Database not initialized")
+
     # Calculate offset based on the current page
     offset = (page - 1) * ITEMS_PER_PAGE
 
@@ -100,6 +108,9 @@ async def get_all_nodes() -> int:
     """
     Get all nodes
     """
+    if not hasattr(app, "db"):
+        raise HTTPException(status_code=500, detail="Database not initialized")
+
     nodes = await app.db.get_all_nodes()
 
     if not nodes:
@@ -152,6 +163,8 @@ async def get_nodes_filtered(filter_input: str) -> List[NodeDBModel]:
 @app.get("/api/v1/subcases", response_model=List[SubcaseDBModel])
 async def get_subcases() -> List[SubcaseDBModel]:
     """Get all subcases"""
+    if not hasattr(app, "db"):
+        raise HTTPException(status_code=500, detail="Database not initialized")
     return await app.db.get_subcases()
 
 
@@ -162,15 +175,14 @@ async def upload_chunk(
     """
     Upload a chunk of a file
     """
-    upload_folder = "data/uploads"
-    file_path = os.path.join(upload_folder, filename)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
 
     # check if the file exists, if so, delete it
     if os.path.exists(file_path):
         os.remove(file_path)
 
     # Create the upload directory if it doesn't exist
-    os.makedirs(upload_folder, exist_ok=True)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
     # Open the file in append mode to write the chunk at the correct offset
     with open(file_path, "ab") as f:
