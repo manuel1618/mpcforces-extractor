@@ -1,5 +1,4 @@
 import os
-import time
 import pytest
 from mpcforces_extractor.database.database import MPCDatabase
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
