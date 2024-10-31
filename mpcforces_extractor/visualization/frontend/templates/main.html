@@ -53,14 +53,14 @@
 
         <!-- Section 2: Import/Export Database -->
         <div class="mt-4">
-            <h2>Import / Export Database</h2>
+            <h2>Import Database from a previous run</h2>
             <div class="form-group">
                 <label for="database-file">Select database file:</label>
-                <input type="file" id="database-file" class="form-control" />
+                <input type="file" id="database-file" class="form-control" required accept=".db"/>
+                <p id="database-path" class="mt-2"></p>
             </div>
             <div class="btn-group">
-                <button id="import-button" class="btn btn-success">Import</button>
-                <button id="export-button" class="btn btn-warning">Export</button>
+                <button id="import-db-button" class="btn btn-success">Import</button>
             </div>
         </div>
 
@@ -94,6 +94,75 @@
             document.getElementById('mpcf-path').textContent = file.name;
             uploadFile(file);  // Call the function from mainPage.js
         });
+
+
+
+        // Db File input / output event handlers
+        document.getElementById('database-file').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            document.getElementById('database-path').textContent = file.name;
+            uploadFile(file);  // Call the function from mainPage.js
+        });
+
+        document.getElementById("import-db-button").addEventListener("click", async function(event) {
+            const file = document.getElementById('database-file').files[0];
+            if (!file) {
+                alert("Please select a database file.");
+                return;
+            }
+
+            const response = await fetch('/api/v1/import-db', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    database_filename: file.name,
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                document.getElementById('progress').innerText = `Error: ${error}`;
+            } else {
+                const result = await response.json();
+                document.getElementById('progress').innerText = `Success: ${result.message}`;
+            }
+        });
+
+
+        // Run Button Click Event Handler
+        document.getElementById('run-button').addEventListener('click', async function () {
+            console.log('Run button clicked');
+            const femFile = document.getElementById('fem-file').files[0];
+            const mpcfFile = document.getElementById('mpcf-file').files[0];
+
+            if (!femFile || !mpcfFile) {
+                alert("Please select both .fem and .mpcf files.");
+                return;
+            }
+
+            const response = await fetch('/api/v1/run-extractor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fem_filename: femFile.name,
+                    mpcf_filename: mpcfFile.name,
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                document.getElementById('progress').innerText = `Error: ${error}`;
+            } else {
+                const result = await response.json();
+                document.getElementById('progress').innerText = `Success: ${result.message}`;
+            }
+        });
+
+
     </script>
 </body>
 

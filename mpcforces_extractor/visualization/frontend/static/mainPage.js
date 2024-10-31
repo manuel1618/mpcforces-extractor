@@ -21,35 +21,3 @@ async function uploadFile(file) {
     }
 }
 
-//Listeners 
-
-// Run button functionality
-document.getElementById('run-button').addEventListener('click', async function () {
-    console.log('Run button clicked');
-    const femFile = document.getElementById('fem-file').files[0];
-    const mpcfFile = document.getElementById('mpcf-file').files[0];
-
-    if (!femFile || !mpcfFile) {
-        alert("Please select both .fem and .mpcf files.");
-        return;
-    }
-
-    const response = await fetch('/api/v1/run-extractor', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            fem_filename: femFile.name,
-            mpcf_filename: mpcfFile.name,
-        }),
-    });
-
-    if (!response.ok) {
-        const error = await response.text();
-        document.getElementById('progress').innerText = `Error: ${error}`;
-    } else {
-        const result = await response.json();
-        document.getElementById('progress').innerText = `Success: ${result.message}`;
-    }
-});

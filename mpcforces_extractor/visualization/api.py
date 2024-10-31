@@ -18,6 +18,7 @@ from mpcforces_extractor.database.database import (
     NodeDBModel,
     SubcaseDBModel,
     RunExtractorRequest,
+    DatabaseRequest,
 )
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.datastructure.entities import Element, Node, Element1D
@@ -26,6 +27,8 @@ from mpcforces_extractor.datastructure.rigids import MPC
 
 
 ITEMS_PER_PAGE = 100  # Define a fixed number of items per page
+UPLOAD_FOLDER = "data/uploads"
+OUTPUT_FOLDER = "data/output"
 
 
 # Setup Jinja2 templates
@@ -35,15 +38,6 @@ templates = Jinja2Templates(
 
 
 app = FastAPI()
-
-
-@app.on_event("startup")
-async def startup_event():
-    """
-    Connect to the database when the application starts
-    """
-    print("Connecting to the database")
-    app.db = MPCDatabase()
 
 
 # Mount the static files directory
@@ -204,19 +198,19 @@ async def run_extractor(request: RunExtractorRequest):
     Subcase.reset()
     MPC.reset()
 
-    input_folder = "data/uploads"
-    output_folder = "data/output"
     blocksize = 8
+    model_output_folder = OUTPUT_FOLDER + "/" + f"FRONTEND_{fem_file.split('.')[0]}"
 
     mpc_force_extractor = MPCForceExtractor(
-        input_folder + f"/{fem_file}",
-        input_folder + f"/{mpcf_file}",
-        output_folder + f"/FRONTEND_{fem_file.split('.')[0]}",
+        UPLOAD_FOLDER + f"/{fem_file}",
+        UPLOAD_FOLDER + f"/{mpcf_file}",
+        model_output_folder,
     )
 
     # Write Summary
     mpc_force_extractor.build_fem_and_subcase_data(blocksize)
-    app.db = MPCDatabase()
+    app.db = MPCDatabase(model_output_folder + "/db.db")
+    app.db.populate_database()
 
     # Implement your logic here to run the extractor using the provided filenames
     # For example, call your main routine here
@@ -226,6 +220,29 @@ async def run_extractor(request: RunExtractorRequest):
         return {"message": "Extractor run successfully!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.post("/api/v1/import-db")
+async def import_db(request: DatabaseRequest):
+    """
+    Import a database (db) file and reinitialize the database
+    """
+    # Get the uploaded file
+    db_file = request.database_filename
+
+    db_path = UPLOAD_FOLDER + "/" + db_file
+
+    # Check if the file exists
+    if not os.path.exists(db_path):
+        raise HTTPException(
+            status_code=404, detail=f"Database file {db_file} not found"
+        )
+
+    # Reinitialize the database
+    if not hasattr(app, "db"):
+        app.db = MPCDatabase(db_path)
+    app.db.reinitialize_db(db_path)
+    return {"message": "Database imported successfully!"}
 
 
 # HMTL Section
