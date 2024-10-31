@@ -8,33 +8,16 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-
-    <script>
-        // Apply the correct theme immediately before rendering the page
-        (function () {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark-mode');  // Apply to <html> or <body> right away
-            } else {
-                document.documentElement.classList.add('light-mode'); // Set default to light mode
-            }
-        })();
-    </script>
 </head>
 
-<body class="light-mode">
+{% include 'navbar.html' %}
+
+<body class="dark-mode">
     <div class="container mt-5">
-        <h1>Node List</h1>
-
-        <!-- Button to switch to Main / Mpcs Page -->
-        <a href="/" class="btn btn-secondary mt-3">Switch to Main Run Page</a>
-        <a href="/mpcs" class="btn btn-secondary mt-3 float-right">Switch to MPC View</a>
-
-        <!-- Dark Mode Toggle Button -->
-        <button id="dark-mode-toggle" class="btn btn-dark dark-mode-toggle">Dark Mode</button>
+        <h1>Nodes</h1>
 
         <!-- Filter by ID Input Field -->
-        <div class="row mt-3">
+        <div class="row mt-">
             <div class="col">
                 <input type="text" id="filter-id" class="form-control" placeholder="Filter by Node ID">
             </div>
@@ -58,12 +41,13 @@
                     fetchSubcases();
                 </select>
             </div>
+        </div>
 
-
-
-
-            <!-- Table to display the Nodes -->
-            <table class="table mt-3">
+        
+        
+        <!-- Table to display the Nodes -->
+        <div id="node-table">
+            <table class="table mt-4">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -82,7 +66,7 @@
             <!-- Pagination Buttons -->
             <div class="pagination mt-3">
                 <button id="prev-button" class="btn btn-secondary">Previous</button>
-                <span id="pagination-info" class="mx-3">Page 1 of X</span>
+                <span id="pagination-info" class="mx-3">Page 1 of 1</span>
                 <button id="next-button" class="btn btn-secondary">Next</button>
             </div>
 
@@ -98,8 +82,6 @@
 
             // Automatically fetch nodes when the page loads
             window.onload = () => fetchNodes(1);
-
-
         </script>
 </body>
 
