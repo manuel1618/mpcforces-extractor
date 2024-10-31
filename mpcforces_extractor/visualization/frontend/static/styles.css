@@ -44,14 +44,9 @@ body.dark-mode .table {
 
 /* Button styling */
 .dark-mode-toggle {
-    position: fixed;
-    top: 10px;
-    right: 10px;
+    margin-left: 10px; /* Space between the GitHub link and the dark mode toggle */
 }
 
 .nav-link-github {
-    position: fixed;
-    top: 12px;
-    right: 140px;
-
+    margin-right: 5px; /* Space between the non-clickable text and the image */
 }
