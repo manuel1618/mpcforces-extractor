@@ -23,7 +23,7 @@ class TestMPCForcesReader(unittest.TestCase):
 
         mpc_reader = MPCForcesReader(mpc_file_path)
         mpc_reader.file_content = mock_read_lines.return_value
-        mpc_reader.bulid_subcases()
+        mpc_reader.build_subcases()
 
         self.assertEqual(len(Subcase.subcases), 1)
         subacase = Subcase.subcases[0]

@@ -8,7 +8,6 @@ class Subcase:
     in the mpcforces_extractor
     """
 
-    node_id2forces = {}
     subcases = []
 
     def __init__(self, subcase_id: int, time: float):
