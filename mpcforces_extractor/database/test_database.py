@@ -34,7 +34,8 @@ Element(1, 1, [node2, node3])
 Element(2, 2, [node6, node5])
 
 
-db = MPCDatabase()
+db = MPCDatabase("db.db")
+db.populate_database()
 
 
 @pytest.mark.asyncio
