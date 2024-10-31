@@ -114,15 +114,12 @@ class MPCDatabase:
 
         self.engine = create_engine(f"sqlite:///{file_path}")
 
-        SQLModel.metadata.create_all(self.engine)
-
-        # Read from the database
-        with Session(self.engine) as session:
-            self.mpcs = {mpc.id: mpc for mpc in session.exec(select(MPCDBModel)).all()}
-            self.subcases = {
-                subcase.id: subcase
-                for subcase in session.exec(select(SubcaseDBModel)).all()
-            }
+    def close(self):
+        """
+        Close the database connection
+        """
+        self.engine.dispose()
+        self.engine = None
 
     def reinitialize_db(self, file_path: str):
         """
@@ -205,6 +202,12 @@ class MPCDatabase:
 
             # Commit to the database
             session.commit()
+
+            self.mpcs = {mpc.id: mpc for mpc in session.exec(select(MPCDBModel)).all()}
+            self.subcases = {
+                subcase.id: subcase
+                for subcase in session.exec(select(SubcaseDBModel)).all()
+            }
 
     async def get_mpcs(self) -> List[MPCDBModel]:
         """
