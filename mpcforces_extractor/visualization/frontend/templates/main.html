@@ -9,29 +9,14 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 
-    <script>
-        (function () {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark-mode');
-            } else {
-                document.documentElement.classList.add('light-mode');
-            }
-        })();
-    </script>
 </head>
 
-<body class="light-mode">
-    <div class="container mt-5">
-        <h1>MPC Forces Extractor v0.1.5alpha</h1>
+{% include 'navbar.html' %}
 
-        <!-- Navigation Buttons -->
-        <div class="page-navigation">
-            <div class="btn-group" role="group">
-                <a href="/mpcs" class="btn btn-secondary">MPCs</a>
-                <a href="/nodes" class="btn btn-secondary">Nodes View</a>
-            </div>
-        </div>
+<!-- Main Body -->
+<body class="dark-mode">
+    <div class="container mt-5">
+        <h1>MPC Forces Extractor</h1>
 
         <!-- Section 1: Load Files -->
         <div class="mt-4">
@@ -53,7 +38,7 @@
 
         <!-- Section 2: Import/Export Database -->
         <div class="mt-4">
-            <h2>Import Database from a previous run</h2>
+            <h2>Import Database</h2>
             <div class="form-group">
                 <label for="database-file">Select database file:</label>
                 <input type="file" id="database-file" class="form-control" required accept=".db"/>
@@ -63,9 +48,6 @@
                 <button id="import-db-button" class="btn btn-success">Import</button>
             </div>
         </div>
-
-        <!-- Dark Mode Toggle Button -->
-        <button id="dark-mode-toggle" class="btn btn-dark dark-mode-toggle mt-3">Dark Mode</button>
 
         <!-- Progress Area -->
         <div id="progress" class="mt-3"></div>
@@ -161,8 +143,6 @@
                 document.getElementById('progress').innerText = `Success: ${result.message}`;
             }
         });
-
-
     </script>
 </body>
 
