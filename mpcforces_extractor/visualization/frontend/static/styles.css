@@ -49,3 +49,9 @@ body.dark-mode .table {
     right: 10px;
 }
 
+.nav-link-github {
+    position: fixed;
+    top: 12px;
+    right: 140px;
+
+}
