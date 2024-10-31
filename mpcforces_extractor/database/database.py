@@ -1,10 +1,27 @@
 from typing import List, Dict
 from fastapi import HTTPException
-from sqlmodel import Session, create_engine, SQLModel, Field, select, Column, JSON
+from sqlmodel import Session, create_engine, SQLModel, Field, select, Column, JSON, text
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Node
 from mpcforces_extractor.datastructure.subcases import Subcase
+
+
+class RunExtractorRequest(SQLModel, table=False):
+    """
+    Request model for running the extractor
+    """
+
+    fem_filename: str
+    mpcf_filename: str
+
+
+class DatabaseRequest(SQLModel, table=False):
+    """
+    Request model for running the extractor
+    """
+
+    database_filename: str
 
 
 class MPCDBModel(SQLModel, table=True):
@@ -82,25 +99,33 @@ class SubcaseDBModel(SQLModel, table=True):
 
 class MPCDatabase:
     """
-    A fake Database used for development
+    A Database class to store MPC instances, Nodes and Subcases
     """
 
-    def __init__(self):
+    def __init__(self, file_path: str):
         """
         Development database creation and population
         """
-        # Create the SQLite engine
-        self.engine = create_engine("sqlite:///db.db")
 
-        # Drop existing tables for development purposes
-        SQLModel.metadata.drop_all(self.engine)
+        # Initialize the database
+        self.engine = None
+        self.mpcs = {}
+        self.subcases = {}
 
-        # Create the tables
-        SQLModel.metadata.create_all(self.engine)
+        self.engine = create_engine(f"sqlite:///{file_path}")
 
-        self.populate_database()
+    def close(self):
+        """
+        Close the database connection
+        """
+        self.engine.dispose()
+        self.engine = None
 
-        # Read from the database
+    def reinitialize_db(self, file_path: str):
+        """
+        Reinitialize the database with the data from the file
+        """
+        self.engine = create_engine(f"sqlite:///{file_path}")
         with Session(self.engine) as session:
             self.mpcs = {mpc.id: mpc for mpc in session.exec(select(MPCDBModel)).all()}
             self.subcases = {
@@ -112,6 +137,16 @@ class MPCDatabase:
         """
         Function to populate the database from MPC instances
         """
+        # delete the existing data
+        # drop all tables
+        with Session(self.engine) as session:
+            session.exec(text("DROP TABLE IF EXISTS mpcdbmodel"))
+            session.exec(text("DROP TABLE IF EXISTS nodedbmodel"))
+            session.exec(text("DROP TABLE IF EXISTS subcasedbmodel"))
+
+        # Create the tables again
+        SQLModel.metadata.create_all(self.engine)
+
         with Session(self.engine) as session:
 
             if load_all_nodes:  # Load in all the nodes
@@ -167,6 +202,12 @@ class MPCDatabase:
 
             # Commit to the database
             session.commit()
+
+            self.mpcs = {mpc.id: mpc for mpc in session.exec(select(MPCDBModel)).all()}
+            self.subcases = {
+                subcase.id: subcase
+                for subcase in session.exec(select(SubcaseDBModel)).all()
+            }
 
     async def get_mpcs(self) -> List[MPCDBModel]:
         """

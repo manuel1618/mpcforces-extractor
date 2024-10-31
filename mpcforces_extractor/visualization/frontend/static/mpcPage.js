@@ -60,8 +60,6 @@ async function fetchMPCs() {
 
 
             // Create the part_id2forces cell
-
-
             const partId2ForcesCell = document.createElement('td');
             subcase_id2part_id2forces = mpc.subcase_id2part_id2forces;
             for (const [subcaseId,partId2Forces] of Object.entries(subcase_id2part_id2forces)) {

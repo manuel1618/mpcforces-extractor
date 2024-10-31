@@ -10,10 +10,7 @@ class Node:
     This class is used to store the nodes
     """
 
-    id: int
-    coords: List = []
     node_id2node: Dict = {}
-    connected_elements: List = []
 
     def __init__(self, node_id: int, coords: List):
         self.id = node_id
@@ -28,16 +25,19 @@ class Node:
         if element not in self.connected_elements:
             self.connected_elements.append(element)
 
+    @staticmethod
+    def reset() -> None:
+        """
+        This method resets the node_id2node dictionary
+        """
+        Node.node_id2node = {}
+
 
 class Element1D:
     """
     This class represents the 1D elements
     """
 
-    id: int
-    property_id: int
-    node1: Node
-    node2: Node
     all_elements = []
 
     def __init__(self, element_id: int, property_id: int, node1: Node, node2: Node):
@@ -46,6 +46,13 @@ class Element1D:
         self.node1 = node1
         self.node2 = node2
         Element1D.all_elements.append(self)
+
+    @staticmethod
+    def reset():
+        """
+        This method resets the all_elements list
+        """
+        Element1D.all_elements = []
 
 
 class Element:
@@ -64,6 +71,7 @@ class Element:
         """
         Element.graph = nx.Graph()
         Element.element_id2element = {}
+        Element.part_id2node_ids = {}
 
     def __init__(self, element_id: int, property_id: int, nodes: list):
         self.id = element_id

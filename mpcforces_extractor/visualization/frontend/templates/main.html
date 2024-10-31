@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPC Forces Extractor</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- External CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.add('light-mode');
+            }
+        })();
+    </script>
+</head>
+
+<body class="light-mode">
+    <div class="container mt-5">
+        <h1>MPC Forces Extractor v0.1.5alpha</h1>
+
+        <!-- Navigation Buttons -->
+        <div class="page-navigation">
+            <div class="btn-group" role="group">
+                <a href="/mpcs" class="btn btn-secondary">MPCs</a>
+                <a href="/nodes" class="btn btn-secondary">Nodes View</a>
+            </div>
+        </div>
+
+        <!-- Section 1: Load Files -->
+        <div class="mt-4">
+            <h2>Load Files</h2>
+            <div class="form-group">
+                <label for="fem-file">Select .fem file:</label>
+                <input type="file" id="fem-file" class="form-control" required accept=".fem" />
+                <p id="fem-path" class="mt-2"></p>
+            </div>
+            <div class="form-group">
+                <label for="mpcf-file">Select .mpcf file:</label>
+                <input type="file" id="mpcf-file" class="form-control" required accept=".mpcf"/>
+                <p id="mpcf-path" class="mt-2"></p>
+            </div>
+            <button id="run-button" class="btn btn-primary mt-3">Run MpcForces Extractor</button>
+        </div>
+
+        <hr>
+
+        <!-- Section 2: Import/Export Database -->
+        <div class="mt-4">
+            <h2>Import Database from a previous run</h2>
+            <div class="form-group">
+                <label for="database-file">Select database file:</label>
+                <input type="file" id="database-file" class="form-control" required accept=".db"/>
+                <p id="database-path" class="mt-2"></p>
+            </div>
+            <div class="btn-group">
+                <button id="import-db-button" class="btn btn-success">Import</button>
+            </div>
+        </div>
+
+        <!-- Dark Mode Toggle Button -->
+        <button id="dark-mode-toggle" class="btn btn-dark dark-mode-toggle mt-3">Dark Mode</button>
+
+        <!-- Progress Area -->
+        <div id="progress" class="mt-3"></div>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="/static/common.js"></script>
+    <script src="/static/mainPage.js"></script>
+
+    <script>
+        // Dark mode toggle functionality
+        document.getElementById('dark-mode-toggle').addEventListener('click', function () {
+            const currentTheme = document.documentElement.classList.toggle('dark-mode') ? 'dark' : 'light';
+            localStorage.setItem('theme', currentTheme);
+        });
+
+        // File input change event handlers
+        document.getElementById('fem-file').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            document.getElementById('fem-path').textContent = file.name;
+            uploadFile(file);  // Call the function from mainPage.js
+        });
+
+        document.getElementById('mpcf-file').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            document.getElementById('mpcf-path').textContent = file.name;
+            uploadFile(file);  // Call the function from mainPage.js
+        });
+
+
+
+        // Db File input / output event handlers
+        document.getElementById('database-file').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            document.getElementById('database-path').textContent = file.name;
+            uploadFile(file);  // Call the function from mainPage.js
+        });
+
+        document.getElementById("import-db-button").addEventListener("click", async function(event) {
+            const file = document.getElementById('database-file').files[0];
+            if (!file) {
+                alert("Please select a database file.");
+                return;
+            }
+
+            const response = await fetch('/api/v1/import-db', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    database_filename: file.name,
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                document.getElementById('progress').innerText = `Error: ${error}`;
+            } else {
+                const result = await response.json();
+                document.getElementById('progress').innerText = `Success: ${result.message}`;
+            }
+        });
+
+
+        // Run Button Click Event Handler
+        document.getElementById('run-button').addEventListener('click', async function () {
+            console.log('Run button clicked');
+            const femFile = document.getElementById('fem-file').files[0];
+            const mpcfFile = document.getElementById('mpcf-file').files[0];
+
+            if (!femFile || !mpcfFile) {
+                alert("Please select both .fem and .mpcf files.");
+                return;
+            }
+
+            const response = await fetch('/api/v1/run-extractor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fem_filename: femFile.name,
+                    mpcf_filename: mpcfFile.name,
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                document.getElementById('progress').innerText = `Error: ${error}`;
+            } else {
+                const result = await response.json();
+                document.getElementById('progress').innerText = `Success: ${result.message}`;
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>

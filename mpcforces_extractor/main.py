@@ -16,7 +16,7 @@ def main():
     input_folder = "data/input"
     output_folder = "data/output"
     model_name = "m"
-    model_name = "Flange"
+    # model_name = "Flange"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
@@ -45,5 +45,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
     uvicorn.run(app, host="127.0.0.1", port=8000)
