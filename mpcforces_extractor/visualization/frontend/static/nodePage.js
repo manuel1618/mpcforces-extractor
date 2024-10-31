@@ -1,5 +1,5 @@
 let currentPage = 1;  // Track the current page
-let total_pages = 0;  // Track the total number of pages
+let total_pages = 1;  // Track the total number of pages
 const NODES_PER_PAGE = 100;
 let allNodes = [];
 
@@ -8,7 +8,12 @@ async function fetchAllNodes() {
         const response = await fetch('/api/v1/nodes/all');  // Fetch all nodes without pagination
         const nodes = await response.json();
         allNodes = nodes;  // Store all nodes for client-side filtering
-        total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
+        if (nodes.length > 0) {
+            total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
+        } else {
+            total_pages = 1;
+        }
+        
     } catch (error) {
         console.error('Error fetching all Nodes:', error);
     }
@@ -135,6 +140,8 @@ document.getElementById('filter-reset-button').addEventListener('click', () => {
 function updatePaginationButtons() {
     const prevButton = document.getElementById('prev-button');
     prevButton.disabled = (currentPage === 1);
+    const nextButton = document.getElementById('next-button');
+    nextButton.disabled = (total_pages === 1) || (currentPage === total_pages);
 }
 
 document.getElementById('prev-button').addEventListener('click', () => {
