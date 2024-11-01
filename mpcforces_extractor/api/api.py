@@ -12,35 +12,34 @@ from fastapi import (
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from mpcforces_extractor.database.database import (
+from mpcforces_extractor.api.db.database import (
     MPCDatabase,
     MPCDBModel,
     NodeDBModel,
     SubcaseDBModel,
-    RunExtractorRequest,
-    DatabaseRequest,
 )
+from mpcforces_extractor.api.db.schemas import RunExtractorRequest, DatabaseRequest
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.datastructure.entities import Element, Node, Element1D
 from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.datastructure.rigids import MPC
-
-
-ITEMS_PER_PAGE = 100  # Define a fixed number of items per page
-UPLOAD_FOLDER = "data/uploads"
-OUTPUT_FOLDER = "data/output"
+from mpcforces_extractor.api.config import (
+    ITEMS_PER_PAGE,
+    UPLOAD_FOLDER,
+    OUTPUT_FOLDER,
+    STATIC_DIR,
+    TEMPLATES_DIR,
+)
 
 
 # Setup Jinja2 templates
-templates = Jinja2Templates(
-    directory="mpcforces_extractor/visualization/frontend/templates"
-)
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 app = FastAPI()
 
 # Mount the static files directory
 app.mount(
     "/static",
-    StaticFiles(directory="mpcforces_extractor/visualization/frontend/static"),
+    StaticFiles(directory=STATIC_DIR),
     name="static",
 )
 
@@ -196,7 +195,7 @@ async def upload_chunk(
 @app.post("/api/v1/run-extractor")
 async def run_extractor(request: RunExtractorRequest):
     """
-    Run the extractor with the provided filenames
+    Run the extractor. This is the main endpoint to run the program
     """
     fem_file = request.fem_filename
     mpcf_file = request.mpcf_filename
