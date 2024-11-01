@@ -4,7 +4,7 @@ import uvicorn
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
-from mpcforces_extractor.api.api import app
+from mpcforces_extractor.api.main import app
 
 
 def main():
