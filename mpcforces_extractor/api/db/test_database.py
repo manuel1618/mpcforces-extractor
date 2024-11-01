@@ -1,6 +1,6 @@
 import os
 import pytest
-from mpcforces_extractor.database.database import MPCDatabase
+from mpcforces_extractor.api.db.database import MPCDatabase
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Node, Element
 from fastapi import HTTPException
