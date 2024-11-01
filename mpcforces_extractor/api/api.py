@@ -8,6 +8,7 @@ from fastapi import (
     Query,
     Form,
     UploadFile,
+    Depends,
 )
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -30,6 +31,7 @@ from mpcforces_extractor.api.config import (
     STATIC_DIR,
     TEMPLATES_DIR,
 )
+from mpcforces_extractor.api.dependencies import get_db
 
 
 # Setup Jinja2 templates
@@ -46,20 +48,18 @@ app.mount(
 
 # API endpoint to get all MPCs
 @app.get("/api/v1/mpcs", response_model=List[MPCDBModel])
-async def get_mpcs() -> List[MPCDBModel]:
+async def get_mpcs(db=Depends(get_db)) -> List[MPCDBModel]:
     """Get all MPCs"""
-    if not hasattr(app, "db"):
-        raise HTTPException(status_code=500, detail="Database not initialized")
-    return await app.db.get_mpcs()
+
+    return await db.get_mpcs()
 
 
 # API endpoint to get a specific MPC by ID
 @app.get("/api/v1/mpcs/{mpc_id}", response_model=MPCDBModel)
-async def get_mpc(mpc_id: int) -> MPCDBModel:
+async def get_mpc(mpc_id: int, db=Depends(get_db)) -> MPCDBModel:
     """Get info about a specific MPC"""
-    if not hasattr(app, "db"):
-        raise HTTPException(status_code=500, detail="Database not initialized")
-    mpc = await app.db.get_mpc(mpc_id)
+
+    mpc = await db.get_mpc(mpc_id)
     if mpc is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -71,29 +71,24 @@ async def get_mpc(mpc_id: int) -> MPCDBModel:
 
 # API endpoint to remove an MPC by ID
 @app.delete("/api/v1/mpcs/{mpc_id}")
-async def remove_mpc(mpc_id: int):
+async def remove_mpc(mpc_id: int, db=Depends(get_db)):
     """Remove an MPC"""
-    if not hasattr(app, "db"):
-        raise HTTPException(status_code=500, detail="Database not initialized")
-
-    await app.db.remove_mpc(mpc_id)
+    await db.remove_mpc(mpc_id)
     return {"message": f"MPC with id: {mpc_id} removed"}
 
 
 @app.get("/api/v1/nodes", response_model=List[NodeDBModel])
-async def get_nodes(page: int = Query(1, ge=1)) -> List[NodeDBModel]:
+async def get_nodes(
+    page: int = Query(1, ge=1), db=Depends(get_db)
+) -> List[NodeDBModel]:
     """
     Get nodes with pagination (fixed 100 items per page)
     """
-
-    if not hasattr(app, "db"):
-        raise HTTPException(status_code=500, detail="Database not initialized")
-
     # Calculate offset based on the current page
     offset = (page - 1) * ITEMS_PER_PAGE
 
     # Fetch nodes from the database with the calculated offset and limit (fixed at 100)
-    nodes = await app.db.get_nodes(offset=offset, limit=ITEMS_PER_PAGE)
+    nodes = await db.get_nodes(offset=offset, limit=ITEMS_PER_PAGE)
 
     # Handle case when no nodes are found
     if not nodes:
@@ -103,14 +98,12 @@ async def get_nodes(page: int = Query(1, ge=1)) -> List[NodeDBModel]:
 
 
 @app.get("/api/v1/nodes/all", response_model=List[NodeDBModel])
-async def get_all_nodes() -> int:
+async def get_all_nodes(db=Depends(get_db)) -> int:
     """
     Get all nodes
     """
-    if not hasattr(app, "db"):
-        raise HTTPException(status_code=500, detail="Database not initialized")
 
-    nodes = await app.db.get_all_nodes()
+    nodes = await db.get_all_nodes()
 
     if not nodes:
         raise HTTPException(status_code=404, detail="No nodes found")
@@ -119,12 +112,14 @@ async def get_all_nodes() -> int:
 
 
 @app.get("/api/v1/nodes/filter/{filter_input}", response_model=List[NodeDBModel])
-async def get_nodes_filtered(filter_input: str) -> List[NodeDBModel]:
+async def get_nodes_filtered(
+    filter_input: str, db=Depends(get_db)
+) -> List[NodeDBModel]:
     """
     Get nodes filtered by a string, get it from all nodes, not paginated.
     The filter can be a range like '1-3' or comma-separated values like '1,2,3'.
     """
-    nodes = await app.db.get_all_nodes()
+    nodes = await db.get_all_nodes()
     filtered_nodes = []
 
     # Split the filter string by comma and process each part
@@ -160,11 +155,9 @@ async def get_nodes_filtered(filter_input: str) -> List[NodeDBModel]:
 
 # API endpoint to get all subcases
 @app.get("/api/v1/subcases", response_model=List[SubcaseDBModel])
-async def get_subcases() -> List[SubcaseDBModel]:
+async def get_subcases(db=Depends(get_db)) -> List[SubcaseDBModel]:
     """Get all subcases"""
-    if not hasattr(app, "db"):
-        raise HTTPException(status_code=500, detail="Database not initialized")
-    return await app.db.get_subcases()
+    return await db.get_subcases()
 
 
 @app.post("/api/v1/upload-chunk")
