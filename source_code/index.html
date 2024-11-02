@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.39">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.43">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.8c3ca2c6.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -82,6 +82,10 @@
     <div data-md-component="announce">
       
     </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
     
     
       
@@ -405,6 +409,11 @@
 
 
 
+
+
+
+
+
   <div class="doc doc-children">
 
 
@@ -431,9 +440,7 @@ Its there because of a entry point in the toml file</p>
 
             <details class="quote">
               <summary>Source code in <code>mpcforces_extractor\main.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 8</span>
-<span class="normal"> 9</span>
-<span class="normal">10</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">10</span>
 <span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
@@ -466,7 +473,8 @@ Its there because of a entry point in the toml file</p>
 <span class="normal">40</span>
 <span class="normal">41</span>
 <span class="normal">42</span>
-<span class="normal">43</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="normal">43</span>
+<span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is the main function that is used to test the MPCForceExtractor class</span>
 <span class="sd">    Its there because of a entry point in the toml file</span>
@@ -474,7 +482,8 @@ Its there because of a entry point in the toml file</p>
 
     <span class="n">input_folder</span> <span class="o">=</span> <span class="s2">&quot;data/input&quot;</span>
     <span class="n">output_folder</span> <span class="o">=</span> <span class="s2">&quot;data/output&quot;</span>
-    <span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;flange&quot;</span>
+    <span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;m&quot;</span>
+    <span class="c1"># model_name = &quot;Flange&quot;</span>
     <span class="n">blocksize</span> <span class="o">=</span> <span class="mi">8</span>
 
     <span class="n">mpc_force_extractor</span> <span class="o">=</span> <span class="n">MPCForceExtractor</span><span class="p">(</span>
@@ -484,20 +493,18 @@ Its there because of a entry point in the toml file</p>
     <span class="p">)</span>
 
     <span class="c1"># Write Summary</span>
-    <span class="n">rigidelement2forces</span> <span class="o">=</span> <span class="n">mpc_force_extractor</span><span class="o">.</span><span class="n">get_mpc_forces</span><span class="p">(</span><span class="n">blocksize</span><span class="p">)</span>
+    <span class="n">mpc_force_extractor</span><span class="o">.</span><span class="n">build_fem_and_subcase_data</span><span class="p">(</span><span class="n">blocksize</span><span class="p">)</span>
     <span class="n">summary_writer</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span>
         <span class="n">mpc_force_extractor</span><span class="p">,</span> <span class="n">mpc_force_extractor</span><span class="o">.</span><span class="n">output_folder</span>
     <span class="p">)</span>
     <span class="n">summary_writer</span><span class="o">.</span><span class="n">add_header</span><span class="p">()</span>
-    <span class="n">summary_writer</span><span class="o">.</span><span class="n">add_mpc_lines</span><span class="p">(</span><span class="n">rigidelement2forces</span><span class="p">)</span>
+    <span class="n">summary_writer</span><span class="o">.</span><span class="n">add_mpc_lines</span><span class="p">()</span>
     <span class="n">summary_writer</span><span class="o">.</span><span class="n">write_lines</span><span class="p">()</span>
 
     <span class="c1"># Visualize the connected parts</span>
     <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-    <span class="n">output_vis</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s2">&quot;tcl_visualization&quot;</span><span class="p">)</span>
-    <span class="n">visualizer</span> <span class="o">=</span> <span class="n">VisualizerConnectedParts</span><span class="p">(</span>
-        <span class="n">mpc_force_extractor</span><span class="o">.</span><span class="n">part_id2connected_node_ids</span><span class="p">,</span> <span class="n">output_vis</span>
-    <span class="p">)</span>
+    <span class="n">output_vis</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">&quot;tcl_visualization&quot;</span><span class="p">)</span>
+    <span class="n">visualizer</span> <span class="o">=</span> <span class="n">VisualizerConnectedParts</span><span class="p">(</span><span class="n">output_vis</span><span class="p">)</span>
     <span class="n">visualizer</span><span class="o">.</span><span class="n">output_tcl_lines_for_part_vis</span><span class="p">()</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;TCL visualization lines written to&quot;</span><span class="p">,</span> <span class="n">output_vis</span><span class="p">)</span>
@@ -561,10 +568,10 @@ Its there because of a entry point in the toml file</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.525ec568.min.js"></script>
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>
