@@ -57,7 +57,7 @@ tasks:
     deps:
       - test
     cmds:
-      - poetry run mkdocs serve
+      - poetry run mike serve
 
   docs-publish:
     desc: Publish the documentation to gh-pages
