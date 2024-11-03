@@ -65,7 +65,7 @@ tasks:
       - python -m poetry run mkdocs build
       - python -m poetry run mkdocs serve
         
-  docs-depoy:
+  docs-deploy:
     desc: Push the current version (needs to be changed here on task) to gh-pages
     cmds:
       - mike deploy 0.1.1 latest --push --update-aliases --allow-empty
