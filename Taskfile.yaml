@@ -59,13 +59,12 @@ tasks:
 
   docs-serve:
     desc: Serve the documentation locally with mkdocs. Deploy with mike (will commit)
-    deps:
-      - test
+    # deps:
+    #   - test
     cmds:
-      - poetry run mkdocs build
-      - poetry run mkdocs serve
+      - python -m poetry run mkdocs build
+      - python -m poetry run mkdocs serve
         
-    
   docs-depoy:
     desc: Push the current version (needs to be changed here on task) to gh-pages
     cmds:
