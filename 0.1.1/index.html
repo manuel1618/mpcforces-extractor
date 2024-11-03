@@ -291,9 +291,60 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Motivation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#functionality" class="md-nav__link">
     <span class="md-ellipsis">
       Functionality
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functionality">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-line-interface-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Line Interface (CLI)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app" class="md-nav__link">
+    <span class="md-ellipsis">
+      App
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pure-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pure Python
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-functionality-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Functionality (Backend)
     </span>
   </a>
   
@@ -343,11 +394,51 @@
   
   
     <li class="md-nav__item">
+      <a href="app/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    App
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CLI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="source_code/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Sorce Code
+    Direct
   </span>
   
 
@@ -367,7 +458,7 @@
         
   
   <span class="md-ellipsis">
-    Coverage report
+    Dev-Coverage
   </span>
   
 
@@ -403,9 +494,60 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Motivation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#functionality" class="md-nav__link">
     <span class="md-ellipsis">
       Functionality
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functionality">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-line-interface-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      Command Line Interface (CLI)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app" class="md-nav__link">
+    <span class="md-ellipsis">
+      App
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pure-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pure Python
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-functionality-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Functionality (Backend)
     </span>
   </a>
   
@@ -436,12 +578,36 @@
 
 
 <h1 id="welcome-to-mpcforces-extractor">Welcome to MPCForces-Extractor</h1>
-<p>This is a simple tool for Optistruct Runs and can get the amount of Force which is transferred by a particular RBE Element:</p>
+<p>This tool extracts the forces from Altair Optistruct Runs from RBEs and it sums them up by connected parts autoamtically.</p>
+<h2 id="motivation">Motivation</h2>
+<p>When you have simple rigid elements for modelling bolts, the mpcforces can be written out to either .h3d or .mpcf file among other options. With these options there seems to be no easy way of getting the summed up forces per conneced part for every mpc elmeent. Below you can see an image with the mpc forses printed as a vector plot. In the image there are two connected parts. To manually get the desired force per part you have to go into hyperview, do a table export and sum them up. This also requires you to have sets or to manually select the nodes per part. For a multitude of mpc elements this process is a problem.</p>
+<p><img alt="Vector Forces Plot" src="assets/img_rbe2_forceVector.png" /></p>
+<p>The desired process is this:</p>
+<p><img alt="Vector summed" src="assets/img_rbe2_forceVectorSummed.png" /></p>
+<p>This tool is destined to solve this by automating it. The two major problems regarding this:</p>
+<ul>
+<li>Detect the connected parts with in an efficient way</li>
+<li>Read the mpcf File and assign each force to the mpc element (as this is not printed in the mpcf file)</li>
+</ul>
 <h2 id="functionality">Functionality</h2>
+<p>This tool comes with different methods of using it</p>
+<h3 id="command-line-interface-cli"><a href="cli/">Command Line Interface (CLI)</a></h3>
+<p>Recommended if you want to process a lot of files with small scripts and text output is enough.</p>
+<h3 id="app"><a href="app/">App</a></h3>
+<p>Recommended if you want to get to know the tool or if you want to explore previous run models again (= import database).</p>
+<h3 id="pure-python"><a href="source_code/">Pure Python</a></h3>
+<p>You also can use the tool directly. Exmaple is provided <a href="source_code/">here</a>.</p>
+<h2 id="basic-functionality-backend">Basic Functionality (Backend)</h2>
+<p>The tool operates in the following way. CLI / App just shows the Input / Ouput.</p>
 <ul>
 <li>Detect RBE2 and RBE3 elements in your model</li>
 <li>Do a group segmentation for all connected (not by RBE2/RBE3) parts</li>
-<li>Ouput Sums of forces per RBE Element and therefore showing you how much force is being transfereed by which RBE Element</li>
+<li>Ouput sums of forces per RBE Element and therefore showing you how much force is being transfereed by which RBE Element to which part</li>
+</ul>
+<p>where:</p>
+<ul>
+<li>Part: A element collection which are connected to each other (ignoring all RBE Elements). For the Hypermesh user: Its "by attached" but without considering RBE Elements</li>
+<li>RBE: Rigid Body Element. Currently RBE2 and RBE3 Elements are supported</li>
 </ul>
 <h2 id="acknowledgements">Acknowledgements</h2>
 <ul>
