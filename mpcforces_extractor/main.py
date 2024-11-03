@@ -1,10 +1,8 @@
 import os
 import time
-import uvicorn
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
-from mpcforces_extractor.api.main import app
 
 
 def main():
@@ -45,4 +43,4 @@ def main():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    main()
