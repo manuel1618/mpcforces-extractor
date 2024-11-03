@@ -21,8 +21,10 @@ theme:
 nav:
   - Home: index.md
   - Quick-Start: quick_start.md
-  - Sorce Code: source_code.md
-  - Coverage report: coverage.md
+  - App: app.md
+  - CLI: cli.md
+  - Direct: source_code.md
+  - Dev-Coverage: coverage.md
 
 plugins:
   - search
