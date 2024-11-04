@@ -180,7 +180,3 @@ jobs:
           TWINE_NON_INTERACTIVE: 1
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: poetry run twine upload --skip-existing --verbose 'dist/*'
-
-      # Upload documentation to gh-pages
-      - name: Upload docs to the gh-pages branch
-        run: ./bin/task docs-deploy
