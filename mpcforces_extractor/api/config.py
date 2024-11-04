@@ -1,7 +1,10 @@
+from pathlib import Path
+
 ITEMS_PER_PAGE = 100
-UPLOAD_FOLDER = "data/uploads"
-OUTPUT_FOLDER = "data/output"
-STATIC_DIR = "mpcforces_extractor/frontend/static"  # Path to the static directory
+PACKAGE_ROOT_DIR = Path(__file__).resolve().parent.parent
+UPLOAD_FOLDER = f"{PACKAGE_ROOT_DIR}/data/uploads"
+OUTPUT_FOLDER = f"{PACKAGE_ROOT_DIR}/data/output"
+STATIC_DIR = f"{PACKAGE_ROOT_DIR}/frontend/static"  # Path to the static directory
 TEMPLATES_DIR = (
-    "mpcforces_extractor/frontend/templates"  # Path to the templates directory
+    f"{PACKAGE_ROOT_DIR}/frontend/templates"  # Path to the templates directory
 )
