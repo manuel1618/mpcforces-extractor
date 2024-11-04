@@ -59,8 +59,8 @@ tasks:
 
   docs-serve:
     desc: Serve the documentation locally with mkdocs. Deploy with mike (will commit)
-    # deps:
-    #   - test
+    deps:
+      - test
     cmds:
       - python -m poetry run mkdocs build
       - python -m poetry run mkdocs serve
