@@ -24,7 +24,7 @@ async def get_db():
     node4 = Node(4, [0, 0, 0])
     node5 = Node(5, [1, 2, 3])
     node6 = Node(6, [4, 5, 6])
-    node7 = Node(7, [0, 0, 0])  # Unused node
+    Node(7, [0, 0, 0])  # Unused node
 
     MPC.reset()
     MPC(
