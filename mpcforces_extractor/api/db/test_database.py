@@ -116,7 +116,3 @@ async def test_subcases():
 def test_teardown():
     db_save.close()
     os.remove("test.db")
-
-
-if __name__ == "__main__":
-    pytest.main(["-s", "-v", __file__])
