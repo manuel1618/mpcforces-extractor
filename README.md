@@ -1,7 +1,6 @@
 # MPCForces-Extractor
 
 This CLI tool outputs the MPC forces via summing it up per connected part. It is used in combination with Optistruct.
-Part connection detection can be visulized in Hpypermish through generated TCL Code.
 
 ## Motivation
 
@@ -26,9 +25,7 @@ To use this tool, you can simply use the pip install command like so:
 pip install mpcforces-extractor
 ```
 
-After installing it, you can access the cli tool via: ```mpcforces-extractor``` which will give you the following output:
-
-![cli-ouput](docs/assets/img_cli_help.png)
+After installing it, you can access the cli tool via: ```mpcforces-extractor``` which will launch a small webserver wher you can select input files and start the process:
 
 If you need more documentation, you can access it [here](https://manuel1618.github.io/mpcforces-extractor/)
 
