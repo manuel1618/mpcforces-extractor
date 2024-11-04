@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPC List</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- External CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+
+{% include 'navbar.html' %}
+
+<!-- Main Body -->
+<body class="dark-mode">
+    <div class="container mt-5">
+        <h1>MPC List</h1>
+
+        <!-- Table to display the MPCs -->
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Master Node</th>
+                    <th>Slave Nodes</th>
+                    <th>Part Id to Nodes</th>
+                    <th>Extracted Forces</th>
+                </tr>
+            </thead>
+            <tbody id="mpc-table-body">
+                <!-- Rows will be inserted here -->
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="/static/common.js"></script>
+    <script src="/static/mpcPage.js"></script>
+
+    <script>
+        // Automatically fetch MPCs when the page loads
+        window.onload = fetchMPCs;
+    </script>
+</body>
+
+</html>

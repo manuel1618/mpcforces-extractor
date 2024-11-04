@@ -1,0 +1,9 @@
+-- extract command --
+
+mpcforces-extractor extract "D:\\GITHUB\\mpcforces-extractor\\data\\input\\m.fem" "D:\\GITHUB\\mpcforces-extractor\\data\\input\\m.mpcf" "D:\\GITHUB\\mpcforces-extractor\\data\\input\\temp"  
+
+mpcforces-extractor extract "D:\\GITHUB\\mpcforces-extractor\\data\\input\\PlateSimpleRigid.fem" "D:\\GITHUB\\mpcforces-extractor\\data\\input\\PlateSimpleRigid.mpcf" "D:\\GITHUB\\mpcforces-extractor\\data\\input\\temp"  
+
+-- visualize --
+
+mpcforces-extractor visualize "D:\\GITHUB\\mpcforces-extractor\\data\\input\\PlateSimpleRigid.fem" "D:\\GITHUB\\mpcforces-extractor\\data\\input\\temp"  

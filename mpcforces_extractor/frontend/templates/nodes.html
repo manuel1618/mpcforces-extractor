@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node List</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+
+{% include 'navbar.html' %}
+
+<body class="dark-mode">
+    <div class="container mt-5">
+        <h1>Nodes</h1>
+
+        <!-- Filter by ID Input Field -->
+        <div class="row mt-">
+            <div class="col">
+                <input type="text" id="filter-id" class="form-control" placeholder="Filter by Node ID">
+            </div>
+
+            <!-- Filter Button and Reset Button -->
+            <div class="col">
+                <button id="filter-by-node-id-button" class="btn btn-secondary">Filter</button>
+                <button id="filter-reset-button" class="btn btn-secondary">Reset</button>
+            </div>
+
+            <div class="col-auto ms-3 mt-1">
+                <!-- Label Text before the Dropdown -->
+                <label for="subcase-dropdown" class="form-label float-right">Select a Subcase:</label>
+            </div>
+
+            <!-- Dropdown Subcase Menu -->
+            <div class="col-auto">
+                <!-- Dropdown Menu -->
+                <select id="subcase-dropdown" class="form-control float-right" style="max-width: 100px;">
+                    <!-- The function fetchSubcases() should populate the options dynamically -->
+                    fetchSubcases();
+                </select>
+            </div>
+        </div>
+
+        
+        
+        <!-- Table to display the Nodes -->
+        <div id="node-table">
+            <table class="table mt-4">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>x (global)</th>
+                        <th>y (global)</th>
+                        <th>z (global)</th>
+                        <th>ForceAbs</th>
+                        <th>MomentAbs</th>
+                    </tr>
+                </thead>
+                <tbody id="node-table-body">
+                    <!-- Rows will be inserted here -->
+                </tbody>
+            </table>
+
+            <!-- Pagination Buttons -->
+            <div class="pagination mt-3">
+                <button id="prev-button" class="btn btn-secondary">Previous</button>
+                <span id="pagination-info" class="mx-3">Page 1 of 1</span>
+                <button id="next-button" class="btn btn-secondary">Next</button>
+            </div>
+
+        </div>
+
+        <!-- Link to the external JavaScript file -->
+        <script src="/static/common.js"></script>
+        <script src="/static/nodePage.js"></script>
+
+        <script>
+            // Add event listener to the button
+            document.getElementById('fetch-button').addEventListener('click', () => fetchNodes(1));
+
+            // Automatically fetch nodes when the page loads
+            window.onload = () => fetchNodes(1);
+        </script>
+</body>
+
+</html>

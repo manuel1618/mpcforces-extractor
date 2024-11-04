@@ -1,6 +1,7 @@
 import unittest
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
-from mpcforces_extractor.datastructure.entities import Node
+from mpcforces_extractor.datastructure.entities import Node, Element
+from mpcforces_extractor.datastructure.subcases import Subcase
 
 
 class TestRigids(unittest.TestCase):
@@ -26,10 +27,6 @@ class TestRigids(unittest.TestCase):
             1: [1, 1, 1, 0, 0, 0],
             2: [2, 2, 2, 0, 0, 0],
         }
-        part_id2connected_node_ids = {
-            1: [1, 2],
-            2: [2, 3],
-        }
 
         node1 = Node(
             node_id=1,
@@ -43,17 +40,27 @@ class TestRigids(unittest.TestCase):
             node_id=3,
             coords=[0, 0, 0],
         )
+        node4 = Node(
+            node_id=4,
+            coords=[0, 0, 0],
+        )
+        Element.reset_graph()
+        Element(1, 1, [node1, node2, node3, node4])
 
         mpc = MPC(
             element_id=10,
             mpc_config=MPC_CONFIG.RBE2,
             master_node=0,
-            nodes=[node1, node2, node3],
+            nodes=[node1, node2],
             dofs="123",
         )
 
-        forces = mpc.sum_forces_by_connected_parts(
-            node_id2force, part_id2connected_node_ids
-        )
+        subcase = Subcase(1, 1)
+        subcase.node_id2forces = node_id2force
 
+        forces = mpc.get_part_id2force(subcase)
         self.assertTrue(forces[1] == [3, 3, 3, 0, 0, 0])
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,7 +1,9 @@
 import os
 import time
+from typing import Optional
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.loads import Force, Moment
+from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 
 
@@ -10,9 +12,14 @@ class SummaryWriter:
     This class is used to write the summary of the forces extracted from the MPC forces file
     """
 
-    def __init__(self, instance: MPCForceExtractor, output_folder: str):
+    def __init__(
+        self, instance: MPCForceExtractor, output_folder: Optional[str] = None
+    ):
         self.instance = instance
-        self.output_path = os.path.join(output_folder, "summary.txt")
+        if output_folder:
+            self.output_path = os.path.join(output_folder, "summary.txt")
+        else:
+            self.output_path = None
         self.lines = []
         self.start_time = time.time()
 
@@ -30,14 +37,14 @@ class SummaryWriter:
         self.lines.append(f"Input MPC forces file: {self.instance.mpc_file_path}\n")
         self.lines.append("\n")
 
-    def add_mpc_lines(self, mpc_element2part2forces: dict):
+    def add_mpc_lines(self):
         """
         This method adds the lines for each MPC element to the summary
         """
-        for mpc, part_id2forces in mpc_element2part2forces.items():
-            self.add_mpc_line(mpc, part_id2forces)
+        for mpc in self.instance.reader.rigid_elements:
+            self.add_mpc_line(mpc)
 
-    def add_mpc_line(self, mpc, part_id2forces):
+    def add_mpc_line(self, mpc: MPC) -> None:
         """
         Add info for a single MPC element
         """
@@ -73,37 +80,38 @@ class SummaryWriter:
                 )
         master_node = mpc.master_node
 
-        if master_node.id in self.instance.node_id2forces:
-            forces = self.instance.node_id2forces[master_node.id]
-            self.lines.append(f"  Master Node ID: {master_node.id}, Forces: {forces}\n")
-        else:
-            self.lines.append(f"  Master Node ID: {master_node.id}\n")
+        self.lines.append(f"  Master Node ID: {master_node.id}\n")
         self.lines.append(f"  Master Node Coords: {master_node.coords}\n")
         self.lines.append(f"  Slave Nodes: {len(mpc.nodes)}\n")
-        self.add_mpc_parts(mpc, part_id2forces)
-        self.lines.append("\n")
 
-    def add_mpc_parts(self, mpc, part_id2forces):
-        """
-        Add info for each part of the MPC element
-        """
-        for part_id in sorted(part_id2forces.keys()):
-            number_of_slave_nodes = len(mpc.part_id2node_ids[part_id])
-            if number_of_slave_nodes == 0:
-                continue
-            forces = part_id2forces[part_id]
-            self.lines.append(f"  Part ID: {part_id}\n")
-            node_ids = mpc.part_id2node_ids[part_id]
-            self.lines.append(f"    First 5 Slave Nodes for Location {node_ids[1:6]}\n")
-            self.lines.append(f"    Slave Nodes: {len(node_ids)}\n")
-            force_names = ["FX", "FY", "FZ", "MX", "MY", "MZ"]
-            for force, force_name in zip(forces, force_names):
-                self.lines.append(f"    {force_name}: {force:.3f}\n")
+        # add the force data
+        for subcase in self.instance.subcases:
+            subcase_id = subcase.subcase_id
+            subcase_time = subcase.time
+            self.lines.append(f"  Subcase ID: {subcase_id}\n")
+            self.lines.append(f"    Time: {subcase_time}\n")
+            for part_id, forces in mpc.get_part_id2force(subcase).items():
+                self.lines.append(f"    Part ID: {part_id}\n")
+                node_ids = mpc.part_id2node_ids[part_id]
+                self.lines.append(
+                    f"      First 5 Slave Nodes for Location {node_ids[1:6]}\n"
+                )
+                node_ids = mpc.part_id2node_ids[part_id]
+                self.lines.append(f"      Slave Nodes: {len(node_ids)}\n")
+                force_names = ["FX", "FY", "FZ", "MX", "MY", "MZ"]
+                for i, force in enumerate(forces):
+                    self.lines.append(f"      {force_names[i]}: {force:.3f}\n")
+
+        self.lines.append("\n")
 
     def write_lines(self):
         """
         This method writes the lines to the file
         """
+        if not self.output_path:
+            print("No output path specified - not writing summary")
+            return
+
         with open(self.output_path, "w", encoding="utf-8") as file:
             for line in self.lines:
                 file.write(line)
