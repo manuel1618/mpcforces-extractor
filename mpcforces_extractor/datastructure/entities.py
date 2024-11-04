@@ -1,7 +1,5 @@
 import time
 from typing import List, Dict
-from scipy.spatial import KDTree
-import numpy as np
 import networkx as nx
 
 
@@ -106,74 +104,6 @@ class Element:
         for i in range(3):
             centroid[i] /= len(self.nodes)
         return centroid
-
-    @staticmethod
-    def get_neighbors():
-        """
-        Calculate the neigbours by making use of a KDTree, 3 dimensions, using the centroid
-        Get the 30 closest potential neighbors and check if they are really neighbors by
-        checking if they share nodes
-        """
-
-        coords = [element.centroid for _, element in Element.element_id2element.items()]
-        tree = KDTree(np.array(coords))
-        for _, element in Element.element_id2element.items():
-            neighbors = tree.query(element.centroid, k=30)
-
-            for potential_neighbor_index in neighbors[1]:
-                if potential_neighbor_index not in Element.element_id2element:
-                    continue
-
-                potential_neighbor = Element.element_id2element[
-                    potential_neighbor_index
-                ]
-
-                # contition to avoid self as neighbor
-                if element.id == potential_neighbor.id:
-                    continue
-
-                # check if the element and the potential neighbor share nodes
-                if set(element.nodes).intersection(potential_neighbor.nodes):
-                    # check if the neighbor alredy has the element in its neighbors
-                    if element not in potential_neighbor.neighbors:
-                        potential_neighbor.neighbors.append(element)
-                    # check if the element alredy has the potential neighbor in its neighbors
-                    if potential_neighbor not in element.neighbors:
-                        element.neighbors.append(potential_neighbor)
-
-    def get_all_connected_elements(self, connected_elements: List) -> List:
-        """
-        This method returns all connected elements to the given element
-        """
-        if len(connected_elements) == 0:
-            connected_elements.append(self)
-
-        len_before = len(connected_elements)
-
-        # loop through all connected elements and add all  the neighbors to the connected_elements
-        for element in connected_elements:
-            for neighbor in element.neighbors:
-                if neighbor not in connected_elements:
-                    connected_elements.append(neighbor)
-
-        len_after = len(connected_elements)
-
-        if len_before == len_after:
-            return connected_elements
-        return self.get_all_connected_elements(connected_elements)
-
-    def get_all_connected_nodes(self) -> List:
-        """
-        This method returns all connected nodes to the given element
-        """
-        connected_elementes = self.get_all_connected_elements([self])
-        connected_nodes = []
-        for element in connected_elementes:
-            for node in element.nodes:
-                if node not in connected_nodes:
-                    connected_nodes.append(node)
-
-        return connected_nodes
 
     @staticmethod
     def get_part_id2node_ids_graph(force_update: bool = False) -> Dict:
