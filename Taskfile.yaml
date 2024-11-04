@@ -21,7 +21,18 @@ tasks:
            --show-source \
            --statistics \
            --count
-      - python -m poetry run ruff check mpcforces_extractor
+      - python -m poetry run ruff check
+
+  lint2:
+    desc: Lint the code with pylint
+    cmds:
+      - python -m poetry run black --check mpcforces_extractor
+      - |
+        python -m poetry run flake8 mpcforces_extractor \
+           --show-source \
+           --statistics \
+           --count
+      - python -m poetry run pylint mpcforces_extractor
 
   test:
     desc: Run tests
@@ -35,6 +46,11 @@ tasks:
     desc: Run the application
     cmds:
       - poetry run python -m mpcforces_extractor.main
+  
+  app:
+    desc: Run the application with the frontend
+    cmds:
+      - poetry run python -m mpcforces_extractor.app
 
   cli:
     desc: Run the CLI
@@ -42,18 +58,24 @@ tasks:
       - poetry run python -m mpcforces_extractor.cli
 
   docs-serve:
-    desc: Serve the documentation locally
+    desc: Serve the documentation locally with mkdocs. Deploy with mike (will commit)
     deps:
       - test
     cmds:
-      - poetry run mkdocs serve
-
-  docs-publish:
-    desc: Publish the documentation to gh-pages
+      - python -m poetry run mkdocs build
+      - python -m poetry run mkdocs serve
+        
+  docs-deploy:
+    desc: Push the current version (needs to be changed here on task) to gh-pages
     cmds:
-      - poetry run mkdocs gh-deploy --force
+      - mike deploy 0.1.1 latest --push --update-aliases --allow-empty
 
   build:
     desc: Builds the python package
     cmds:
       - poetry build
+
+  api:
+    desc: Run the API
+    cmds:
+      - poetry run uvicorn mpcforces_extractor.visualization.api:app --reload

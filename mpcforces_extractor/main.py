@@ -1,7 +1,7 @@
 import os
 import time
 from mpcforces_extractor.force_extractor import MPCForceExtractor
-from mpcforces_extractor.visualize.tcl_visualize import VisualizerConnectedParts
+from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
 
 
@@ -13,7 +13,8 @@ def main():
 
     input_folder = "data/input"
     output_folder = "data/output"
-    model_name = "flange"
+    model_name = "m"
+    # model_name = "Flange"
     blocksize = 8
 
     mpc_force_extractor = MPCForceExtractor(
@@ -23,20 +24,18 @@ def main():
     )
 
     # Write Summary
-    rigidelement2forces = mpc_force_extractor.get_mpc_forces(blocksize)
+    mpc_force_extractor.build_fem_and_subcase_data(blocksize)
     summary_writer = SummaryWriter(
         mpc_force_extractor, mpc_force_extractor.output_folder
     )
     summary_writer.add_header()
-    summary_writer.add_mpc_lines(rigidelement2forces)
+    summary_writer.add_mpc_lines()
     summary_writer.write_lines()
 
     # Visualize the connected parts
     start_time = time.time()
-    output_vis = os.path.join(output_folder, "tcl_visualization")
-    visualizer = VisualizerConnectedParts(
-        mpc_force_extractor.part_id2connected_node_ids, output_vis
-    )
+    output_vis = os.path.join(output_folder, model_name, "tcl_visualization")
+    visualizer = VisualizerConnectedParts(output_vis)
     visualizer.output_tcl_lines_for_part_vis()
 
     print("TCL visualization lines written to", output_vis)

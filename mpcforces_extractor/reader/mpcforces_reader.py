@@ -1,4 +1,5 @@
-from typing import Dict, List
+from typing import List
+from mpcforces_extractor.datastructure.subcases import Subcase
 
 
 class MPCForcesReader:
@@ -8,12 +9,11 @@ class MPCForcesReader:
 
     file_path: str = None
     file_content: str = None
-    nodes2forces: Dict = {}
 
     def __init__(self, file_path):
         self.file_path = file_path
-        self.nodes2forces = {}
         self.file_content = self.__read_lines()
+        self.node_ids = []
 
     def __read_lines(self) -> List[str]:
         """
@@ -23,13 +23,24 @@ class MPCForcesReader:
             return file.readlines()
         return []
 
-    def get_nodes2forces(self) -> Dict:
+    def build_subcases(self) -> None:
         """
         This method is used to extract the forces from the MPC forces file
+        and build the subcases
         """
-
+        subcase_id = 0
+        time = 0
+        Subcase.reset()
+        subcase = None
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i].strip()
+
+            if line.startswith("$SUBCASE"):
+                subcase_id = int(line.replace("$SUBCASE", "").strip())
+            if line.startswith("$TIME"):
+                time = float(line.replace("$TIME", "").strip())
+                subcase = Subcase(subcase_id, time)
+
             if "X-FORCE" in line:
                 i += 2
                 line = self.file_content[i].strip()
@@ -42,7 +53,7 @@ class MPCForcesReader:
                     # take the first 8 characters as the node id
                     node_id = int(line[:8].strip())
 
-                    # take the next 13 characters as the force_i
+                    # take the next 13 characters as the force values
                     n = 13
                     line_content = [line[j : j + n] for j in range(8, len(line), n)]
                     line_content = line_content[:-1]
@@ -61,9 +72,7 @@ class MPCForcesReader:
 
                     force = [force_x, force_y, force_z, moment_x, moment_y, moment_z]
 
-                    if node_id not in self.nodes2forces:
-                        self.nodes2forces[node_id] = force
-                    else:
-                        print("Node already in dictionary, sholud never happen")
+                    subcase.add_force(node_id, force)
+                    self.node_ids.append(node_id)
+
                     i += 1
-        return self.nodes2forces
