@@ -17,7 +17,7 @@ async def import_db(request: Request, db_request: DatabaseRequest):
     # Get the uploaded file
     db_file = db_request.database_filename
 
-    db_path = UPLOAD_FOLDER + "/" + db_file
+    db_path = str(UPLOAD_FOLDER) + os.sep + db_file
 
     # Check if the file exists
     if not os.path.exists(db_path):

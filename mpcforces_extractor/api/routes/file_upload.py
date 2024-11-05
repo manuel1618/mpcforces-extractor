@@ -1,6 +1,6 @@
 import os
 from fastapi import APIRouter, UploadFile, Form
-from mpcforces_extractor.api.config import UPLOAD_FOLDER
+from mpcforces_extractor.api.config import UPLOAD_FOLDER, OUTPUT_FOLDER
 
 router = APIRouter()
 
@@ -28,3 +28,11 @@ async def upload_chunk(
         f.write(content)
 
     return {"message": "Chunk uploaded successfully!"}
+
+
+@router.get("/get-output-folder")
+async def get_output_folder():
+    """
+    Get the output folder path
+    """
+    return {"output_folder": OUTPUT_FOLDER}
