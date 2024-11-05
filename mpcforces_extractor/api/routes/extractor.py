@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, HTTPException, Request
 from mpcforces_extractor.api.db.schemas import RunExtractorRequest
 from mpcforces_extractor.api.config import UPLOAD_FOLDER, OUTPUT_FOLDER
@@ -29,11 +30,11 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
     MPC.reset()
 
     blocksize = 8
-    model_output_folder = OUTPUT_FOLDER + "/" + f"FRONTEND_{fem_file.split('.')[0]}"
+    model_output_folder = str(OUTPUT_FOLDER) + os.sep + f"{fem_file.split('.')[0]}"
 
     mpc_force_extractor = MPCForceExtractor(
-        UPLOAD_FOLDER + f"/{fem_file}",
-        UPLOAD_FOLDER + f"/{mpcf_file}",
+        str(UPLOAD_FOLDER) + os.sep + fem_file,
+        str(UPLOAD_FOLDER) + os.sep + mpcf_file,
         model_output_folder,
     )
 
