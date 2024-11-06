@@ -15,8 +15,9 @@ async def upload_chunk(
     file_path = os.path.join(UPLOAD_FOLDER, filename)
 
     # check if the file exists, if so, delete it
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    if offset == 0:
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
     # Create the upload directory if it doesn't exist
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
