@@ -64,6 +64,16 @@ async function fetchMPCs() {
             subcase_id2part_id2forces = mpc.subcase_id2part_id2forces;
             for (const [subcaseId,partId2Forces] of Object.entries(subcase_id2part_id2forces)) {
                 for (const [partId, forces] of Object.entries(partId2Forces)) {
+
+                    // Don't add anythnig which is not part of the mpc (=connected)
+                    node_ids = mpc.part_id2nodes[partId];
+                    if (node_ids === undefined) {
+                        continue;
+                    }
+                    if (node_ids.length == 0) {
+                        continue;
+                    }
+                    
                     force_x = parseFloat(forces[0]);
                     force_y = parseFloat(forces[1]);
                     force_z = parseFloat(forces[2]);
