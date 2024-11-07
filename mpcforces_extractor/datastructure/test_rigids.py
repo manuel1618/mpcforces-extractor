@@ -10,16 +10,27 @@ class TestRigids(unittest.TestCase):
         Test the init method. Make sure all variables are set correctly (correct type)
         """
 
+        Node.reset()
+        node1 = Node(
+            node_id=1,
+            coords=[0, 0, 0],
+        )
+        node2 = Node(
+            node_id=2,
+            coords=[0, 0, 0],
+        )
+
         # Test the init method
         mpc = MPC(
             element_id=1,
             mpc_config=MPC_CONFIG.RBE2,
-            master_node=0,
-            nodes=[1, 2],
+            master_node=node1,
+            nodes=[node2],
             dofs="123",
         )
         self.assertEqual(mpc.element_id, 1)
-        self.assertEqual(mpc.nodes, [1, 2])
+        self.assertEqual(mpc.nodes, [node2])
+        self.assertEqual(mpc.master_node, node1)
         self.assertEqual(mpc.dofs, "123")
 
     def test_sum_forces_by_connected_parts(self):
@@ -27,6 +38,10 @@ class TestRigids(unittest.TestCase):
             1: [1, 1, 1, 0, 0, 0],
             2: [2, 2, 2, 0, 0, 0],
         }
+        node0 = Node(
+            node_id=0,
+            coords=[0, 0, 0],
+        )
 
         node1 = Node(
             node_id=1,
@@ -50,7 +65,7 @@ class TestRigids(unittest.TestCase):
         mpc = MPC(
             element_id=10,
             mpc_config=MPC_CONFIG.RBE2,
-            master_node=0,
+            master_node=node0,
             nodes=[node1, node2],
             dofs="123",
         )

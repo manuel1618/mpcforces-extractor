@@ -36,7 +36,7 @@ async function fetchMPCs() {
                 const nodesText = nodeIds.length > 0 ? nodeIds.join(", ") : "No nodes";
 
                 const number_of_nodes = nodeIds.length;
-                if (number_of_nodes > 1) {
+                if (number_of_nodes >= 1) {
                     // Create a label like "Part X: "
                     const label = document.createElement('span');
                     label.textContent = `Part ${partId}: `;
