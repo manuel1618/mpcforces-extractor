@@ -1,5 +1,5 @@
 let currentPage = 1;  // Track the current page
-let total_pages = 1;  // Track the total number of pages
+let total_pages = 0;  // Track the total number of pages
 const NODES_PER_PAGE = 100;
 let allNodes = [];
 
@@ -10,10 +10,7 @@ async function fetchAllNodes() {
         allNodes = nodes;  // Store all nodes for client-side filtering
         if (nodes.length > 0) {
             total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
-        } else {
-            total_pages = 1;
-        }
-        
+        } 
     } catch (error) {
         console.error('Error fetching all Nodes:', error);
     }
@@ -41,10 +38,11 @@ async function fetchNodes(page = 1) {
     try {
         const response = await fetch(`/api/v1/nodes?page=${page}`);
         const nodes = await response.json();
-        addNodesToTable(nodes);
-
-        currentPage = page;
-        updatePaginationButtons();
+        if (nodes.length > 0) {
+            addNodesToTable(nodes);
+            currentPage = page;
+            updatePaginationButtons();
+        }
     } catch (error) {
         console.error('Error fetching Nodes:', error);
     }
@@ -54,7 +52,6 @@ async function fetchNodesFiltered(filterValue) {
     try {
         const response = await fetch(`/api/v1/nodes/filter/${filterValue}`);
         const nodes = await response.json();
-        console.log('Filtered nodes:', nodes);
         addNodesToTable(nodes);
     } catch (error) {
         console.error('Error fetching Nodes:', error );
@@ -62,6 +59,21 @@ async function fetchNodesFiltered(filterValue) {
 }
 
 async function addNodesToTable(nodes) {
+
+    // Check if nodes is empty
+    if (nodes.detail === "Not Found") {
+        const tableBody = document.getElementById('node-table-body');
+        tableBody.innerHTML = '';
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 6;
+        cell.textContent = 'No nodes found';
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+        return;
+    }
+
+
     // Clear the table before appending new rows
     const tableBody = document.getElementById('node-table-body');
     tableBody.innerHTML = '';
@@ -71,6 +83,7 @@ async function addNodesToTable(nodes) {
     const response = await fetch('/api/v1/subcases');	
     const subcases = await response.json();
     const subcase = subcases.find(subcase => subcase.id == subcaseId);
+    
     
     nodes.forEach(node => {
         const row = document.createElement('tr');
@@ -87,10 +100,15 @@ async function addNodesToTable(nodes) {
 
 
         const forsAbsCell = document.createElement('td');
-        forces = subcase.node_id2forces[node.id];
-        if (forces === undefined){
-            forces = [0,0,0,0,0,0];
+        try {
+            forces = subcase.node_id2forces[node.id];
+        } catch (error) {
+            forces = undefined
         }   
+
+        if (forces === undefined) {
+            forces = [0, 0, 0, 0, 0, 0];
+        }
         forsAbsCell.textContent = Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2).toFixed(2);
 
         const momentAbsCell = document.createElement('td');
