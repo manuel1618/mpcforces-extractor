@@ -57,10 +57,11 @@ class MPC:
             # Connected groups of nodes - get then the intersection with the slave nodes
             part_id2connected_node_ids = Element.get_part_id2node_ids_graph()
             part_id2node_ids = {}
-            slave_node_ids = [node.id for node in self.nodes]
+            mpc_node_ids = [node.id for node in self.nodes]
+            mpc_node_ids.append(self.master_node.id)
             for part_id, node_ids in part_id2connected_node_ids.items():
                 part_id2node_ids[part_id] = list(
-                    set(node_ids).intersection(slave_node_ids)
+                    set(node_ids).intersection(mpc_node_ids)
                 )
 
             self.part_id2node_ids = part_id2node_ids
