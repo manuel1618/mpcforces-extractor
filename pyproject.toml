@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mpcforces-extractor"
-version = "0.1.7.1"
+version = "0.1.7.2"
 description = "A simple toolbox for getting mpc forces from output files from Optistruct"
 authors = ["Manuel <manuel.ramsaier89@gmail.com>"]
 license = "MIT"
