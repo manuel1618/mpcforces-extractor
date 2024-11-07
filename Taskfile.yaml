@@ -46,7 +46,7 @@ tasks:
     desc: Run the application
     cmds:
       - poetry run python -m mpcforces_extractor.main
-  
+
   app:
     desc: Run the application with the frontend
     cmds:
@@ -64,11 +64,11 @@ tasks:
     cmds:
       - python -m poetry run mkdocs build
       - python -m poetry run mkdocs serve
-        
+
   docs-deploy:
     desc: Push the current version (needs to be changed here on task) to gh-pages
     cmds:
-      - python -m poetry run mike deploy 0.1.7 latest --push --update-aliases --allow-empty
+      - python -m poetry run mike deploy 0.1.7.2 latest --push --update-aliases --allow-empty
 
   build:
     desc: Builds the python package
