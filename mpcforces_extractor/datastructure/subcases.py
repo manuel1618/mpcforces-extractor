@@ -31,6 +31,9 @@ class Subcase:
         """
         sum_forces = [0, 0, 0, 0, 0, 0]
         for node_id in node_ids:
+            if node_id not in self.node_id2forces:
+                print(f"Node {node_id} not found in mpcf, setting to 0.")
+                continue
             forces = self.node_id2forces[node_id]
             sum_forces = [sf + f for sf, f in zip(sum_forces, forces)]
         return sum_forces
