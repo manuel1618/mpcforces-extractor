@@ -17,7 +17,6 @@ This tool is destined to solve this by automating it. The two major problems reg
 - Detect the connected parts with in an efficient way
 - Read the mpcf File and assign each force to the mpc element (as this is not printed in the mpcf file)
 
-
 ## Functionality
 
 This tool comes with different methods of using it
@@ -38,9 +37,9 @@ You also can use the tool directly. Exmaple is provided [here](source_code.md).
 
 The tool operates in the following way. CLI / App just shows the Input / Ouput.
 
-* Detect RBE2 and RBE3 elements in your model
-* Do a group segmentation for all connected (not by RBE2/RBE3) parts
-* Ouput sums of forces per RBE Element and therefore showing you how much force is being transfereed by which RBE Element to which part
+- Detect RBE2 and RBE3 elements in your model
+- Do a group segmentation for all connected (not by RBE2/RBE3) parts
+- Ouput sums of forces per RBE Element and therefore showing you how much force is being transfereed by which RBE Element to which part
 
 where:
 
@@ -49,5 +48,5 @@ where:
 
 ## Acknowledgements
 
-* Thanks to [Codie](https://github.com/codie3611), because without him my python skills would not be nearly as mediocre as they are ;)
-* Thank you dear Wulu Tea for keeping me running at night
+- Thanks to [Codie](https://github.com/codie3611), because without him my python skills would not be nearly as mediocre as they are ;)
+- Thank you dear Wulu Tea for keeping me running at night
