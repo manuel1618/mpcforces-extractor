@@ -32,3 +32,15 @@ async def import_db(request: Request, db_request: DatabaseRequest):
         app.db = MPCDatabase(db_path)
     app.db.reinitialize_db(db_path)
     return {"message": "Database imported successfully!"}
+
+
+@router.post("/disconnect-db")
+async def disconnect_db(request: Request):
+    """
+    Closes the database connection, for the file to be deleted
+    """
+    app = request.app
+    if hasattr(app, "db"):
+        app.db.close()
+        del app.db
+    return {"message": "Database disconnected successfully!"}
