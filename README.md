@@ -17,6 +17,16 @@ This tool is destined to solve this by automating it. The two major problems reg
 - Detect the connected parts with in an efficient way
 - Read the mpcf File and assign each force to the mpc element (as this is not printed in the mpcf file)
 
+## Overview
+![v0 1 7 2-ProcessAndFrontend](https://github.com/user-attachments/assets/c36d6c6f-9d6c-431c-be13-b4dfd9fa7393)
+
+As seen in the picture above, the .fem and .mpcf files are being transformed by the mpcforces-extractor in a .db file.
+This can be triggered from the main page and the extracted entities are saved in the .db and  can be seen on the mpc and node page. 
+
+If you have transformed files into a .db file already you can directly load them in on the bottom half of the main page. This way, the tool is not triggered again but just the entities are displayed on the mpc and node pages.
+
+The mpcforces-extractor serves a small webserver with the pages when being called as descriebed in the quickstart section below.
+
 ## Quickstart
 
 To use this tool, you can simply use the pip install command like so:
