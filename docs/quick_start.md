@@ -10,8 +10,15 @@ pip install mpcforces-extractor
 
 After installing it, you can access the cli tool via: ```mpcforces-extractor``` which will start the [app](app.md).
 
-
 Alternatively you can use the command line interface tool ([CLI](cli.md))
+
+## Test Files
+
+In order to make testing the tool easier, you can download the following files:
+
+[m.fem](assets/models/m.fem)
+
+[m.mpcf](assets/models/m.mpcf)
 
 ## Taskfile
 
@@ -34,6 +41,7 @@ poetry run python -m mpcforces_extractor.main
 alternatively you can start the tool also with the ```python -m```  command.
 
 If you want to run the program in the APP / Browser mode:
+
 ```bash
 task app
 ```
