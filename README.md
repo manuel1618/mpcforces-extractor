@@ -29,6 +29,14 @@ After installing it, you can access the cli tool via: ```mpcforces-extractor``` 
 
 If you need more documentation, you can access it [here](https://manuel1618.github.io/mpcforces-extractor/)
 
+## Test Files
+
+In order to make testing the tool easier, you can download the following files:
+
+[m.fem](docs/assets/models/m.fem)
+
+[m.mpcf](docs/assets/models/m.mpcf)
+
 ## Questions?
 
 - Write me a e-mail :)
