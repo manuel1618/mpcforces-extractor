@@ -48,15 +48,6 @@ async function fetchNodes(page = 1) {
     }
 }
 
-async function fetchNodesFiltered(filterValue) {
-    try {
-        const response = await fetch(`/api/v1/nodes/filter/${filterValue}`);
-        const nodes = await response.json();
-        addNodesToTable(nodes);
-    } catch (error) {
-        console.error('Error fetching Nodes:', error );
-    }
-}
 
 async function addNodesToTable(nodes) {
 
@@ -131,7 +122,32 @@ async function addNodesToTable(nodes) {
 // fistering nodes by id
 // Filter nodes by ID
 document.getElementById('filter-by-node-id-button').addEventListener('click', async () => {
-    const filterValue = document.getElementById('filter-id').value.trim();
+    const filterData = document.getElementById('filter-id').value
+    .trim()
+    .split(",")
+    .map(a => a.trim());
+
+    try {
+        const response = await fetch('/api/v1/nodes/filter', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ids: filterData }),
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+        
+        const nodes = await response.json();
+        addNodesToTable(nodes);
+    } catch (error) {
+        console.error('Error fetching Nodes:', error);
+    }
+    
+
+
     fetchNodesFiltered(filterValue);
 
     // hide the page buttons and pagination info
@@ -185,11 +201,13 @@ function updatePageNumber() {
 // Automatically fetch nodes when the page loads, and fetch all nodes if there are no total pages
 document.addEventListener('DOMContentLoaded', async () => {
     fetchSubcases();
-    fetchNodes(1);
     if (total_pages === 0) {
         await fetchAllNodes();
         currentPage = 1;
         updatePageNumber();
         console.log('Total pages:', total_pages);
+    } else {
+        await fetchNodes(1);
+        updatePageNumber();
     }
 });
