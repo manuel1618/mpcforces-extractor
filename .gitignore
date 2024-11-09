@@ -172,3 +172,5 @@ data/output/**
 data/models/**
 test/**
 db.db
+
+!docs/assets/models/** 
