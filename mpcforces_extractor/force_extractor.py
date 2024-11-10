@@ -15,10 +15,10 @@ class MPCForceExtractor:
     """
 
     def __init__(
-        self, fem_file_path, mpc_file_path, output_folder: Optional[str] = None
+        self, fem_file_path, mpcf_file_path, output_folder: Optional[str] = None
     ):
         self.fem_file_path: str = fem_file_path
-        self.mpc_file_path: str = mpc_file_path
+        self.mpcf_file_path: str = mpcf_file_path
         self.output_folder: str = output_folder
         self.reader: FemFileReader = None
         self.mpc_forces_reader = None
@@ -26,6 +26,7 @@ class MPCForceExtractor:
         # reset the graph (very important) and the MPCs
         Element.reset_graph()
         MPC.reset()
+        Subcase.reset()
 
         if output_folder:
             # create output folder if it does not exist, otherwise delete the content
@@ -45,9 +46,10 @@ class MPCForceExtractor:
         This method reads the FEM File and the MPCF file and extracts the forces
         in a dictory with the rigid element as the key and the property2forces dict as the value
         """
-        self.mpc_forces_reader = MPCForcesReader(self.mpc_file_path)
-        self.mpc_forces_reader.build_subcases()
-        self.subcases = Subcase.subcases
+        if self.__mpcf_file_exists():
+            self.mpc_forces_reader = MPCForcesReader(self.mpcf_file_path)
+            self.mpc_forces_reader.build_subcases()
+            self.subcases = Subcase.subcases
 
         self.reader = FemFileReader(self.fem_file_path, block_size)
         print("Reading the FEM file")
@@ -61,3 +63,11 @@ class MPCForceExtractor:
         print("..took ", round(time.time() - start_time, 2), "seconds")
 
         self.reader.get_loads()
+
+    def __mpcf_file_exists(self) -> bool:
+        """
+        This method checks if the MPC forces file exists
+        """
+        return os.path.exists(self.mpcf_file_path) and os.path.isfile(
+            self.mpcf_file_path
+        )

@@ -22,31 +22,37 @@ class TestFMPCForceExtractor(unittest.TestCase):
         # Test the init method
         force_extractor = MPCForceExtractor(
             fem_file_path="test.fem",
-            mpc_file_path="test.mpc",
+            mpcf_file_path="test.mpcf",
             output_folder=None,
         )
         self.assertEqual(force_extractor.fem_file_path, "test.fem")
-        self.assertEqual(force_extractor.mpc_file_path, "test.mpc")
+        self.assertEqual(force_extractor.mpcf_file_path, "test.mpcf")
         self.assertEqual(force_extractor.output_folder, None)
 
+    @patch(
+        "mpcforces_extractor.force_extractor.MPCForceExtractor._MPCForceExtractor__mpcf_file_exists"
+    )
     @patch(
         "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
     @patch(
         "mpcforces_extractor.reader.mpcforces_reader.MPCForcesReader._MPCForcesReader__read_lines"
     )
-    def test_extract_forces_and_summary(self, mock_read_lines_mpc, mock_read_lines_fem):
+    def test_extract_forces_and_summary(
+        self, mock_read_lines_mpc, mock_read_lines_fem, mock_mpcf_file_exists
+    ):
         """
         Test the extract_forces method. Make sure the forces are extracted correctly
         """
 
         mock_read_lines_fem.return_value = get_simple_model_fem()
         mock_read_lines_mpc.return_value = get_simple_model_mpc()
+        mock_mpcf_file_exists.return_value = True
 
         # Test the extract_forces method
         force_extractor = MPCForceExtractor(
             fem_file_path="test.fem",
-            mpc_file_path="test.mpc",
+            mpcf_file_path="test.mpc",
             output_folder=None,
         )
         force_extractor.build_fem_and_subcase_data(8)
@@ -78,6 +84,34 @@ class TestFMPCForceExtractor(unittest.TestCase):
         self.assertTrue("MX: -0.907" in lines)
         self.assertTrue("FZ: 1.000" in lines)
         self.assertTrue("MX: 1.319" in lines)
+
+    @patch(
+        "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
+    )
+    def test_extract_forces_non_mpcf_file(self, mock_read_lines_fem):
+        """
+        Test the extract_forces method. Make sure the forces are extracted correctly
+        """
+
+        mock_read_lines_fem.return_value = get_simple_model_fem()
+
+        # Test the extract_forces method
+        force_extractor = MPCForceExtractor(
+            fem_file_path="test.fem",
+            mpcf_file_path="none",
+            output_folder=None,
+        )
+        force_extractor.build_fem_and_subcase_data(8)
+
+        assert len(Subcase.subcases) == 0
+
+        summary_writer = SummaryWriter(force_extractor, force_extractor.output_folder)
+        summary_writer.add_header()
+        summary_writer.add_mpc_lines()
+
+        lines = [line.strip() for line in summary_writer.lines]
+        for line in lines:
+            print(line)
 
     @patch(
         "mpcforces_extractor.visualization.tcl_visualize.open", new_callable=mock_open
