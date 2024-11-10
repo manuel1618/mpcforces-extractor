@@ -122,6 +122,25 @@ async function addNodesToTable(nodes) {
 // fistering nodes by id
 // Filter nodes by ID
 document.getElementById('filter-by-node-id-button').addEventListener('click', async () => {
+    filterNodes()
+});
+
+// Filter nodes by ID when the user presses Enter
+document.getElementById('filter-id').addEventListener('keyup', async (event) => {
+    if (event.key === 'Enter') {
+        filterNodes();
+    }
+});
+
+// Reset if the user presses Escape
+document.getElementById('filter-id').addEventListener('keyup', (event) => {
+    if (event.key === 'Escape') {
+        document.getElementById('filter-id').value = '';
+        resetNodes();
+    }
+});
+
+async function filterNodes() {
     const filterData = document.getElementById('filter-id').value
     .trim()
     .split(",")
@@ -146,20 +165,18 @@ document.getElementById('filter-by-node-id-button').addEventListener('click', as
         console.error('Error fetching Nodes:', error);
     }
     
-
-
-    fetchNodesFiltered(filterValue);
-
     // hide the page buttons and pagination info
     document.getElementById('next-button').style.display = 'none';
     document.getElementById('prev-button').style.display = 'none';
     document.getElementById('pagination-info').textContent = '';
-
-   
-});
+}
 
 // Reset filter and display all nodes
 document.getElementById('filter-reset-button').addEventListener('click', () => {
+    resetNodes()
+});
+
+function resetNodes() {
     fetchNodes(1);
     updatePageNumber();
 
@@ -167,9 +184,7 @@ document.getElementById('filter-reset-button').addEventListener('click', () => {
     document.getElementById('next-button').style.display = 'block';
     document.getElementById('prev-button').style.display = 'block';
     document.getElementById('filter-id').value = '';
-});
-
-
+};
 
 function updatePaginationButtons() {
     const prevButton = document.getElementById('prev-button');
