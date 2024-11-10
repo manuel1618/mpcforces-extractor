@@ -146,8 +146,14 @@
             const femFile = document.getElementById('fem-file').files[0];
             const mpcfFile = document.getElementById('mpcf-file').files[0];
 
-            if (!femFile || !mpcfFile) {
-                alert("Please select both .fem and .mpcf files.");
+            if (!femFile) {
+                alert("Please select both .fem file.");
+                return;
+            }
+
+            let mpcf_filename = ""
+            if (mpcfFile) {
+                mpcf_filename = mpcfFile.name
                 return;
             }
 
@@ -158,7 +164,7 @@
                 },
                 body: JSON.stringify({
                     fem_filename: femFile.name,
-                    mpcf_filename: mpcfFile.name,
+                    mpcf_filename: mpcf_filename,
                 }),
             });
 
