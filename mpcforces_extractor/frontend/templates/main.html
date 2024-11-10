@@ -154,7 +154,17 @@
             let mpcf_filename = ""
             if (mpcfFile) {
                 mpcf_filename = mpcfFile.name
-                return;
+            }
+
+            console.log('mpcf_filename:', mpcf_filename);
+
+            // disconnect the database
+            const rsp = fetch('/api/v1/disconnect-db', {
+                method: 'POST',
+                timeout: 500,
+            });
+            if (!rsp.ok) {
+                console.error('Failed to disconnect from database');
             }
 
             const response = await fetch('/api/v1/run-extractor', {
