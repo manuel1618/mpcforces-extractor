@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from mpcforces_extractor.api.db.database import NodeDBModel
 from mpcforces_extractor.api.dependencies import get_db
 from mpcforces_extractor.api.config import ITEMS_PER_PAGE
@@ -41,9 +42,17 @@ async def get_all_nodes(db=Depends(get_db)) -> int:
     return nodes
 
 
-@router.get("/filter/{filter_input}", response_model=List[NodeDBModel])
+class FilterDataModel(BaseModel):
+    """
+    Model for filter data.
+    """
+
+    ids: List[str]  # List of strings to handle IDs and ranges
+
+
+@router.post("/filter", response_model=List[NodeDBModel])
 async def get_nodes_filtered(
-    filter_input: str, db=Depends(get_db)
+    filter_data: FilterDataModel, db=Depends(get_db)
 ) -> List[NodeDBModel]:
     """
     Get nodes filtered by a string, get it from all nodes, not paginated.
@@ -52,10 +61,13 @@ async def get_nodes_filtered(
     nodes = await db.get_all_nodes()
     filtered_nodes = []
 
+    if not filter_data:
+        return filtered_nodes
+
     # Split the filter string by comma and process each part
-    filter_parts = filter_input.split(",")
-    for part in filter_parts:
-        part = part.strip()  # Trim whitespace
+
+    for part in filter_data.ids:
+        part = part.strip()  # Trim whitespace (just to be sure)
         if "-" in part:
             # Handle range like '1-3'
             start, end = part.split("-")
