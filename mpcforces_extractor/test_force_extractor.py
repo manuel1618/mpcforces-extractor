@@ -52,7 +52,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
         # Test the extract_forces method
         force_extractor = MPCForceExtractor(
             fem_file_path="test.fem",
-            mpcf_file_path="test.mpc",
+            mpcf_file_path="test.mpcf",
             output_folder=None,
         )
         force_extractor.build_fem_and_subcase_data(8)
