@@ -219,6 +219,7 @@ class FemFileReader:
             ]
             # cast to int
             nodes = [self.nodes_id2node[id] for id in node_ids]
+            print(line)
             self.rigid_elements.append(
                 MPC(
                     element_id=element_id,

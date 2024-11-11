@@ -10,7 +10,7 @@ from mpcforces_extractor.datastructure.subcases import Subcase
 )
 class TestMPCForcesReader(unittest.TestCase):
     def test_forces(self, mock_read_lines):
-        mpc_file_path = "dummypath"
+        mpcf_file_path = "dummypath"
         mock_read_lines.return_value = [
             "$SUBCASE 1\n",
             "$TIME 0.0\n",
@@ -21,7 +21,7 @@ class TestMPCForcesReader(unittest.TestCase):
             "",
         ]
 
-        mpc_reader = MPCForcesReader(mpc_file_path)
+        mpc_reader = MPCForcesReader(mpcf_file_path)
         mpc_reader.file_content = mock_read_lines.return_value
         mpc_reader.build_subcases()
 

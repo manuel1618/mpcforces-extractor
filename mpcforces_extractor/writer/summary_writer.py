@@ -34,7 +34,7 @@ class SummaryWriter:
         self.lines.append("Summary of the MPC forces extraction\n")
         self.lines.append(f"Date: {formatted_time}\n")
         self.lines.append(f"Input FEM file: {self.instance.fem_file_path}\n")
-        self.lines.append(f"Input MPC forces file: {self.instance.mpc_file_path}\n")
+        self.lines.append(f"Input MPC forces file: {self.instance.mpcf_file_path}\n")
         self.lines.append("\n")
 
     def add_mpc_lines(self):
