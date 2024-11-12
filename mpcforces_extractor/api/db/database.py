@@ -115,6 +115,8 @@ class MPCDatabase:
         else:  # load in just the nodes that are used in the MPCs
             unique_nodes = set()
             for mpc_config in MPC_CONFIG:
+                if mpc_config.value not in MPC.config_2_id_2_instance:
+                    continue
                 for mpc in MPC.config_2_id_2_instance[mpc_config.value].values():
                     for node in mpc.nodes:
                         unique_nodes.add(node)
@@ -134,6 +136,8 @@ class MPCDatabase:
         Function to populate the database with MPCs
         """
         for mpc_config in MPC_CONFIG:
+            if mpc_config.value not in MPC.config_2_id_2_instance:
+                continue
             for mpc in MPC.config_2_id_2_instance[mpc_config.value].values():
                 mpc.get_part_id2force(None)
                 sub2part2force = mpc.get_subcase_id2part_id2force()

@@ -1,7 +1,12 @@
 async function fetchMPCs() {
     try {
-        const response = await fetch('/api/v1/mpcs');
-        const mpcs = await response.json();
+        const response_rb2s = await fetch('/api/v1/rbe2s');
+        const rbe2s = await response_rb2s.json();
+        const response_rb3s = await fetch('/api/v1/rbe3s');
+        const rbs3s = await response_rb3s.json();
+        
+        // combine both rbe2s and rbe3s into mpcs
+        const mpcs = rbe2s.concat(rbs3s);
         
         const tableBody = document.getElementById('mpc-table-body');
 
@@ -14,6 +19,9 @@ async function fetchMPCs() {
             // Create individual table cells
             const idCell = document.createElement('td');
             idCell.textContent = mpc.id;
+
+            const configCell = document.createElement('td');
+            configCell.textContent = mpc.config;
 
             const masterNodeCell = document.createElement('td');
             masterNodeCell.textContent = mpc.master_node;
@@ -94,6 +102,7 @@ async function fetchMPCs() {
 
             // Append cells to the row
             row.appendChild(idCell);
+            row.appendChild(configCell);
             row.appendChild(masterNodeCell);
             row.appendChild(nodeCell); // Add the slaveNodesButton cell
             row.appendChild(partId2NodesCell); // Add the partId2Nodes cell
