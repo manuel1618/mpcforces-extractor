@@ -18,11 +18,11 @@ class MPC:
     This class is a Multiple Point Constraint (MPC) class that is used to store the nodes and the dofs
     """
 
-    id_2_instance: Dict[int, "MPC"] = {}
+    config_2_id_2_instance: Dict[int, "MPC"] = {}
 
     def __init__(
         self,
-        *,
+        *,  # fixes the too many positional arguments error from the linter by forcing the use of keyword arguments
         element_id: int,
         mpc_config: MPC_CONFIG,
         master_node: Node,
@@ -37,16 +37,21 @@ class MPC:
         self.nodes: List = nodes
         self.dofs: int = dofs
         self.part_id2node_ids = {}
-        if element_id in MPC.id_2_instance:
+
+        # config_2_id_2_instance
+        if mpc_config.value not in MPC.config_2_id_2_instance:
+            MPC.config_2_id_2_instance[mpc_config.value] = {}
+
+        if element_id in MPC.config_2_id_2_instance[mpc_config.value]:
             print("MPC element_id already exists", element_id)
-        MPC.id_2_instance[element_id] = self
+        MPC.config_2_id_2_instance[mpc_config.value][element_id] = self
 
     @staticmethod
     def reset():
         """
         This method is used to reset the instances
         """
-        MPC.id_2_instance = {}
+        MPC.config_2_id_2_instance = {}
 
     def get_part_id2force(self, subcase: Subcase) -> Dict:
         """
