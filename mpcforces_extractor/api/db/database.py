@@ -5,10 +5,12 @@ from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.entities import Node
 from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.api.db.models import (
-    MPCDBModel,
+    RBE2DBModel,
+    RBE3DBModel,
     NodeDBModel,
     SubcaseDBModel,
 )
+from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 
 
 class MPCDatabase:
@@ -23,7 +25,8 @@ class MPCDatabase:
 
         # Initialize the database
         self.engine = None
-        self.mpcs = {}
+        self.rbe2s = {}
+        self.rbe3s = {}
         self.subcases = {}
 
         self.engine = create_engine(f"sqlite:///{file_path}")
@@ -41,7 +44,12 @@ class MPCDatabase:
         """
         self.engine = create_engine(f"sqlite:///{file_path}")
         with Session(self.engine) as session:
-            self.mpcs = {mpc.id: mpc for mpc in session.exec(select(MPCDBModel)).all()}
+            self.rbe2s = {
+                rbe2.id: rbe2 for rbe2 in session.exec(select(RBE2DBModel)).all()
+            }
+            self.rbe3s = {
+                rbe3.id: rbe3 for rbe3 in session.exec(select(RBE3DBModel)).all()
+            }
             self.subcases = {
                 subcase.id: subcase
                 for subcase in session.exec(select(SubcaseDBModel)).all()
@@ -54,7 +62,8 @@ class MPCDatabase:
         # delete the existing data
         # drop all tables
         with Session(self.engine) as session:
-            session.exec(text("DROP TABLE IF EXISTS mpcdbmodel"))
+            session.exec(text("DROP TABLE IF EXISTS RBE2DBModel"))
+            session.exec(text("DROP TABLE IF EXISTS RBE3DBModel"))
             session.exec(text("DROP TABLE IF EXISTS nodedbmodel"))
             session.exec(text("DROP TABLE IF EXISTS subcasedbmodel"))
 
@@ -63,49 +72,11 @@ class MPCDatabase:
 
         with Session(self.engine) as session:
 
-            if load_all_nodes:  # Load in all the nodes
-                for node in Node.node_id2node.values():
-                    db_node = NodeDBModel(
-                        id=node.id,
-                        coord_x=node.coords[0],
-                        coord_y=node.coords[1],
-                        coord_z=node.coords[2],
-                    )
-                    session.add(db_node)
-            else:  # load in just the nodes that are used in the MPCs
-                unique_nodes = set()
-                for mpc in MPC.id_2_instance.values():
-                    for node in mpc.nodes:
-                        unique_nodes.add(node)
-                    unique_nodes.add(mpc.master_node)
+            self.populate_nodes(load_all_nodes, session)
 
-                for node in unique_nodes:
-                    db_node = NodeDBModel(
-                        id=node.id,
-                        coord_x=node.coords[0],
-                        coord_y=node.coords[1],
-                        coord_z=node.coords[2],
-                    )
-                    session.add(db_node)
+            self.populate_mpcs(session)
 
-            for mpc in MPC.id_2_instance.values():
-
-                mpc.get_part_id2force(None)
-                sub2part2force = mpc.get_subcase_id2part_id2force()
-
-                # Convert MPC instance to MPCDBModel
-                db_mpc = MPCDBModel(
-                    id=mpc.element_id,
-                    config=mpc.mpc_config.name,  # Store enum as string
-                    master_node=mpc.master_node.id,
-                    nodes=",".join([str(node.id) for node in mpc.nodes]),
-                    part_id2nodes=mpc.part_id2node_ids,
-                    subcase_id2part_id2forces=sub2part2force,
-                )
-                # Add to the session
-                session.add(db_mpc)
-
-            # Subcases
+            # Populate Subcases
             for subcase in Subcase.subcases:
                 db_subcase = SubcaseDBModel(
                     id=subcase.subcase_id,
@@ -117,27 +88,94 @@ class MPCDatabase:
             # Commit to the database
             session.commit()
 
-            self.mpcs = {mpc.id: mpc for mpc in session.exec(select(MPCDBModel)).all()}
+            self.rbe2s = {
+                rbe2.id: rbe2 for rbe2 in session.exec(select(RBE2DBModel)).all()
+            }
+            self.rbe3s = {
+                rbe3.id: rbe3 for rbe3 in session.exec(select(RBE3DBModel)).all()
+            }
             self.subcases = {
                 subcase.id: subcase
                 for subcase in session.exec(select(SubcaseDBModel)).all()
             }
 
-    async def get_mpcs(self) -> List[MPCDBModel]:
+    def populate_nodes(self, load_all_nodes=False, session=None):
+        """
+        Function to populate the database with nodes
+        """
+        if load_all_nodes:  # Load in all the nodes
+            for node in Node.node_id2node.values():
+                db_node = NodeDBModel(
+                    id=node.id,
+                    coord_x=node.coords[0],
+                    coord_y=node.coords[1],
+                    coord_z=node.coords[2],
+                )
+                session.add(db_node)
+        else:  # load in just the nodes that are used in the MPCs
+            unique_nodes = set()
+            for mpc_config in MPC_CONFIG:
+                if mpc_config.value not in MPC.config_2_id_2_instance:
+                    continue
+                for mpc in MPC.config_2_id_2_instance[mpc_config.value].values():
+                    for node in mpc.nodes:
+                        unique_nodes.add(node)
+                    unique_nodes.add(mpc.master_node)
+
+            for node in unique_nodes:
+                db_node = NodeDBModel(
+                    id=node.id,
+                    coord_x=node.coords[0],
+                    coord_y=node.coords[1],
+                    coord_z=node.coords[2],
+                )
+                session.add(db_node)
+
+    def populate_mpcs(self, session):
+        """
+        Function to populate the database with MPCs
+        """
+        for mpc_config in MPC_CONFIG:
+            if mpc_config.value not in MPC.config_2_id_2_instance:
+                continue
+            for mpc in MPC.config_2_id_2_instance[mpc_config.value].values():
+                mpc.get_part_id2force(None)
+                sub2part2force = mpc.get_subcase_id2part_id2force()
+
+                if mpc_config == MPC_CONFIG.RBE2:
+                    db_mpc = RBE2DBModel(
+                        id=mpc.element_id,
+                        config=mpc.mpc_config.name,  # Store enum as string
+                        master_node=mpc.master_node.id,
+                        nodes=",".join([str(node.id) for node in mpc.nodes]),
+                        part_id2nodes=mpc.part_id2node_ids,
+                        subcase_id2part_id2forces=sub2part2force,
+                    )
+                elif mpc_config == MPC_CONFIG.RBE3:
+                    db_mpc = RBE3DBModel(
+                        id=mpc.element_id,
+                        config=mpc.mpc_config.name,  # Store enum as string
+                        master_node=mpc.master_node.id,
+                        nodes=",".join([str(node.id) for node in mpc.nodes]),
+                        part_id2nodes=mpc.part_id2node_ids,
+                        subcase_id2part_id2forces=sub2part2force,
+                    )
+                else:
+                    raise ValueError(f"Unknown MPC config {mpc_config}")
+                # Add to the session
+                session.add(db_mpc)
+
+    async def get_rbe2s(self) -> List[RBE2DBModel]:
         """
         Get all MPCs
         """
-        return list(self.mpcs.values())
+        return list(self.rbe2s.values())
 
-    async def get_mpc(self, mpc_id: int) -> MPCDBModel:
+    async def get_rbe3s(self) -> List[RBE3DBModel]:
         """
-        Get a specific MPC
+        Get all MPCs
         """
-        if mpc_id in self.mpcs:
-            return self.mpcs.get(mpc_id)
-        raise HTTPException(
-            status_code=404, detail=f"MPC with id {mpc_id} does not exist"
-        )
+        return list(self.rbe3s.values())
 
     async def get_nodes(self, offset: int, limit: int = 100) -> List[NodeDBModel]:
         """

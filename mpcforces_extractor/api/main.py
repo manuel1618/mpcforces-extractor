@@ -6,8 +6,9 @@ from mpcforces_extractor.api.routes import (
     extractor,
     file_upload,
     html_routes,
-    mpcs,
     nodes,
+    rbe2s,
+    rbe3s,
     subcases,
 )
 from mpcforces_extractor.api.config import STATIC_DIR, TEMPLATES_DIR
@@ -25,7 +26,8 @@ app.mount(
 )
 
 # Include routers with prefixes
-app.include_router(mpcs.router, prefix="/api/v1/mpcs", tags=["mpcs"])
+app.include_router(rbe2s.router, prefix="/api/v1/rbe2s", tags=["rbe2s"])
+app.include_router(rbe3s.router, prefix="/api/v1/rbe3s", tags=["rbe3s"])
 app.include_router(nodes.router, prefix="/api/v1/nodes", tags=["nodes"])
 app.include_router(subcases.router, prefix="/api/v1/subcases", tags=["subcases"])
 app.include_router(file_upload.router, prefix="/api/v1", tags=["file_upload"])
