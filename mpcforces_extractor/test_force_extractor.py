@@ -11,6 +11,7 @@ from mpcforces_extractor.test_ressources.simple_model import (
     get_simple_model_fem,
     get_simple_model_mpc,
 )
+from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 
 
 class TestFMPCForceExtractor(unittest.TestCase):
@@ -61,9 +62,10 @@ class TestFMPCForceExtractor(unittest.TestCase):
         force_2 = [0.00, 0.00, 1.00, 1.32, 5.84, 1.94]
 
         for subcase in Subcase.subcases:
-            part_id2forces = list(MPC.id_2_instance.values())[0].get_part_id2force(
-                subcase
-            )
+            RBE2CONFIG = MPC_CONFIG.RBE2.value
+            part_id2forces = list(MPC.config_2_id_2_instance[RBE2CONFIG].values())[
+                0
+            ].get_part_id2force(subcase)
             force_calc_1 = part_id2forces[1]
             force_calc_2 = part_id2forces[2]
 

@@ -2,9 +2,26 @@ from typing import Dict
 from sqlmodel import SQLModel, Field, Column, JSON
 
 
-class MPCDBModel(SQLModel, table=True):
+class RBE3DBModel(SQLModel, table=True):
     """
-    Database Representation of MPC Class
+    Database Representation of RBE3 Class
+    """
+
+    id: int = Field(primary_key=True)
+    config: str = Field()  # Store MPC_CONFIG as a string
+    master_node: int = Field()  # Store master node as an integer
+    nodes: str = Field()  # Store nodes as a string
+    part_id2nodes: Dict = Field(
+        default_factory=dict, sa_column=Column(JSON)
+    )  # Store part_id2nodes as a dictionary
+    subcase_id2part_id2forces: Dict = Field(
+        default_factory=dict, sa_column=Column(JSON)
+    )  # Store subcase_id2part_id2forces as a dictionary
+
+
+class RBE2DBModel(SQLModel, table=True):
+    """
+    Database Representation of RBE2 Class
     """
 
     id: int = Field(primary_key=True)

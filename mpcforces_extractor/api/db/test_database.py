@@ -4,7 +4,6 @@ from mpcforces_extractor.api.db.database import MPCDatabase
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Node, Element
 from mpcforces_extractor.datastructure.subcases import Subcase
-from fastapi import HTTPException
 
 # Initialize db_save at the module level
 db_save = None  # Ensure db_save is defined before use
@@ -62,30 +61,8 @@ async def get_db():
 @pytest.mark.asyncio
 async def test_initialize_database():
     db = await get_db()
-    assert len(await db.get_mpcs()) == 2  # Check initial population
-
-
-@pytest.mark.asyncio
-async def test_get_mpc():
-    db = await get_db()
-    mpc = await db.get_mpc(1)  # Await the async function
-    assert mpc.id == 1
-    assert mpc.config == "RBE2"
-
-
-@pytest.mark.asyncio
-async def test_remove_mpc():
-    db = await get_db()
-    await db.remove_mpc(1)  # Await the async function
-    with pytest.raises(HTTPException):
-        await db.get_mpc(1)  # Await the async function
-
-
-@pytest.mark.asyncio
-async def test_remove_mpc_not_exist():
-    db = await get_db()
-    with pytest.raises(HTTPException):
-        await db.remove_mpc(3)
+    assert len(await db.get_rbe2s()) == 1  # Check initial population
+    assert len(await db.get_rbe3s()) == 1
 
 
 @pytest.mark.asyncio
