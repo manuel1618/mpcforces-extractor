@@ -2,6 +2,10 @@ let currentPage = 1;  // Track the current page
 let total_pages = 0;  // Track the total number of pages
 const NODES_PER_PAGE = 100;
 let allNodes = [];
+let sortColumn = 'id'; // Default sort column
+let sortDirection = 1; // 1 for ascending, -1 for descending
+
+
 
 async function fetchAllNodes() {
     try {
@@ -34,9 +38,10 @@ async function fetchSubcases(){
     }
 }
 
+
 async function fetchNodes(page = 1) {
     try {
-        const response = await fetch(`/api/v1/nodes?page=${page}`);
+        const response = await fetch(`/api/v1/nodes?page=${page}&sortColumn=${sortColumn}&sortDirection=${sortDirection}`);
         const nodes = await response.json();
         if (nodes.length > 0) {
             addNodesToTable(nodes);
@@ -176,8 +181,10 @@ document.getElementById('filter-reset-button').addEventListener('click', () => {
     resetNodes()
 });
 
-function resetNodes() {
-    fetchNodes(1);
+async function resetNodes() {
+    await fetchNodes(1);
+    await fetchAllNodes();
+    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
     updatePageNumber();
 
     // show the page buttons and pagination info
@@ -225,4 +232,113 @@ document.addEventListener('DOMContentLoaded', async () => {
         await fetchNodes(1);
         updatePageNumber();
     }
+
+    const sortableHeaders = document.querySelectorAll('th[data-sort]');
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const column = header.getAttribute('data-sort');
+
+            if (column === 'x' || column === 'y' || column === 'z') {
+                column = `coord_${column}`;
+            }
+
+            // Toggle direction if the same column is clicked
+            if (sortColumn === column) {
+                sortDirection *= -1;
+            } else {
+                sortColumn = column;
+                sortDirection = 1; // Default to ascending
+            }
+
+            // Fetch sorted nodes and update the table
+            fetchNodes(currentPage);
+
+            // Update sorting icons
+            updateSortIcons();
+        });
+    });
+});
+
+
+function updateSortIcons(sortColumn, sortDirection) {
+    const sortableHeaders = document.querySelectorAll('th[data-sort]');
+    console.log("Updating Sort Icons...");
+
+    sortableHeaders.forEach(header => {
+        const column = header.getAttribute('data-sort');
+        const icon = header.querySelector('span'); // Get the span directly
+
+        // Debug: print out the column being processed
+        console.log(`Processing column: ${column}`);
+
+        // If the column is the sorted column, show the correct icon
+        if (sortColumn === column) {
+            console.log(`Column ${column} is sorted. Direction: ${sortDirection === 1 ? 'Ascending' : 'Descending'}`);
+            
+            // Set the appropriate icon based on the sort direction
+            if (column === 'id') {
+                if (sortDirection === 1) {
+                    icon.textContent = '▲'; // Ascending
+                } else {
+                    icon.textContent = '▼'; // Descending
+                }
+            } else if (column === 'x') {
+                if (sortDirection === 1) {
+                    icon.textContent = '▲'; // Ascending
+                } else {
+                    icon.textContent = '▼'; // Descending
+                }
+            } else if (column === 'y') {
+                if (sortDirection === 1) {
+                    icon.textContent = '▲'; // Ascending
+                } else {
+                    icon.textContent = '▼'; // Descending
+                }
+            } else if (column === 'z') {
+                if (sortDirection === 1) {
+                    icon.textContent = '▲'; // Ascending
+                } else {
+                    icon.textContent = '▼'; // Descending
+                }
+            }
+        } else {
+            console.log(`Column ${column} is not sorted. Resetting icon.`);
+            // Reset icon if this column is not being sorted
+            icon.textContent = '▲▼';
+        }
+    });
+}
+
+document.querySelectorAll('th[data-sort]').forEach(header => {
+    header.addEventListener('click', () => {
+        let column = header.getAttribute('data-sort');
+        console.log(`Column clicked: ${column}`);
+        
+        // Adjust for coordinate columns
+        if (column === 'x' || column === 'y' || column === 'z') {
+            column = `coord_${column}`;
+            console.log(`Adjusted column for coordinates: ${column}`);
+        }
+
+        // Toggle sorting direction if clicking the same column again
+        if (sortColumn === column) {
+            sortDirection *= -1; // Reverse the direction
+            console.log(`Reversing sort direction. New direction: ${sortDirection === 1 ? 'Ascending' : 'Descending'}`);
+        } else {
+            sortColumn = column; // Set the new column to be sorted
+            sortDirection = 1;    // Default to ascending if it's a new column
+            console.log(`New column to sort by: ${column}. Defaulting to ascending.`);
+        }
+
+        // Fetch the sorted nodes
+        fetchNodes(currentPage);
+
+        // Update the sorting icons
+        updateSortIcons(sortColumn, sortDirection);
+    });
+});
+
+// Ensure that all headers have a sort icon when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    updateSortIcons();
 });
