@@ -13,6 +13,7 @@
 {% include 'navbar.html' %}
 
 <!-- Main Body -->
+
 <body class="dark-mode">
     <div class="container mt-5">
         <h1>MPC List</h1>
@@ -21,7 +22,7 @@
         <table class="table mt-3">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th data-sort="id">ID <span id="id-sort-icon">▲▼</span></th>
                     <th>Config</th>
                     <th>Master Node</th>
                     <th>Slave Nodes</th>

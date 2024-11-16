@@ -4,22 +4,45 @@ from pydantic import BaseModel
 from mpcforces_extractor.api.db.database import NodeDBModel
 from mpcforces_extractor.api.dependencies import get_db
 from mpcforces_extractor.api.config import ITEMS_PER_PAGE
+from mpcforces_extractor.api.db.database import MPCDatabase
 
 router = APIRouter()
 
 
+# Route to get nodes with pagination, sorting, and filtering
 @router.get("", response_model=List[NodeDBModel])
 async def get_nodes(
-    page: int = Query(1, ge=1), db=Depends(get_db)
+    page: int = Query(1, ge=1),  # Pagination
+    sort_column: str = Query("id", alias="sortColumn"),  # Sorting column
+    sort_direction: int = Query(
+        1, ge=-1, le=1, alias="sortDirection"
+    ),  # Sorting direction: 1 (asc) or -1 (desc)
+    filter_ids: str = Query(
+        None, alias="filterIds"
+    ),  # Filter by node ids (comma-separated string)
+    db: MPCDatabase = Depends(get_db),  # Dependency for DB session
 ) -> List[NodeDBModel]:
     """
-    Get nodes with pagination (fixed 100 items per page)
+    Get nodes with pagination, sorting, and optional filtering by IDs.
     """
     # Calculate offset based on the current page
     offset = (page - 1) * ITEMS_PER_PAGE
 
-    # Fetch nodes from the database with the calculated offset and limit (fixed at 100)
-    nodes = await db.get_nodes(offset=offset, limit=ITEMS_PER_PAGE)
+    # Handle filtering if filter_ids is provided
+    if filter_ids:
+        # Parse the comma-separated string of IDs and convert them into a list of integers
+        node_ids = [int(id.strip()) for id in filter_ids.split(",")]
+    else:
+        node_ids = None
+
+    # Fetch nodes from the database with the calculated offset, limit, sorting, and filtering
+    nodes = await db.get_nodes(
+        offset=offset,
+        limit=ITEMS_PER_PAGE,
+        sort_column=sort_column,
+        sort_direction=sort_direction,
+        node_ids=node_ids,
+    )
 
     # Handle case when no nodes are found
     if not nodes:

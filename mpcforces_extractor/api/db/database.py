@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Optional
 from fastapi import HTTPException
 from sqlmodel import Session, create_engine, SQLModel, select, text
+from sqlalchemy.sql.expression import asc, desc
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.entities import Node
 from mpcforces_extractor.datastructure.subcases import Subcase
@@ -177,13 +178,44 @@ class MPCDatabase:
         """
         return list(self.rbe3s.values())
 
-    async def get_nodes(self, offset: int, limit: int = 100) -> List[NodeDBModel]:
+    async def get_nodes(
+        self,
+        *,
+        offset: int,
+        limit: int = 100,
+        sort_column: str = "id",
+        sort_direction: int = 1,
+        node_ids: Optional[List[int]] = None,
+    ) -> List[NodeDBModel]:
         """
-        Get nodes for pagination
+        Get nodes for pagination, sorting, and filtering.
+
+        - offset: The offset for pagination.
+        - limit: The limit for pagination (default: 100).
+        - sort_column: The column to sort by (default: 'id').
+        - sort_direction: The direction of sorting (1 for ascending, -1 for descending).
+        - node_ids: An optional list of node IDs to filter by (default: None).
         """
+        # Start a session with the database engine
         with Session(self.engine) as session:
-            statement = select(NodeDBModel).offset(offset).limit(limit)
-            return session.exec(statement).all()
+            # Create the base query
+            query = select(NodeDBModel)
+
+            # Apply filtering by node IDs if provided
+            if node_ids:
+                query = query.filter(NodeDBModel.id.in_(node_ids))
+
+            # Apply sorting based on the specified column and direction
+            if sort_direction == 1:
+                query = query.order_by(asc(getattr(NodeDBModel, sort_column)))
+            elif sort_direction == -1:
+                query = query.order_by(desc(getattr(NodeDBModel, sort_column)))
+
+            # Apply pagination
+            query = query.offset(offset).limit(limit)
+
+            # Execute the query and return the results
+            return session.exec(query).all()
 
     async def get_all_nodes(self) -> List[NodeDBModel]:
         """

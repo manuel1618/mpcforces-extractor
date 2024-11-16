@@ -50,3 +50,10 @@ body.dark-mode .table {
 .nav-link-github {
     margin-right: 5px; /* Space between the non-clickable text and the image */
 }
+
+/* Optional CSS for sorting icons */
+#id-sort-icon {
+    font-size: 0.8rem;
+    margin-left: 5px;
+    cursor: pointer;
+}
