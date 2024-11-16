@@ -2,54 +2,66 @@ let currentPage = 1;  // Track the current page
 let total_pages = 0;  // Track the total number of pages
 const NODES_PER_PAGE = 100;
 let allNodes = [];
-let sortColumn = 'id'; // Default sort column
+let sortColumn = "id"; // Default sort column
 let sortDirection = 1; // 1 for ascending, -1 for descending
-
+let cachedSubcases = null;
 
 
 async function fetchAllNodes() {
     try {
-        const response = await fetch('/api/v1/nodes/all');  // Fetch all nodes without pagination
-        const nodes = await response.json();
+        const nodes = await safeFetch('/api/v1/nodes/all');
         allNodes = nodes;  // Store all nodes for client-side filtering
         if (nodes.length > 0) {
             total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
         } 
     } catch (error) {
-        console.error('Error fetching all Nodes:', error);
+        displayError('Error fetching all Nodes.}');
     }
 }
 
-async function fetchSubcases(){
+
+
+async function fetchSubcases() {
+    if (cachedSubcases) return cachedSubcases; // Use cached data if available
     try {
-        const response = await fetch('/api/v1/subcases');	
-        const subcases = await response.json();
-        // populate the Dropdown with Subcase ids
-        const subcaseDropdown = document.getElementById('subcase-dropdown');
-        subcaseDropdown.innerHTML = ''; // clear it before populating
-        subcases.forEach(subcase => {
-            const option = document.createElement('option');
-            option.value = subcase.id;
-            option.textContent = subcase.id;
-            subcaseDropdown.appendChild(option);
-        });
+        cachedSubcases = await safeFetch('/api/v1/subcases');	
+        populateSubcaseDropdown(cachedSubcases);
+        return cachedSubcases;
     } catch (error) {
-        console.error('Error fetching Subcases:', error);
+        displayError('Error fetching Subcases.');
+        return [];
     }
+}
+
+function populateSubcaseDropdown(subcases) {
+    const subcaseDropdown = document.getElementById('subcase-dropdown');
+    subcaseDropdown.innerHTML = '';
+    subcases.forEach(subcase => {
+        const option = document.createElement('option');
+        option.value = subcase.id;
+        option.textContent = subcase.id;
+        subcaseDropdown.appendChild(option);
+    });
 }
 
 
 async function fetchNodes(page = 1) {
     try {
-        const response = await fetch(`/api/v1/nodes?page=${page}&sortColumn=${sortColumn}&sortDirection=${sortDirection}`);
-        const nodes = await response.json();
+
+        let sortColumnForAPI = sortColumn;
+        if (sortColumnForAPI === 'x' || sortColumnForAPI === 'y' || sortColumnForAPI === 'z') {
+            sortColumnForAPI = `coord_${sortColumnForAPI}`;
+        }
+
+        const nodes = await safeFetch(`/api/v1/nodes?page=${page}&sortColumn=${sortColumnForAPI}&sortDirection=${sortDirection}`);
         if (nodes.length > 0) {
             addNodesToTable(nodes);
             currentPage = page;
             updatePaginationButtons();
+            updateSortIcons();
         }
     } catch (error) {
-        console.error('Error fetching Nodes:', error);
+        displayError('Error fetching Nodes.');
     }
 }
 
@@ -76,9 +88,10 @@ async function addNodesToTable(nodes) {
 
     // Info for forces
     const subcaseId = document.getElementById('subcase-dropdown').value;
-    const response = await fetch('/api/v1/subcases');	
-    const subcases = await response.json();
+    // Use cachedSubcases instead of refetching subcases
+    const subcases = cachedSubcases || await fetchSubcases();
     const subcase = subcases.find(subcase => subcase.id == subcaseId);
+
     
     
     nodes.forEach(node => {
@@ -94,22 +107,20 @@ async function addNodesToTable(nodes) {
         const coordsZCell = document.createElement('td');
         coordsZCell.textContent = node.coord_z.toFixed(3);
 
-
+        
         const forsAbsCell = document.createElement('td');
+        const momentAbsCell = document.createElement('td');
         try {
             forces = subcase.node_id2forces[node.id];
         } catch (error) {
             forces = undefined
         }   
-
         if (forces === undefined) {
             forces = [0, 0, 0, 0, 0, 0];
         }
-        forsAbsCell.textContent = Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2).toFixed(2);
-
-        const momentAbsCell = document.createElement('td');
-        momentAbsCell.textContent = Math.sqrt(forces[3]**2 + forces[4]**2 + forces[5]**2).toFixed(2);
-
+        const { linear, moment } = calculateForceMagnitude(subcase?.node_id2forces[node.id] || []);
+        forsAbsCell.textContent = linear;
+        momentAbsCell.textContent = moment;
 
         row.appendChild(idCell);
         row.appendChild(coordsXCell);
@@ -122,9 +133,15 @@ async function addNodesToTable(nodes) {
     });
 }
 
+function calculateForceMagnitude(forces = [0, 0, 0, 0, 0, 0]) {
+    const linear = Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2).toFixed(2);
+    const moment = Math.sqrt(forces[3]**2 + forces[4]**2 + forces[5]**2).toFixed(2);
+    return { linear, moment };
+}
 
 
-// fistering nodes by id
+
+
 // Filter nodes by ID
 document.getElementById('filter-by-node-id-button').addEventListener('click', async () => {
     filterNodes()
@@ -151,29 +168,22 @@ async function filterNodes() {
     .split(",")
     .map(a => a.trim());
 
-    try {
-        const response = await fetch('/api/v1/nodes/filter', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ids: filterData }),
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
-        
-        const nodes = await response.json();
-        addNodesToTable(nodes);
-    } catch (error) {
-        console.error('Error fetching Nodes:', error);
-    }
+
+    nodes = await safeFetch('/api/v1/nodes/filter', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids: filterData }),
+    });
+    addNodesToTable(nodes);
     
     // hide the page buttons and pagination info
     document.getElementById('next-button').style.display = 'none';
     document.getElementById('prev-button').style.display = 'none';
     document.getElementById('pagination-info').textContent = '';
+
+    updatePaginationButtons();
 }
 
 // Reset filter and display all nodes
@@ -200,6 +210,18 @@ function updatePaginationButtons() {
     nextButton.disabled = (total_pages === 1) || (currentPage === total_pages);
 }
 
+async function safeFetch(url, options = {}) {
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        displayError(`Error fetching ${url}: ${error}`);
+        return null;
+    }
+}
+
+
 document.getElementById('prev-button').addEventListener('click', () => {
     if (currentPage > 1) {
         fetchNodes(currentPage - 1);
@@ -220,125 +242,56 @@ function updatePageNumber() {
     paginationInfo.textContent = `Page ${currentPage} of ${total_pages}`;
 }
 
-// Automatically fetch nodes when the page loads, and fetch all nodes if there are no total pages
+async function updateSortIcons() {
+    const sortableHeaders = document.querySelectorAll('th[data-sort]');
+    sortableHeaders.forEach(header => {
+        const column = header.getAttribute('data-sort');
+        const icon = header.querySelector('span');
+        icon.textContent = (sortColumn === column) ? (sortDirection === 1 ? '▲' : '▼') : '▲▼';
+    });
+}
+
+document.querySelectorAll('th[data-sort]').forEach(header => {
+    header.addEventListener('click', async () => {
+        let column = header.getAttribute('data-sort');
+
+        // Update sort direction and column
+        if (column === sortColumn) {
+            sortDirection *= -1; // Toggle the sort direction
+        } else {
+            sortColumn = column; // Change to the clicked column
+            sortDirection = 1;  // Default to ascending when switching columns
+        }
+
+        // Fetch the sorted nodes
+        await fetchNodes(currentPage);
+        updateSortIcons();
+    });
+});
+
+function displayError(message) {
+    const errorContainer = document.getElementById('error-container'); // Ensure an error container exists in HTML
+    if (errorContainer) {
+        errorContainer.textContent = message;
+        errorContainer.style.display = 'block';
+    } else {
+        console.error(message); // Fallback
+    }
+}
+
+
+
 document.addEventListener('DOMContentLoaded', async () => {
     fetchSubcases();
     if (total_pages === 0) {
         await fetchAllNodes();
         currentPage = 1;
         updatePageNumber();
+        updateSortIcons();
         console.log('Total pages:', total_pages);
     } else {
-        await fetchNodes(1);
         updatePageNumber();
+        updateSortIcons();
     }
 
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    sortableHeaders.forEach(header => {
-        header.addEventListener('click', () => {
-            const column = header.getAttribute('data-sort');
-
-            if (column === 'x' || column === 'y' || column === 'z') {
-                column = `coord_${column}`;
-            }
-
-            // Toggle direction if the same column is clicked
-            if (sortColumn === column) {
-                sortDirection *= -1;
-            } else {
-                sortColumn = column;
-                sortDirection = 1; // Default to ascending
-            }
-
-            // Fetch sorted nodes and update the table
-            fetchNodes(currentPage);
-
-            // Update sorting icons
-            updateSortIcons();
-        });
-    });
-});
-
-
-function updateSortIcons(sortColumn, sortDirection) {
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    console.log("Updating Sort Icons...");
-
-    sortableHeaders.forEach(header => {
-        const column = header.getAttribute('data-sort');
-        const icon = header.querySelector('span'); // Get the span directly
-
-        // Debug: print out the column being processed
-        console.log(`Processing column: ${column}`);
-
-        // If the column is the sorted column, show the correct icon
-        if (sortColumn === column) {
-            console.log(`Column ${column} is sorted. Direction: ${sortDirection === 1 ? 'Ascending' : 'Descending'}`);
-            
-            // Set the appropriate icon based on the sort direction
-            if (column === 'id') {
-                if (sortDirection === 1) {
-                    icon.textContent = '▲'; // Ascending
-                } else {
-                    icon.textContent = '▼'; // Descending
-                }
-            } else if (column === 'x') {
-                if (sortDirection === 1) {
-                    icon.textContent = '▲'; // Ascending
-                } else {
-                    icon.textContent = '▼'; // Descending
-                }
-            } else if (column === 'y') {
-                if (sortDirection === 1) {
-                    icon.textContent = '▲'; // Ascending
-                } else {
-                    icon.textContent = '▼'; // Descending
-                }
-            } else if (column === 'z') {
-                if (sortDirection === 1) {
-                    icon.textContent = '▲'; // Ascending
-                } else {
-                    icon.textContent = '▼'; // Descending
-                }
-            }
-        } else {
-            console.log(`Column ${column} is not sorted. Resetting icon.`);
-            // Reset icon if this column is not being sorted
-            icon.textContent = '▲▼';
-        }
-    });
-}
-
-document.querySelectorAll('th[data-sort]').forEach(header => {
-    header.addEventListener('click', () => {
-        let column = header.getAttribute('data-sort');
-        console.log(`Column clicked: ${column}`);
-        
-        // Adjust for coordinate columns
-        if (column === 'x' || column === 'y' || column === 'z') {
-            column = `coord_${column}`;
-            console.log(`Adjusted column for coordinates: ${column}`);
-        }
-
-        // Toggle sorting direction if clicking the same column again
-        if (sortColumn === column) {
-            sortDirection *= -1; // Reverse the direction
-            console.log(`Reversing sort direction. New direction: ${sortDirection === 1 ? 'Ascending' : 'Descending'}`);
-        } else {
-            sortColumn = column; // Set the new column to be sorted
-            sortDirection = 1;    // Default to ascending if it's a new column
-            console.log(`New column to sort by: ${column}. Defaulting to ascending.`);
-        }
-
-        // Fetch the sorted nodes
-        fetchNodes(currentPage);
-
-        // Update the sorting icons
-        updateSortIcons(sortColumn, sortDirection);
-    });
-});
-
-// Ensure that all headers have a sort icon when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    updateSortIcons();
 });
