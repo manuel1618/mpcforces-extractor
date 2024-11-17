@@ -186,6 +186,7 @@ class MPCDatabase:
         sort_column: str = "id",
         sort_direction: int = 1,
         node_ids: Optional[List[int]] = None,
+        subcase_id: Optional[int] = None,
     ) -> List[NodeDBModel]:
         """
         Get nodes for pagination, sorting, and filtering.
@@ -204,6 +205,29 @@ class MPCDatabase:
             # Apply filtering by node IDs if provided
             if node_ids:
                 query = query.filter(NodeDBModel.id.in_(node_ids))
+
+            # add force data if its requested for sortcolumn
+            if subcase_id:
+                subcase = self.subcases[subcase_id]
+                node_id2forces = subcase.node_id2forces
+                for node_id, forces in node_id2forces.items():
+                    node = session.exec(
+                        select(NodeDBModel).filter(NodeDBModel.id == node_id)
+                    ).first()
+                    node.fx = forces[0]
+                    node.fy = forces[1]
+                    node.fz = forces[2]
+                    node.fabs = (
+                        forces[0] ** 2 + forces[1] ** 2 + forces[2] ** 2
+                    ) ** 0.5
+                    node.mx = forces[3]
+                    node.my = forces[4]
+                    node.mz = forces[5]
+                    node.mabs = (
+                        forces[3] ** 2 + forces[4] ** 2 + forces[5] ** 2
+                    ) ** 0.5
+
+            session.commit()
 
             # Apply sorting based on the specified column and direction
             if sort_direction == 1:

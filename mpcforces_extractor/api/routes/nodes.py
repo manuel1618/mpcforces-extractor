@@ -13,6 +13,7 @@ router = APIRouter()
 @router.get("", response_model=List[NodeDBModel])
 async def get_nodes(
     page: int = Query(1, ge=1),  # Pagination
+    *,
     sort_column: str = Query("id", alias="sortColumn"),  # Sorting column
     sort_direction: int = Query(
         1, ge=-1, le=1, alias="sortDirection"
@@ -21,6 +22,7 @@ async def get_nodes(
         None, alias="filterIds"
     ),  # Filter by node ids (comma-separated string)
     db: MPCDatabase = Depends(get_db),  # Dependency for DB session
+    subcase_id: int = Query(None, alias="subcaseId"),
 ) -> List[NodeDBModel]:
     """
     Get nodes with pagination, sorting, and optional filtering by IDs.
@@ -42,6 +44,7 @@ async def get_nodes(
         sort_column=sort_column,
         sort_direction=sort_direction,
         node_ids=node_ids,
+        subcase_id=subcase_id,
     )
 
     # Handle case when no nodes are found
