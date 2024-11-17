@@ -5,6 +5,7 @@ let allNodes = [];
 let sortColumn = "id"; // Default sort column
 let sortDirection = 1; // 1 for ascending, -1 for descending
 let cachedSubcases = null;
+let nodes = [];
 
 
 async function fetchAllNodes() {
@@ -44,16 +45,10 @@ function populateSubcaseDropdown(subcases) {
     });
 }
 
-
 async function fetchNodes(page = 1) {
     try {
-
-        let sortColumnForAPI = sortColumn;
-        if (sortColumnForAPI === 'x' || sortColumnForAPI === 'y' || sortColumnForAPI === 'z') {
-            sortColumnForAPI = `coord_${sortColumnForAPI}`;
-        }
-
-        const nodes = await safeFetch(`/api/v1/nodes?page=${page}&sortColumn=${sortColumnForAPI}&sortDirection=${sortDirection}`);
+        const subcaseId = document.getElementById('subcase-dropdown').value;
+        let  nodes = await safeFetch(`/api/v1/nodes?page=${page}&sortColumn=${sortColumn}&sortDirection=${sortDirection}&subcaseId=${subcaseId}`);
         if (nodes.length > 0) {
             addNodesToTable(nodes);
             currentPage = page;
@@ -64,6 +59,8 @@ async function fetchNodes(page = 1) {
         displayError('Error fetching Nodes.');
     }
 }
+
+
 
 
 async function addNodesToTable(nodes) {
@@ -92,8 +89,6 @@ async function addNodesToTable(nodes) {
     const subcases = cachedSubcases || await fetchSubcases();
     const subcase = subcases.find(subcase => subcase.id == subcaseId);
 
-    
-    
     nodes.forEach(node => {
         const row = document.createElement('tr');
 
@@ -288,7 +283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentPage = 1;
         updatePageNumber();
         updateSortIcons();
-        console.log('Total pages:', total_pages);
+        fetchNodes(currentPage);
     } else {
         updatePageNumber();
         updateSortIcons();
