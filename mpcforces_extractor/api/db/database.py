@@ -19,6 +19,10 @@ class MPCDatabase:
     A Database class to store MPC instances, Nodes and Subcases
     """
 
+    last_sort_column = "id"
+    last_sort_direction = 1
+    last_query = None
+
     def __init__(self, file_path: str):
         """
         Development database creation and population
@@ -197,8 +201,20 @@ class MPCDatabase:
         - sort_direction: The direction of sorting (1 for ascending, -1 for descending).
         - node_ids: An optional list of node IDs to filter by (default: None).
         """
+
         # Start a session with the database engine
         with Session(self.engine) as session:
+
+            # early return if the last query is the same
+            if self.last_query is not None:
+                if (
+                    self.last_sort_column == sort_column
+                    and self.last_sort_direction == sort_direction
+                ):
+                    return session.exec(
+                        self.last_query.offset(offset).limit(limit)
+                    ).all()
+
             # Create the base query
             query = select(NodeDBModel)
 
@@ -235,11 +251,13 @@ class MPCDatabase:
             elif sort_direction == -1:
                 query = query.order_by(desc(getattr(NodeDBModel, sort_column)))
 
-            # Apply pagination
-            query = query.offset(offset).limit(limit)
+            # caching for speed
+            self.last_query = query
+            self.last_sort_column = sort_column
+            self.last_sort_direction = sort_direction
 
-            # Execute the query and return the results
-            return session.exec(query).all()
+            # Execute the query and return the results (with pagination)
+            return session.exec(query.offset(offset).limit(limit)).all()
 
     async def get_all_nodes(self) -> List[NodeDBModel]:
         """
