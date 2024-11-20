@@ -47,7 +47,10 @@ function populateSubcaseDropdown(subcases) {
 
 async function fetchNodes(page = 1) {
     try {
-        const subcaseId = document.getElementById('subcase-dropdown').value;
+        let subcaseId = 0;
+        if (sortColumn === 'fabs' || sortColumn === 'mabs') {
+            subcaseId = document.getElementById('subcase-dropdown').value;
+        }
         let  nodes = await safeFetch(`/api/v1/nodes?page=${page}&sortColumn=${sortColumn}&sortDirection=${sortDirection}&subcaseId=${subcaseId}`);
         if (nodes.length > 0) {
             addNodesToTable(nodes);
