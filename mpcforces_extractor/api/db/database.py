@@ -21,6 +21,7 @@ class MPCDatabase:
 
     last_sort_column = "id"
     last_sort_direction = 1
+    last_subcase_id = None
     last_query = None
 
     def __init__(self, file_path: str):
@@ -222,8 +223,9 @@ class MPCDatabase:
             if node_ids:
                 query = query.filter(NodeDBModel.id.in_(node_ids))
 
-            # add force data if its requested for sortcolumn
-            if subcase_id:
+            # add force data if requested only if the subcase_id is different from a previous request
+            # 0 for subcase means that its not necessary to add forces data as the request is coords or id
+            if subcase_id not in (0, self.last_subcase_id):
                 subcase = self.subcases[subcase_id]
                 node_id2forces = subcase.node_id2forces
                 for node_id, forces in node_id2forces.items():
@@ -242,7 +244,7 @@ class MPCDatabase:
                     node.mabs = (
                         forces[3] ** 2 + forces[4] ** 2 + forces[5] ** 2
                     ) ** 0.5
-
+            self.last_subcase_id = subcase_id
             session.commit()
 
             # Apply sorting based on the specified column and direction
