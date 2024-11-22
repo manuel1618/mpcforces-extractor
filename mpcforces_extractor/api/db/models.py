@@ -45,6 +45,14 @@ class NodeDBModel(SQLModel, table=True):
     coord_x: float = Field()
     coord_y: float = Field()
     coord_z: float = Field()
+    fx: float = Field(default=0.0)
+    fy: float = Field(default=0.0)
+    fz: float = Field(default=0.0)
+    fabs: float = Field(default=0.0)
+    mx: float = Field(default=0.0)
+    my: float = Field(default=0.0)
+    mz: float = Field(default=0.0)
+    mabs: float = Field(default=0.0)
 
 
 class SubcaseDBModel(SQLModel, table=True):

@@ -43,21 +43,20 @@
             </div>
         </div>
 
-
-
         <!-- Table to display the Nodes -->
         <div id="node-table">
             <table class="table mt-4">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>x (global)</th>
-                        <th>y (global)</th>
-                        <th>z (global)</th>
-                        <th>ForceAbs</th>
-                        <th>MomentAbs</th>
+                        <th data-sort="id">ID <span id="id-sort-icon">▲▼</span></th>
+                        <th data-sort="coord_x">x (global) <span id="x-sort-icon">▲▼</span></th>
+                        <th data-sort="coord_y">y (global) <span id="y-sort-icon">▲▼</span></th>
+                        <th data-sort="coord_z">z (global) <span id="z-sort-icon">▲▼</span></th>
+                        <th data-sort="fabs"> Force <span id="z-sort-icon">▲▼</span></th>
+                        <th data-sort="mabs"> Moment<span id="z-sort-icon">▲▼</span></th>
                     </tr>
                 </thead>
+
                 <tbody id="node-table-body">
                     <!-- Rows will be inserted here -->
                 </tbody>
@@ -79,7 +78,7 @@
         <script>
             // Automatically fetch nodes when the page loads
 
-            window.onload = () => fetchNodes(1);
+            //window.onload = () => fetchNodes(1);
 
         </script>
 </body>

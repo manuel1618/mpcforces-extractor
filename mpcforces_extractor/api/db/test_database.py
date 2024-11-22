@@ -71,7 +71,7 @@ async def test_get_nodes():
     nodes_all = await db.get_all_nodes()
     assert len(nodes_all) == 6
     offset = 1
-    nodes = await db.get_nodes(offset, 100)
+    nodes = await db.get_nodes(offset=offset, limit=10)
     assert len(nodes) == len(nodes_all) - offset
 
     db.populate_database(load_all_nodes=True)

@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Optional
 from fastapi import HTTPException
 from sqlmodel import Session, create_engine, SQLModel, select, text
+from sqlalchemy.sql.expression import asc, desc
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.entities import Node
 from mpcforces_extractor.datastructure.subcases import Subcase
@@ -17,6 +18,12 @@ class MPCDatabase:
     """
     A Database class to store MPC instances, Nodes and Subcases
     """
+
+    last_sort_column = "id"
+    last_sort_direction = 1
+    last_subcase_id = None
+    last_query = None
+    last_filter = None
 
     def __init__(self, file_path: str):
         """
@@ -177,13 +184,85 @@ class MPCDatabase:
         """
         return list(self.rbe3s.values())
 
-    async def get_nodes(self, offset: int, limit: int = 100) -> List[NodeDBModel]:
+    async def get_nodes(
+        self,
+        *,
+        offset: int,
+        limit: int = 100,
+        sort_column: str = "id",
+        sort_direction: int = 1,
+        node_ids: Optional[List[int]] = None,
+        subcase_id: Optional[int] = None,
+    ) -> List[NodeDBModel]:
         """
-        Get nodes for pagination
+        Get nodes for pagination, sorting, and filtering.
+
+        - offset: The offset for pagination.
+        - limit: The limit for pagination (default: 100).
+        - sort_column: The column to sort by (default: 'id').
+        - sort_direction: The direction of sorting (1 for ascending, -1 for descending).
+        - node_ids: An optional list of node IDs to filter by (default: None).
         """
+
+        # Start a session with the database engine
         with Session(self.engine) as session:
-            statement = select(NodeDBModel).offset(offset).limit(limit)
-            return session.exec(statement).all()
+
+            # early return if the last query is the same
+            if self.last_query is not None:
+                if (
+                    self.last_sort_column == sort_column
+                    and self.last_sort_direction == sort_direction
+                    and self.last_filter == node_ids
+                ):
+                    return session.exec(
+                        self.last_query.offset(offset).limit(limit)
+                    ).all()
+
+            # Create the base query
+            query = select(NodeDBModel)
+
+            # Apply filtering by node IDs if provided
+            if node_ids:
+                query = query.filter(NodeDBModel.id.in_(node_ids))
+
+            # add force data if requested only if the subcase_id is different from a previous request
+            # 0 for subcase means that its not necessary to add forces data as the request is coords or id
+            if subcase_id not in (0, self.last_subcase_id):
+                subcase = self.subcases[subcase_id]
+                node_id2forces = subcase.node_id2forces
+                for node_id, forces in node_id2forces.items():
+                    node = session.exec(
+                        select(NodeDBModel).filter(NodeDBModel.id == node_id)
+                    ).first()
+                    node.fx = forces[0]
+                    node.fy = forces[1]
+                    node.fz = forces[2]
+                    node.fabs = (
+                        forces[0] ** 2 + forces[1] ** 2 + forces[2] ** 2
+                    ) ** 0.5
+                    node.mx = forces[3]
+                    node.my = forces[4]
+                    node.mz = forces[5]
+                    node.mabs = (
+                        forces[3] ** 2 + forces[4] ** 2 + forces[5] ** 2
+                    ) ** 0.5
+            self.last_subcase_id = subcase_id
+            session.commit()
+
+            # Apply sorting based on the specified column and direction
+            if sort_direction == 1:
+                query = query.order_by(asc(getattr(NodeDBModel, sort_column)))
+            elif sort_direction == -1:
+                query = query.order_by(desc(getattr(NodeDBModel, sort_column)))
+
+            # caching for speed
+            self.last_query = query
+            self.last_sort_column = sort_column
+            self.last_sort_direction = sort_direction
+            self.last_filter = node_ids
+
+            # Execute the query and return the results (with pagination)
+            return session.exec(query.offset(offset).limit(limit)).all()
 
     async def get_all_nodes(self) -> List[NodeDBModel]:
         """
