@@ -5,22 +5,17 @@ let allNodes = [];
 let sortColumn = "id"; // Default sort column
 let sortDirection = 1; // 1 for ascending, -1 for descending
 let cachedSubcases = null;
-let nodes = [];
-
 
 async function fetchAllNodes() {
     try {
         const nodes = await safeFetch('/api/v1/nodes/all');
-        allNodes = nodes;  // Store all nodes for client-side filtering
         if (nodes.length > 0) {
             total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
         } 
     } catch (error) {
-        displayError('Error fetching all Nodes.}');
+        displayError('Error fetching all Nodes.');
     }
 }
-
-
 
 async function fetchSubcases() {
     if (cachedSubcases) return cachedSubcases; // Use cached data if available
@@ -51,8 +46,35 @@ async function fetchNodes(page = 1) {
         if (sortColumn === 'fabs' || sortColumn === 'mabs') {
             subcaseId = document.getElementById('subcase-dropdown').value;
         }
-        let  nodes = await safeFetch(`/api/v1/nodes?page=${page}&sortColumn=${sortColumn}&sortDirection=${sortDirection}&subcaseId=${subcaseId}`);
-        if (nodes.length > 0) {
+
+        const filterData = document.getElementById('filter-id').value
+        .trim()
+        .split(",")
+        .map(a => a.trim())
+        .filter(a => a !== "");
+
+        // Construct the URL with query parameters
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            sortColumn: sortColumn,
+            sortDirection: sortDirection.toString(),
+            subcaseId: subcaseId?.toString() || "", // Optional parameter
+        });
+
+        const fetch_options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ids: filterData 
+            })
+        };
+
+        // Fetch the nodes
+        const nodes = await safeFetch(`/api/v1/nodes?${queryParams.toString()}`, fetch_options);
+
+        if (Array.isArray(nodes)  && nodes.length > 0) {
             addNodesToTable(nodes);
             currentPage = page;
             updatePaginationButtons();
@@ -108,14 +130,6 @@ async function addNodesToTable(nodes) {
         
         const forsAbsCell = document.createElement('td');
         const momentAbsCell = document.createElement('td');
-        try {
-            forces = subcase.node_id2forces[node.id];
-        } catch (error) {
-            forces = undefined
-        }   
-        if (forces === undefined) {
-            forces = [0, 0, 0, 0, 0, 0];
-        }
         const { linear, moment } = calculateForceMagnitude(subcase?.node_id2forces[node.id] || []);
         forsAbsCell.textContent = linear;
         momentAbsCell.textContent = moment;
@@ -131,57 +145,51 @@ async function addNodesToTable(nodes) {
     });
 }
 
-function calculateForceMagnitude(forces = [0, 0, 0, 0, 0, 0]) {
+function calculateForceMagnitude(forces) {
     const linear = Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2).toFixed(2);
     const moment = Math.sqrt(forces[3]**2 + forces[4]**2 + forces[5]**2).toFixed(2);
     return { linear, moment };
 }
-
-
-
 
 // Filter nodes by ID
 document.getElementById('filter-by-node-id-button').addEventListener('click', async () => {
     filterNodes()
 });
 
-// Filter nodes by ID when the user presses Enter
+
 document.getElementById('filter-id').addEventListener('keyup', async (event) => {
     if (event.key === 'Enter') {
         filterNodes();
-    }
-});
-
-// Reset if the user presses Escape
-document.getElementById('filter-id').addEventListener('keyup', (event) => {
-    if (event.key === 'Escape') {
+    } else if (event.key === 'Escape') {
         document.getElementById('filter-id').value = '';
         resetNodes();
     }
 });
 
+
 async function filterNodes() {
-    const filterData = document.getElementById('filter-id').value
+
+    filter_data = document.getElementById('filter-id').value
     .trim()
     .split(",")
-    .map(a => a.trim());
-
+    .map(a => a.trim())
+    .filter(a => a !== "");
 
     nodes = await safeFetch('/api/v1/nodes/filter', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ ids: filterData }),
+        body: JSON.stringify({
+            ids: filter_data
+        })
     });
-    addNodesToTable(nodes);
-    
-    // hide the page buttons and pagination info
-    document.getElementById('next-button').style.display = 'none';
-    document.getElementById('prev-button').style.display = 'none';
-    document.getElementById('pagination-info').textContent = '';
 
+    total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
+    updatePageNumber();
     updatePaginationButtons();
+    fetchNodes(1);
+
 }
 
 // Reset filter and display all nodes
@@ -190,16 +198,15 @@ document.getElementById('filter-reset-button').addEventListener('click', () => {
 });
 
 async function resetNodes() {
-    await fetchNodes(1);
-    await fetchAllNodes();
+    document.getElementById('filter-id').value = '';
+    await fetchAllNodes
+    currentPage = 1;
     total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
     updatePageNumber();
+    updatePaginationButtons();
+    fetchNodes(currentPage);
+}
 
-    // show the page buttons and pagination info
-    document.getElementById('next-button').style.display = 'block';
-    document.getElementById('prev-button').style.display = 'block';
-    document.getElementById('filter-id').value = '';
-};
 
 function updatePaginationButtons() {
     const prevButton = document.getElementById('prev-button');
@@ -214,7 +221,7 @@ async function safeFetch(url, options = {}) {
         if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
         return await response.json();
     } catch (error) {
-        displayError(`Error fetching ${url}: ${error}`);
+        displayError(`Error fetching ${url} using ${options.method}: ${error}`);
         return null;
     }
 }
@@ -245,7 +252,7 @@ async function updateSortIcons() {
     sortableHeaders.forEach(header => {
         const column = header.getAttribute('data-sort');
         const icon = header.querySelector('span');
-        icon.textContent = (sortColumn === column) ? (sortDirection === 1 ? '▲' : '▼') : '▲▼';
+        icon.textContent = (sortColumn === column) ? (sortDirection === 1 ? '▲' : '▼') : '↕'; // Default to bi-directional
     });
 }
 
@@ -282,7 +289,7 @@ function displayError(message) {
 document.addEventListener('DOMContentLoaded', async () => {
     fetchSubcases();
     if (total_pages === 0) {
-        await fetchAllNodes();
+        fetchAllNodes();
         currentPage = 1;
         updatePageNumber();
         updateSortIcons();

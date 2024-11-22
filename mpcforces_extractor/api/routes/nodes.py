@@ -9,8 +9,16 @@ from mpcforces_extractor.api.db.database import MPCDatabase
 router = APIRouter()
 
 
+class FilterDataModel(BaseModel):
+    """
+    Model for filter data.
+    """
+
+    ids: List[str]  # List of strings to handle IDs and ranges
+
+
 # Route to get nodes with pagination, sorting, and filtering
-@router.get("", response_model=List[NodeDBModel])
+@router.post("", response_model=List[NodeDBModel])
 async def get_nodes(
     page: int = Query(1, ge=1),  # Pagination
     *,
@@ -18,9 +26,7 @@ async def get_nodes(
     sort_direction: int = Query(
         1, ge=-1, le=1, alias="sortDirection"
     ),  # Sorting direction: 1 (asc) or -1 (desc)
-    filter_ids: str = Query(
-        None, alias="filterIds"
-    ),  # Filter by node ids (comma-separated string)
+    filter_data: FilterDataModel,
     db: MPCDatabase = Depends(get_db),  # Dependency for DB session
     subcase_id: int = Query(None, alias="subcaseId"),
 ) -> List[NodeDBModel]:
@@ -31,11 +37,7 @@ async def get_nodes(
     offset = (page - 1) * ITEMS_PER_PAGE
 
     # Handle filtering if filter_ids is provided
-    if filter_ids:
-        # Parse the comma-separated string of IDs and convert them into a list of integers
-        node_ids = [int(id.strip()) for id in filter_ids.split(",")]
-    else:
-        node_ids = None
+    node_ids = expand_filter_string(filter_data)
 
     # Fetch nodes from the database with the calculated offset, limit, sorting, and filtering
     nodes = await db.get_nodes(
@@ -68,23 +70,26 @@ async def get_all_nodes(db=Depends(get_db)) -> int:
     return nodes
 
 
-class FilterDataModel(BaseModel):
-    """
-    Model for filter data.
-    """
-
-    ids: List[str]  # List of strings to handle IDs and ranges
-
-
 @router.post("/filter", response_model=List[NodeDBModel])
-async def get_nodes_filtered(
+async def get_all_nodes_filtered(
     filter_data: FilterDataModel, db=Depends(get_db)
 ) -> List[NodeDBModel]:
     """
     Get nodes filtered by a string, get it from all nodes, not paginated.
     The filter can be a range like '1-3' or comma-separated values like '1,2,3'.
     """
-    nodes = await db.get_all_nodes()
+    all_nodes = await db.get_all_nodes()
+    node_ids = expand_filter_string(filter_data)
+    nodes = [node for node in all_nodes if node.id in node_ids]
+    return nodes
+
+
+def expand_filter_string(filter_data: FilterDataModel) -> List[int]:
+    """
+    HELPER METHOD
+    Get nodes filtered by a string, get it from all nodes, not paginated.
+    The filter can be a range like '1-3' or comma-separated values like '1,2,3'.
+    """
     filtered_nodes = []
 
     if not filter_data:
@@ -92,30 +97,16 @@ async def get_nodes_filtered(
 
     # Split the filter string by comma and process each part
 
-    for part in filter_data.ids:
-        part = part.strip()  # Trim whitespace (just to be sure)
-        if "-" in part:
-            # Handle range like '1-3'
-            start, end = part.split("-")
-            try:
-                start_id = int(start.strip())
-                end_id = int(end.strip())
-                filtered_nodes.extend(
-                    node for node in nodes if start_id <= node.id <= end_id
-                )
-            except ValueError:
-                raise HTTPException(
-                    status_code=400, detail="Invalid range in filter"
-                ) from ValueError
+    for filter_part in filter_data.ids:
+        # Check if the filter part contains a range
+        if "-" in filter_part:
+            # Split the range by '-' and convert the parts into integers
+            start, end = map(int, filter_part.split("-"))
+
+            # Add the range of nodes to the filtered nodes list
+            filtered_nodes.extend(range(start, end + 1))
         else:
-            # Handle single ID
-            try:
-                node_id = int(part)
-                node = next((node for node in nodes if node.id == node_id), None)
-                if node:
-                    filtered_nodes.append(node)
-            except ValueError:
-                raise HTTPException(
-                    status_code=400, detail="Invalid ID in filter"
-                ) from ValueError
+            # Convert the filter part into an integer and add it to the filtered nodes list
+            filtered_nodes.append(int(filter_part))
+
     return filtered_nodes

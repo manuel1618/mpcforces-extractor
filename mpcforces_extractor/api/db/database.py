@@ -23,6 +23,7 @@ class MPCDatabase:
     last_sort_direction = 1
     last_subcase_id = None
     last_query = None
+    last_filter = None
 
     def __init__(self, file_path: str):
         """
@@ -211,6 +212,7 @@ class MPCDatabase:
                 if (
                     self.last_sort_column == sort_column
                     and self.last_sort_direction == sort_direction
+                    and self.last_filter == node_ids
                 ):
                     return session.exec(
                         self.last_query.offset(offset).limit(limit)
@@ -257,6 +259,7 @@ class MPCDatabase:
             self.last_query = query
             self.last_sort_column = sort_column
             self.last_sort_direction = sort_direction
+            self.last_filter = node_ids
 
             # Execute the query and return the results (with pagination)
             return session.exec(query.offset(offset).limit(limit)).all()
