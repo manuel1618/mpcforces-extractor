@@ -8,26 +8,15 @@ async function uploadFile(file) {
         formData.append('file', chunk);
         formData.append('filename', file.name);
         formData.append('offset', offset);
-
         const response = await fetch('api/v1/upload-chunk', {
             method: 'POST',
             body: formData
         });
-
-        
         document.getElementById('progress').innerText = `Uploaded ${Math.min(offset + chunkSize, file.size)} of ${file.size} bytes`;
-
         offset += chunkSize;
     }
 }
-
-
-// Dark mode toggle functionality
-document.getElementById('dark-mode-toggle').addEventListener('click', function () {
-    const currentTheme = document.documentElement.classList.toggle('dark-mode') ? 'dark' : 'light';
-    localStorage.setItem('theme', currentTheme);
-});
-
+    
 // File input change event handlers
 document.getElementById('fem-file').addEventListener('change', function (event) {
     const file = event.target.files[0];
@@ -41,27 +30,9 @@ document.getElementById('mpcf-file').addEventListener('change', function (event)
     uploadFile(file);  // Call the function from mainPage.js
 });
 
-
-// Fetch directory path on page load
-async function fetchDefaultDir() {
-    try {
-        const response = await fetch('/api/v1/get-output-folder');
-        if (!response.ok) throw new Error('Failed to fetch directory path');
-        const result = await response.json();
-
-        // Display the directory path as a reference for the user
-        document.getElementById('directory-hint').innerText = `Hint: ${result.output_folder}`;
-    } catch (error) {
-        console.error('Error fetching directory:', error);
-    }
-}
-
-// Call the function to fetch the directory when the page loads
-window.addEventListener('DOMContentLoaded', fetchDefaultDir);
-
 // Db File input / output event handlers
 document.getElementById('database-file').addEventListener('change', function (event) {
-    const file = event.target.files[0];
+    const file = event.target.files[0]; 
     document.getElementById('database-path').textContent = file.name;
     const rsp = fetch('/api/v1/disconnect-db', {
         method: 'POST',
@@ -71,8 +42,7 @@ document.getElementById('database-file').addEventListener('change', function (ev
     if (!rsp.ok) {
         console.error('Failed to disconnect from database');
     }
-
-    uploadFile(file);  // Call the function from mainPage.js
+    uploadFile(file); 
 });
 
 document.getElementById("import-db-button").addEventListener("click", async function (event) {
@@ -146,3 +116,16 @@ document.getElementById('run-button').addEventListener('click', async function (
     }
 });
 
+// Call the function to fetch the directory when the page loads
+window.addEventListener('DOMContentLoaded', async function () {
+    try {
+        const response = await fetch('/api/v1/get-output-folder');
+        if (!response.ok) throw new Error('Failed to fetch directory path');
+        const result = await response.json();
+
+        // Display the directory path as a reference for the user
+        document.getElementById('directory-hint').innerText = `Hint: ${result.output_folder}`;
+    } catch (error) {
+        console.error('Error fetching directory:', error);
+    }
+});

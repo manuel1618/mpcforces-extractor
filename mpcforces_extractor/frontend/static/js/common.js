@@ -23,9 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleButton.textContent = 'Light Mode';
         }
     });
-
-  
-
 });
 
 
@@ -50,6 +47,5 @@ function createCopyButton(textToCopy, buttonText = 'Copy', copiedText = 'Copied!
             console.error('Failed to copy text:', err);
         });
     });
-
     return button;
 }
