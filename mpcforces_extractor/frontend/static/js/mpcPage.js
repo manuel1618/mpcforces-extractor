@@ -130,3 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
+
+// Automatically fetch MPCs when the page loads
+window.onload = fetchMPCs;
