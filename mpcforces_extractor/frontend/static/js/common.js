@@ -49,3 +49,35 @@ function createCopyButton(textToCopy, buttonText = 'Copy', copiedText = 'Copied!
     });
     return button;
 }
+
+async function disconnectDb() {
+    // Handle database disconnect before upload
+    try {
+        const response = await fetch('/api/v1/disconnect-db', {
+            method: 'POST',
+            timeout: 500,
+        });
+        if (!response.ok) {
+            throw new Error('Failed to disconnect from database');
+        }
+    } catch (error) {
+        console.error('Error:', error.message);
+        alert('An error occurred while disconnecting from the database.');
+        return; // Stop further processing if disconnect fails
+    }
+}
+
+async function safeFetch(url, options = {}, custom_error_message = null) {
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+        return response.json();
+    } catch (error) {
+        console.log(`Error fetching ${url} using ${options.method}: ${error}`);
+        if (custom_error_message) {
+            console.log(custom_error_message);
+        }
+        return null;
+    }
+}
+

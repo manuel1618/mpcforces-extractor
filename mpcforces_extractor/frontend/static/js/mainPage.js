@@ -8,42 +8,39 @@ async function uploadFile(file) {
         formData.append('file', chunk);
         formData.append('filename', file.name);
         formData.append('offset', offset);
-        const response = await fetch('api/v1/upload-chunk', {
+        const response = await safeFetch('api/v1/upload-chunk', {
             method: 'POST',
             body: formData
         });
+
         document.getElementById('progress').innerText = `Uploaded ${Math.min(offset + chunkSize, file.size)} of ${file.size} bytes`;
         offset += chunkSize;
     }
 }
-    
-// File input change event handlers
-document.getElementById('fem-file').addEventListener('change', function (event) {
-    const file = event.target.files[0];
-    document.getElementById('fem-path').textContent = file.name;
-    uploadFile(file);  // Call the function from mainPage.js
-});
 
-document.getElementById('mpcf-file').addEventListener('change', function (event) {
-    const file = event.target.files[0];
-    document.getElementById('mpcf-path').textContent = file.name;
-    uploadFile(file);  // Call the function from mainPage.js
-});
+function handleFileSelection(inputId, outputId, upload = false, disconnect = false) {
+    const fileInput = document.getElementById(inputId);
+    fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            document.getElementById(outputId).textContent = file.name;
 
-// Db File input / output event handlers
-document.getElementById('database-file').addEventListener('change', function (event) {
-    const file = event.target.files[0]; 
-    document.getElementById('database-path').textContent = file.name;
-    const rsp = fetch('/api/v1/disconnect-db', {
-        method: 'POST',
-        body: file,
-        timeout: 500,
+            if (disconnect) {
+                await disconnectDb();
+            }
+
+            if (upload) {
+                // Upload the file if needed
+                await uploadFile(file);
+            }
+        }
     });
-    if (!rsp.ok) {
-        console.error('Failed to disconnect from database');
-    }
-    uploadFile(file); 
-});
+}
+
+handleFileSelection('fem-file', 'fem-path', true);                // Upload only
+handleFileSelection('mpcf-file', 'mpcf-path', true);              // Upload only
+handleFileSelection('database-file', 'database-path', true, true); // Disconnect first, then upload
+
 
 document.getElementById("import-db-button").addEventListener("click", async function (event) {
     const file = document.getElementById('database-file').files[0];
@@ -52,7 +49,7 @@ document.getElementById("import-db-button").addEventListener("click", async func
         return;
     }
 
-    const response = await fetch('/api/v1/import-db', {
+    const response = await safeFetch('/api/v1/import-db', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -61,16 +58,8 @@ document.getElementById("import-db-button").addEventListener("click", async func
             database_filename: file.name,
         }),
     });
-
-    if (!response.ok) {
-        const error = await response.text();
-        document.getElementById('progress').innerText = `Error: ${error}`;
-    } else {
-        const result = await response.json();
-        document.getElementById('progress').innerText = `Success: ${result.message}`;
-    }
+    document.getElementById('progress').innerText = response.message;
 });
-
 
 // Run Button Click Event Handler
 document.getElementById('run-button').addEventListener('click', async function () {
@@ -87,16 +76,9 @@ document.getElementById('run-button').addEventListener('click', async function (
         mpcf_filename = mpcfFile.name
     }
 
-    // disconnect the database
-    const rsp = fetch('/api/v1/disconnect-db', {
-        method: 'POST',
-        timeout: 500,
-    });
-    if (!rsp.ok) {
-        console.error('Failed to disconnect from database');
-    }
-
-    const response = await fetch('/api/v1/run-extractor', {
+    disconnectDb();
+    
+    const response = await safeFetch('/api/v1/run-extractor', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -107,21 +89,15 @@ document.getElementById('run-button').addEventListener('click', async function (
         }),
     });
 
-    if (!response.ok) {
-        const error = await response.text();
-        document.getElementById('progress').innerText = `Error: ${error}`;
-    } else {
-        const result = await response.json();
-        document.getElementById('progress').innerText = `Success: ${result.message}`;
-    }
+    document.getElementById('progress').innerText = response.message;
+
 });
 
 // Call the function to fetch the directory when the page loads
 window.addEventListener('DOMContentLoaded', async function () {
     try {
-        const response = await fetch('/api/v1/get-output-folder');
-        if (!response.ok) throw new Error('Failed to fetch directory path');
-        const result = await response.json();
+        const response = await safeFetch('/api/v1/get-output-folder');
+        const result = await response
 
         // Display the directory path as a reference for the user
         document.getElementById('directory-hint').innerText = `Hint: ${result.output_folder}`;

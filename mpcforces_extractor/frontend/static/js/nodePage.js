@@ -147,16 +147,7 @@ function calculateForceMagnitude(forces) {
     return { linear, moment };
 }
 
-async function safeFetch(url, options = {}) {
-    try {
-        const response = await fetch(url, options);
-        if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
-        return await response.json();
-    } catch (error) {
-        displayError(`Error fetching ${url} using ${options.method}: ${error}`);
-        return null;
-    }
-}
+
 
 async function filterNodes() {
     filter_data = document.getElementById('filter-id').value
