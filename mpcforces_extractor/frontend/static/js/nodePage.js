@@ -7,26 +7,25 @@ let sortDirection = 1; // 1 for ascending, -1 for descending
 let cachedSubcases = null;
 
 async function fetchAllNodes() {
-    try {
-        const nodes = await safeFetch('/api/v1/nodes/all');
-        if (nodes.length > 0) {
-            total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
-        } 
-    } catch (error) {
-        displayError('Error fetching all Nodes.');
+    const response = await safeFetch('/api/v1/nodes/all');
+    if (!response.ok) {
+        displayError('Error fetching Nodes.');
+        return;
     }
+    allNodes = await response.json();
+    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
 }
 
 async function fetchSubcases() {
     if (cachedSubcases) return cachedSubcases; // Use cached data if available
-    try {
-        cachedSubcases = await safeFetch('/api/v1/subcases');	
-        populateSubcaseDropdown(cachedSubcases);
-        return cachedSubcases;
-    } catch (error) {
+    const response = await safeFetch('/api/v1/subcases');
+    if (!response.ok) {
         displayError('Error fetching Subcases.');
         return [];
     }
+    cachedSubcases = await response.json();
+    populateSubcaseDropdown(cachedSubcases);
+    return cachedSubcases;
 }
 
 function populateSubcaseDropdown(subcases) {
@@ -72,7 +71,13 @@ async function fetchNodes(page = 1) {
         };
 
         // Fetch the nodes
-        const nodes = await safeFetch(`/api/v1/nodes?${queryParams.toString()}`, fetch_options);
+        const response = await safeFetch(`/api/v1/nodes?${queryParams.toString()}`, fetch_options);
+        if (!response.ok) {
+            displayError('Error fetching Nodes.');
+            return;
+        }
+
+        const nodes = await response.json();
 
         if (Array.isArray(nodes)  && nodes.length > 0) {
             addNodesToTable(nodes);
@@ -156,7 +161,8 @@ async function filterNodes() {
     .map(a => a.trim())
     .filter(a => a !== "");
 
-    nodes = await safeFetch('/api/v1/nodes/filter', {
+    
+    response = await safeFetch('/api/v1/nodes/filter', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -165,6 +171,12 @@ async function filterNodes() {
             ids: filter_data
         })
     });
+
+    if (!response.ok) {
+        displayError('Error fetching Nodes.');
+        return;
+    }
+    nodes = await response.json();
 
     total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
     updatePageNumber();

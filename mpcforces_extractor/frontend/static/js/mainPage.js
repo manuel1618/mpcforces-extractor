@@ -12,7 +12,7 @@ async function uploadFile(file) {
             method: 'POST',
             body: formData
         });
-        if (!response) {
+        if (!response.ok) {
             document.getElementById('progress').innerText = `Error: Failed to upload chunk at offset ${offset}`;
             return;
         }
@@ -61,11 +61,13 @@ document.getElementById("import-db-button").addEventListener("click", async func
             database_filename: file.name,
         }),
     });
-    if (response && response.message) {
-        document.getElementById('progress').innerText = response.message;
-    } else {
-        document.getElementById('progress').innerText = 'Error: Invalid response';
+
+    if (!response.ok) {
+        document.getElementById('progress').innerText = 'Error: Failed to import database';
+        return;
     }
+    result = await response.json();
+    document.getElementById('progress').innerText = result.message;
     
 });
 
@@ -96,25 +98,23 @@ document.getElementById('run-button').addEventListener('click', async function (
             mpcf_filename: mpcf_filename,
         }),
     });
-
-    if (response && response.message) {
-        document.getElementById('progress').innerText = response.message;
-    } else {
-        document.getElementById('progress').innerText = 'Error: Invalid response';
+    if (!response.ok) {
+        document.getElementById('progress').innerText = 'Error: Failed to run extractor';
+        return;
     }
     
+    result = await response.json();
+    document.getElementById('progress').innerText = result.message;
 
 });
 
 // Call the function to fetch the directory when the page loads
 window.addEventListener('DOMContentLoaded', async function () {
-    try {
-        const response = await safeFetch('/api/v1/get-output-folder');
-        const result = await response
-
-        // Display the directory path as a reference for the user
-        document.getElementById('directory-hint').innerText = `Hint: ${result.output_folder}`;
-    } catch (error) {
-        console.error('Error fetching directory:', error);
+    const response = await safeFetch('/api/v1/get-output-folder');
+    if (!response.ok) {
+        document.getElementById('directory-hint').innerText = 'Error fetching directory.';
+        return;
     }
+    const result = await response.json()
+    document.getElementById('directory-hint').innerText = `Hint: ${result.output_folder}`;
 });
