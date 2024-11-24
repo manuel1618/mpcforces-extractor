@@ -71,7 +71,7 @@ async function safeFetch(url, options = {}, custom_error_message = null) {
     try {
         const response = await fetch(url, options);
         if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
-        return response.json();
+        return response;
     } catch (error) {
         console.log(`Error fetching ${url} using ${options.method}: ${error}`);
         if (custom_error_message) {
