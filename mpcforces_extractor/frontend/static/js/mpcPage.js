@@ -128,9 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (idHeader) {
         idHeader.addEventListener('click', sortTableById);
     }
+    fetchMPCs();
 });
 
-
-
-// Automatically fetch MPCs when the page loads
-window.onload = fetchMPCs;
