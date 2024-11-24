@@ -12,7 +12,10 @@ async function uploadFile(file) {
             method: 'POST',
             body: formData
         });
-
+        if (!response) {
+            document.getElementById('progress').innerText = `Error: Failed to upload chunk at offset ${offset}`;
+            return;
+        }
         document.getElementById('progress').innerText = `Uploaded ${Math.min(offset + chunkSize, file.size)} of ${file.size} bytes`;
         offset += chunkSize;
     }
@@ -58,7 +61,12 @@ document.getElementById("import-db-button").addEventListener("click", async func
             database_filename: file.name,
         }),
     });
-    document.getElementById('progress').innerText = response.message;
+    if (response && response.message) {
+        document.getElementById('progress').innerText = response.message;
+    } else {
+        document.getElementById('progress').innerText = 'Error: Invalid response';
+    }
+    
 });
 
 // Run Button Click Event Handler
@@ -89,7 +97,12 @@ document.getElementById('run-button').addEventListener('click', async function (
         }),
     });
 
-    document.getElementById('progress').innerText = response.message;
+    if (response && response.message) {
+        document.getElementById('progress').innerText = response.message;
+    } else {
+        document.getElementById('progress').innerText = 'Error: Invalid response';
+    }
+    
 
 });
 
