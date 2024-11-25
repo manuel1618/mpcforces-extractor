@@ -6,16 +6,6 @@ let sortColumn = "id"; // Default sort column
 let sortDirection = 1; // 1 for ascending, -1 for descending
 let cachedSubcases = null;
 
-async function fetchAllNodes() {
-    const response = await safeFetch('/api/v1/nodes/all');
-    if (!response.ok) {
-        displayError('Error fetching Nodes.');
-        return;
-    }
-    allNodes = await response.json();
-    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
-}
-
 async function fetchSubcases() {
     if (cachedSubcases) return cachedSubcases; // Use cached data if available
     const response = await safeFetch('/api/v1/subcases');
@@ -27,6 +17,18 @@ async function fetchSubcases() {
     populateSubcaseDropdown(cachedSubcases);
     return cachedSubcases;
 }
+
+async function fetchAllNodes() {
+    const response = await safeFetch('/api/v1/nodes/all');
+    if (!response.ok) {
+        displayError('Error fetching Nodes.');
+        return;
+    }
+    allNodes = await response.json();
+    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
+}
+
+
 
 function populateSubcaseDropdown(subcases) {
     const subcaseDropdown = document.getElementById('subcase-dropdown');
@@ -40,37 +42,52 @@ function populateSubcaseDropdown(subcases) {
 }
 
 async function fetchNodes(page = 1) {
-    try {
-        let subcaseId = 0;
-        if (sortColumn === 'fabs' || sortColumn === 'mabs') {
-            subcaseId = document.getElementById('subcase-dropdown').value;
-        }
+    const subcaseId = (sortColumn === 'fabs' || sortColumn === 'mabs')
+        ? document.getElementById('subcase-dropdown').value
+        : 0;
 
-        const filterData = document.getElementById('filter-id').value
+    const filterData = document.getElementById('filter-id').value
         .trim()
         .split(",")
         .map(a => a.trim())
         .filter(a => a !== "");
 
-        // Construct the URL with query parameters
+    await fetchAndRenderNodes({ page, filterData, subcaseId });
+}
+
+async function filterNodes() {
+    const filterData = document.getElementById('filter-id').value
+        .trim()
+        .split(",")
+        .map(a => a.trim())
+        .filter(a => a !== "");
+
+    currentPage = 1; // Reset to first page when filtering
+    await fetchAndRenderNodes({ page: currentPage, filterData });
+}
+
+async function resetNodes() {
+    document.getElementById('filter-id').value = '';
+    currentPage = 1; // Reset to first page when resetting
+    await fetchAllNodes(); // Pre-fetch all data if necessary
+    await fetchAndRenderNodes({ page: currentPage });
+}
+
+async function fetchAndRenderNodes({ page = 1, filterData = [], subcaseId = 0, sortColumnOverride = null, sortDirectionOverride = null } = {}) {
+    try {
         const queryParams = new URLSearchParams({
             page: page.toString(),
-            sortColumn: sortColumn,
-            sortDirection: sortDirection.toString(),
-            subcaseId: subcaseId?.toString() || "", // Optional parameter
+            sortColumn: sortColumnOverride || sortColumn,
+            sortDirection: sortDirectionOverride || sortDirection,
+            subcaseId: subcaseId?.toString() || ""
         });
 
         const fetch_options = {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                ids: filterData 
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: filterData })
         };
 
-        // Fetch the nodes
         const response = await safeFetch(`/api/v1/nodes?${queryParams.toString()}`, fetch_options);
         if (!response.ok) {
             displayError('Error fetching Nodes.');
@@ -79,16 +96,20 @@ async function fetchNodes(page = 1) {
 
         const nodes = await response.json();
 
-        if (Array.isArray(nodes)  && nodes.length > 0) {
+        if (Array.isArray(nodes) && nodes.length > 0) {
             addNodesToTable(nodes);
             currentPage = page;
             updatePaginationButtons();
             updateSortIcons();
+        } else {
+            // Handle empty state
+            addNodesToTable([]);
         }
     } catch (error) {
         displayError('Error fetching Nodes.');
     }
 }
+
 
 async function addNodesToTable(nodes) {
 
@@ -153,48 +174,6 @@ function calculateForceMagnitude(forces) {
 }
 
 
-
-async function filterNodes() {
-    filter_data = document.getElementById('filter-id').value
-    .trim()
-    .split(",")
-    .map(a => a.trim())
-    .filter(a => a !== "");
-
-    
-    response = await safeFetch('/api/v1/nodes/filter', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            ids: filter_data
-        })
-    });
-
-    if (!response.ok) {
-        displayError('Error fetching Nodes.');
-        return;
-    }
-    nodes = await response.json();
-
-    total_pages = Math.ceil(nodes.length / NODES_PER_PAGE);
-    updatePageNumber();
-    updatePaginationButtons();
-    fetchNodes(1);
-}
-
-async function resetNodes() {
-    document.getElementById('filter-id').value = '';
-    await fetchAllNodes
-    currentPage = 1;
-    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
-    updatePageNumber();
-    updatePaginationButtons();
-    fetchNodes(currentPage);
-}
-
-
 async function updateSortIcons() {
     const sortableHeaders = document.querySelectorAll('th[data-sort]');
     sortableHeaders.forEach(header => {
@@ -210,7 +189,7 @@ function updatePageNumber() {
     paginationInfo.textContent = `Page ${currentPage} of ${total_pages}`;
 }
 
-function updatePaginationButtons() {
+function updatePagination() {
     const prevButton = document.getElementById('prev-button');
     prevButton.disabled = (currentPage === 1);
     const nextButton = document.getElementById('next-button');
