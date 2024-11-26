@@ -5,6 +5,8 @@ let allNodes = [];
 let sortColumn = "id"; // Default sort column
 let sortDirection = 1; // 1 for ascending, -1 for descending
 let cachedSubcases = null;
+const filterInput = document.getElementById('filter-id'); // used multiple times
+const subcaseDropdown = document.getElementById('subcase-dropdown'); // used multiple times
 
 async function fetchSubcases() {
     if (cachedSubcases) return cachedSubcases; // Use cached data if available
@@ -25,13 +27,12 @@ async function fetchAllNodes() {
         return;
     }
     allNodes = await response.json();
-    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
+    if (allNodes.length) {
+        total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
+    }
 }
 
-
-
 function populateSubcaseDropdown(subcases) {
-    const subcaseDropdown = document.getElementById('subcase-dropdown');
     subcaseDropdown.innerHTML = '';
     subcases.forEach(subcase => {
         const option = document.createElement('option');
@@ -43,31 +44,21 @@ function populateSubcaseDropdown(subcases) {
 
 async function fetchNodes(page = 1) {
     const subcaseId = (sortColumn === 'fabs' || sortColumn === 'mabs')
-        ? document.getElementById('subcase-dropdown').value
+        ? subcaseDropdown.value
         : 0;
 
-    const filterData = document.getElementById('filter-id').value
-        .trim()
-        .split(",")
-        .map(a => a.trim())
-        .filter(a => a !== "");
-
+    const filterData = parseFilterData(filterInput.value);
     await fetchAndRenderNodes({ page, filterData, subcaseId });
 }
 
 async function filterNodes() {
-    const filterData = document.getElementById('filter-id').value
-        .trim()
-        .split(",")
-        .map(a => a.trim())
-        .filter(a => a !== "");
-
+    const filterData = parseFilterData(filterInput.value);
     currentPage = 1; // Reset to first page when filtering
     await fetchAndRenderNodes({ page: currentPage, filterData });
 }
 
 async function resetNodes() {
-    document.getElementById('filter-id').value = '';
+    filterInput.value = '';
     currentPage = 1; // Reset to first page when resetting
     await fetchAllNodes(); // Pre-fetch all data if necessary
     await fetchAndRenderNodes({ page: currentPage });
@@ -99,7 +90,12 @@ async function fetchAndRenderNodes({ page = 1, filterData = [], subcaseId = 0, s
         if (Array.isArray(nodes) && nodes.length > 0) {
             addNodesToTable(nodes);
             currentPage = page;
-            updatePaginationButtons();
+            // update pagination
+            const prevButton = document.getElementById('prev-button');
+            prevButton.disabled = (currentPage === 1);
+            const nextButton = document.getElementById('next-button');
+            nextButton.disabled = (total_pages === 1) || (currentPage === total_pages);
+            // sort
             updateSortIcons();
         } else {
             // Handle empty state
@@ -131,14 +127,13 @@ async function addNodesToTable(nodes) {
     tableBody.innerHTML = '';
 
     // Info for forces
-    const subcaseId = document.getElementById('subcase-dropdown').value;
+    const subcaseId = subcaseDropdown.value;
     // Use cachedSubcases instead of refetching subcases
     const subcases = cachedSubcases || await fetchSubcases();
     const subcase = subcases.find(subcase => subcase.id == subcaseId);
 
     nodes.forEach(node => {
         const row = document.createElement('tr');
-
         const idCell = document.createElement('td');
         idCell.textContent = node.id;
 
@@ -189,13 +184,6 @@ function updatePageNumber() {
     paginationInfo.textContent = `Page ${currentPage} of ${total_pages}`;
 }
 
-function updatePagination() {
-    const prevButton = document.getElementById('prev-button');
-    prevButton.disabled = (currentPage === 1);
-    const nextButton = document.getElementById('next-button');
-    nextButton.disabled = (total_pages === 1) || (currentPage === total_pages);
-}
-
 function displayError(message) {
     const errorContainer = document.getElementById('error-container'); // Ensure an error container exists in HTML
     if (errorContainer) {
@@ -206,17 +194,25 @@ function displayError(message) {
     }
 }
 
+function parseFilterData(inputElement) {
+    return inputElement
+        .trim()
+        .split(",")
+        .map(a => a.trim())
+        .filter(a => a !== "");
+}
+
 // Filter nodes by ID
 document.getElementById('filter-by-node-id-button').addEventListener('click', async () => {
     filterNodes()
 });
 
 
-document.getElementById('filter-id').addEventListener('keyup', async (event) => {
+filterInput.addEventListener('keyup', async (event) => {
     if (event.key === 'Enter') {
         filterNodes();
     } else if (event.key === 'Escape') {
-        document.getElementById('filter-id').value = '';
+        filterInput.value = '';
         resetNodes();
     }
 });
@@ -263,14 +259,11 @@ document.querySelectorAll('th[data-sort]').forEach(header => {
 document.addEventListener('DOMContentLoaded', async () => {
     fetchSubcases();
     if (total_pages === 0) {
-        fetchAllNodes();
+        await fetchAllNodes();
+        total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
         currentPage = 1;
-        updatePageNumber();
-        updateSortIcons();
-        fetchNodes(currentPage);
-    } else {
-        updatePageNumber();
-        updateSortIcons();
-    }
-
+        await fetchNodes(currentPage);
+    } 
+    updateSortIcons();
+    updatePageNumber();
 });
