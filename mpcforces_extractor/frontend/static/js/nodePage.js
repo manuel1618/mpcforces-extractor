@@ -8,8 +8,8 @@ let cachedSubcases = null;
 const filterInput = document.getElementById('filter-id'); // used multiple times
 const subcaseDropdown = document.getElementById('subcase-dropdown'); // used multiple times
 
-async function fetchSubcases() {
-    if (cachedSubcases) return cachedSubcases; // Use cached data if available
+async function fetchSubcases(forceRefresh = false) {
+    if (!forceRefresh && cachedSubcases) return cachedSubcases; // Use cached data unless forced
     const response = await safeFetch('/api/v1/subcases');
     if (!response.ok) {
         displayError('Error fetching Subcases.');
@@ -21,15 +21,14 @@ async function fetchSubcases() {
 }
 
 async function fetchAllNodes() {
+    if (allNodes.length > 0) return; // Skip fetching if data already exists
     const response = await safeFetch('/api/v1/nodes/all');
     if (!response.ok) {
         displayError('Error fetching Nodes.');
         return;
     }
     allNodes = await response.json();
-    if (allNodes.length) {
-        total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
-    }
+    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
 }
 
 function populateSubcaseDropdown(subcases) {
@@ -108,11 +107,10 @@ async function fetchAndRenderNodes({ page = 1, filterData = [], subcaseId = 0, s
 
 
 async function addNodesToTable(nodes) {
+    const tableBody = document.getElementById('node-table-body');
+    tableBody.innerHTML = '';
 
-    // Check if nodes is empty
-    if (nodes.detail === "Not Found") {
-        const tableBody = document.getElementById('node-table-body');
-        tableBody.innerHTML = '';
+    if (!nodes || nodes.detail === "Not Found") {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
         cell.colSpan = 6;
@@ -122,44 +120,24 @@ async function addNodesToTable(nodes) {
         return;
     }
 
-    // Clear the table before appending new rows
-    const tableBody = document.getElementById('node-table-body');
-    tableBody.innerHTML = '';
-
-    // Info for forces
-    const subcaseId = subcaseDropdown.value;
-    // Use cachedSubcases instead of refetching subcases
     const subcases = cachedSubcases || await fetchSubcases();
-    const subcase = subcases.find(subcase => subcase.id == subcaseId);
+    const subcase = subcases.find(subcase => subcase.id == subcaseDropdown.value);
 
+    const fragment = document.createDocumentFragment();
     nodes.forEach(node => {
         const row = document.createElement('tr');
-        const idCell = document.createElement('td');
-        idCell.textContent = node.id;
-
-        const coordsXCell = document.createElement('td');
-        coordsXCell.textContent = node.coord_x.toFixed(3);
-        const coordsYCell = document.createElement('td');
-        coordsYCell.textContent = node.coord_y.toFixed(3);
-        const coordsZCell = document.createElement('td');
-        coordsZCell.textContent = node.coord_z.toFixed(3);
-
-        
-        const forsAbsCell = document.createElement('td');
-        const momentAbsCell = document.createElement('td');
-        const { linear, moment } = calculateForceMagnitude(subcase?.node_id2forces[node.id] || []);
-        forsAbsCell.textContent = linear;
-        momentAbsCell.textContent = moment;
-
-        row.appendChild(idCell);
-        row.appendChild(coordsXCell);
-        row.appendChild(coordsYCell);
-        row.appendChild(coordsZCell);
-        row.appendChild(forsAbsCell);
-        row.appendChild(momentAbsCell);
-
-        tableBody.appendChild(row);
+        row.innerHTML = `
+            <td>${node.id}</td>
+            <td>${node.coord_x.toFixed(3)}</td>
+            <td>${node.coord_y.toFixed(3)}</td>
+            <td>${node.coord_z.toFixed(3)}</td>
+            <td>${calculateForceMagnitude(subcase?.node_id2forces[node.id] || []).linear}</td>
+            <td>${calculateForceMagnitude(subcase?.node_id2forces[node.id] || []).moment}</td>
+        `;
+        fragment.appendChild(row);
     });
+
+    tableBody.appendChild(fragment);
 }
 
 function calculateForceMagnitude(forces) {
@@ -167,7 +145,6 @@ function calculateForceMagnitude(forces) {
     const moment = Math.sqrt(forces[3]**2 + forces[4]**2 + forces[5]**2).toFixed(2);
     return { linear, moment };
 }
-
 
 async function updateSortIcons() {
     const sortableHeaders = document.querySelectorAll('th[data-sort]');
@@ -222,7 +199,6 @@ document.getElementById('filter-reset-button').addEventListener('click', () => {
     resetNodes()
 });
 
-
 document.getElementById('prev-button').addEventListener('click', () => {
     if (currentPage > 1) {
         fetchNodes(currentPage - 1);
@@ -236,7 +212,6 @@ document.getElementById('next-button').addEventListener('click', () => {
     currentPage += 1;
     updatePageNumber();
 });
-
 
 document.querySelectorAll('th[data-sort]').forEach(header => {
     header.addEventListener('click', async () => {
@@ -257,8 +232,8 @@ document.querySelectorAll('th[data-sort]').forEach(header => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-    fetchSubcases();
     if (total_pages === 0) {
+        await fetchSubcases(true);
         await fetchAllNodes();
         total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
         currentPage = 1;
@@ -267,3 +242,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateSortIcons();
     updatePageNumber();
 });
+
