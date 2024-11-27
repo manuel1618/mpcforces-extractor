@@ -59,7 +59,6 @@ async function filterNodes() {
 async function resetNodes() {
     filterInput.value = '';
     currentPage = 1; // Reset to first page when resetting
-    await fetchAllNodes(); // Pre-fetch all data if necessary
     await fetchAndRenderNodes({ page: currentPage });
 }
 
@@ -155,11 +154,7 @@ async function updateSortIcons() {
     });
 }
 
-// update the page number, id: pagination-info (Page 1 of X)
-function updatePageNumber() {
-    const paginationInfo = document.getElementById('pagination-info');
-    paginationInfo.textContent = `Page ${currentPage} of ${total_pages}`;
-}
+
 
 function displayError(message) {
     const errorContainer = document.getElementById('error-container'); // Ensure an error container exists in HTML
@@ -199,19 +194,32 @@ document.getElementById('filter-reset-button').addEventListener('click', () => {
     resetNodes()
 });
 
-document.getElementById('prev-button').addEventListener('click', () => {
+function updatePagination() {
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
+    const paginationInfo = document.getElementById('pagination-info');
+
+    prevButton.disabled = (currentPage === 1);
+    nextButton.disabled = (total_pages === 1 || currentPage === total_pages);
+    paginationInfo.textContent = `Page ${currentPage} of ${total_pages}`;
+}
+
+document.getElementById('prev-button').addEventListener('click', async () => {
     if (currentPage > 1) {
-        fetchNodes(currentPage - 1);
         currentPage -= 1;
+        await fetchNodes(currentPage);
     }
-    updatePageNumber();
+    updatePagination();
 });
 
-document.getElementById('next-button').addEventListener('click', () => {
-    fetchNodes(currentPage + 1);
-    currentPage += 1;
-    updatePageNumber();
+document.getElementById('next-button').addEventListener('click', async () => {
+    if (currentPage < total_pages) {
+        currentPage += 1;
+        await fetchNodes(currentPage);
+    }
+    updatePagination();
 });
+
 
 document.querySelectorAll('th[data-sort]').forEach(header => {
     header.addEventListener('click', async () => {
@@ -240,6 +248,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await fetchNodes(currentPage);
     } 
     updateSortIcons();
-    updatePageNumber();
+    updatePagination();
 });
 
