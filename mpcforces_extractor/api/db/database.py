@@ -264,12 +264,17 @@ class MPCDatabase:
             # Execute the query and return the results (with pagination)
             return session.exec(query.offset(offset).limit(limit)).all()
 
-    async def get_all_nodes(self) -> List[NodeDBModel]:
+    async def get_all_nodes(
+        self, node_ids: Optional[List[int]] = None
+    ) -> List[NodeDBModel]:
         """
         Get all nodes
         """
         with Session(self.engine) as session:
-            statement = select(NodeDBModel)
+            if node_ids:
+                statement = select(NodeDBModel).filter(NodeDBModel.id.in_(node_ids))
+            else:
+                statement = select(NodeDBModel)
             return session.exec(statement).all()
 
     async def remove_mpc(self, mpc_id: int):

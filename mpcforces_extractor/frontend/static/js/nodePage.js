@@ -22,13 +22,39 @@ async function fetchSubcases(forceRefresh = false) {
 
 async function fetchAllNodes() {
     if (allNodes.length > 0) return; // Skip fetching if data already exists
-    const response = await safeFetch('/api/v1/nodes/all');
+    
+    const response = await safeFetch('/api/v1/nodes/all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [] })
+    });
+
+
     if (!response.ok) {
         displayError('Error fetching Nodes.');
         return;
     }
     allNodes = await response.json();
     total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
+}
+
+/**
+ * Used for recalculating the total pages when the filter is applied
+ * @returns 
+ */
+async function fetchAllFilteredNodes() {
+    const filterData = parseFilterData(filterInput.value);
+    const response = await safeFetch('/api/v1/nodes/all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: filterData })
+    });
+    if (!response.ok) {
+        displayError('Error fetching Nodes.');
+        return;
+    }
+    const allFilteredNodes = await response.json();
+    total_pages = Math.ceil(allFilteredNodes.length / NODES_PER_PAGE);
 }
 
 function populateSubcaseDropdown(subcases) {
@@ -51,16 +77,20 @@ async function fetchNodes(page = 1) {
 }
 
 async function filterNodes() {
-    const filterData = parseFilterData(filterInput.value);
-    currentPage = 1; // Reset to first page when filtering
-    await fetchAndRenderNodes({ page: currentPage, filterData });
+    currentPage = 1; // Reset to first page
+    await fetchAllFilteredNodes();
+    await fetchAndRenderNodes({ page: currentPage, filterData: parseFilterData(filterInput.value) });
+    updatePagination();
 }
 
 async function resetNodes() {
     filterInput.value = '';
-    currentPage = 1; // Reset to first page when resetting
+    currentPage = 1;
     await fetchAndRenderNodes({ page: currentPage });
+    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
+    updatePagination();
 }
+
 
 async function fetchAndRenderNodes({ page = 1, filterData = [], subcaseId = 0, sortColumnOverride = null, sortDirectionOverride = null } = {}) {
     try {
@@ -155,16 +185,18 @@ async function updateSortIcons() {
 }
 
 
-
 function displayError(message) {
-    const errorContainer = document.getElementById('error-container'); // Ensure an error container exists in HTML
-    if (errorContainer) {
-        errorContainer.textContent = message;
-        errorContainer.style.display = 'block';
-    } else {
-        console.error(message); // Fallback
+    let errorContainer = document.getElementById('error-container');
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'error-container';
+        errorContainer.style.color = 'red';
+        document.body.prepend(errorContainer);
     }
+    errorContainer.textContent = message;
+    errorContainer.style.display = 'block';
 }
+
 
 function parseFilterData(inputElement) {
     return inputElement
@@ -240,14 +272,15 @@ document.querySelectorAll('th[data-sort]').forEach(header => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (total_pages === 0) {
-        await fetchSubcases(true);
-        await fetchAllNodes();
-        total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
+    await fetchSubcases();
+    await fetchAllNodes();
+
+    if (allNodes.length > 0) {
         currentPage = 1;
         await fetchNodes(currentPage);
-    } 
-    updateSortIcons();
+    }
+
     updatePagination();
+    updateSortIcons();
 });
 
