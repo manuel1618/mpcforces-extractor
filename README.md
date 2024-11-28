@@ -1,6 +1,6 @@
 # MPCForces-Extractor
 
-This CLI tool outputs the MPC forces via summing it up per connected part. It is used in combination with Optistruct.
+This tool outputs the MPC forces via summing it up per connected part. It is used in combination with Optistruct.
 
 ## Motivation
 
@@ -18,6 +18,7 @@ This tool is destined to solve this by automating it. The two major problems reg
 - Read the mpcf File and assign each force to the mpc element (as this is not printed in the mpcf file)
 
 ## Overview
+
 ![v0 1 7 2-ProcessAndFrontend](https://github.com/user-attachments/assets/c36d6c6f-9d6c-431c-be13-b4dfd9fa7393)
 
 As seen in the picture above, the .fem and .mpcf files are being transformed by the mpcforces-extractor in a .db file.
@@ -35,7 +36,7 @@ To use this tool, you can simply use the pip install command like so:
 pip install mpcforces-extractor
 ```
 
-After installing it, you can access the cli tool via: ```mpcforces-extractor``` which will launch a small webserver wher you can select input files and start the process:
+After installing it, you can access the tool via: ```mpcforces-extractor``` which will launch a small webserver wher you can select input files and start the process:
 
 If you need more documentation, you can access it [here](https://manuel1618.github.io/mpcforces-extractor/)
 
