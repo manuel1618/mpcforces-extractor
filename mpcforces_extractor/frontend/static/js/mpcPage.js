@@ -128,5 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (idHeader) {
         idHeader.addEventListener('click', sortTableById);
     }
+    fetchMPCs();
 });
 
