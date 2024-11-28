@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Node List</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/assets/favicon.ico" type="image/x-icon">
 </head>
 
 {% include 'navbar.html' %}
@@ -68,19 +68,10 @@
                 <span id="pagination-info" class="mx-3">Page 1 of 1</span>
                 <button id="next-button" class="btn btn-secondary">Next</button>
             </div>
-
         </div>
-
         <!-- Link to the external JavaScript file -->
-        <script src="/static/common.js"></script>
-        <script src="/static/nodePage.js"></script>
-
-        <script>
-            // Automatically fetch nodes when the page loads
-
-            //window.onload = () => fetchNodes(1);
-
-        </script>
+        <script src="/static/js/common.js"></script>
+        <script src="/static/js/nodePage.js"></script>
 </body>
 
 </html>

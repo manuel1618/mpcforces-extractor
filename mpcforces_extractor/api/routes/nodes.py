@@ -56,31 +56,18 @@ async def get_nodes(
     return nodes
 
 
-@router.get("/all", response_model=List[NodeDBModel])
-async def get_all_nodes(db=Depends(get_db)) -> int:
+@router.post("/all", response_model=List[NodeDBModel])
+async def get_all_nodes(filter_data: FilterDataModel, db=Depends(get_db)) -> int:
     """
     Get all nodes
     """
 
-    nodes = await db.get_all_nodes()
+    node_ids = expand_filter_string(filter_data)
+    nodes = await db.get_all_nodes(node_ids)
 
     if not nodes:
         raise HTTPException(status_code=404, detail="No nodes found")
 
-    return nodes
-
-
-@router.post("/filter", response_model=List[NodeDBModel])
-async def get_all_nodes_filtered(
-    filter_data: FilterDataModel, db=Depends(get_db)
-) -> List[NodeDBModel]:
-    """
-    Get nodes filtered by a string, get it from all nodes, not paginated.
-    The filter can be a range like '1-3' or comma-separated values like '1,2,3'.
-    """
-    all_nodes = await db.get_all_nodes()
-    node_ids = expand_filter_string(filter_data)
-    nodes = [node for node in all_nodes if node.id in node_ids]
     return nodes
 
 
