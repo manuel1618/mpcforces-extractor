@@ -27,8 +27,8 @@ The Server gives access to the following pages, which are very briefly documente
 Allows for:
 
 - Start the tool with custom files. Needed Files:
-    - .fem File (Basically your Input Deck for Optistruct)
-    - .mpcf File (The forces on the RBE Slave Nodes). Its exported by Optistruct via the loadstep output request - mpcf: Format: Opti
+  - .fem File (Basically your Input Deck for Optistruct)
+  - .mpcf File (The forces on the RBE Slave Nodes). Its exported by Optistruct via the loadstep output request - mpcf: Format: Opti
 - Alternatively import a database (from a previous run) directly
 
 In both ways, the database will be filled and the following pages can be used.
@@ -47,8 +47,3 @@ In its default way:
 
 - It displays all the nodes and their forces
 - With the filter option you can use the node ids from the copy button from the MPC Page to quickly select the nodes you are interested in
-
-
-
-
-
