@@ -19,23 +19,12 @@ This tool is destined to solve this by automating it. The two major problems reg
 
 ## Functionality
 
-This tool comes with different methods of using it
-
-### [Command Line Interface (CLI)](cli.md)
-
-Recommended if you want to process a lot of files with small scripts and text output is enough.
-
-### [App](app.md)
-
-Recommended if you want to get to know the tool or if you want to explore previous run models again (= import database).
-
-### [Pure Python](source_code.md)
-
+This tool comes now as an [App](app.md) with a webserver for using it (recommended).
 You also can use the tool directly. Exmaple is provided [here](source_code.md).
 
 ## Basic Functionality (Backend)
 
-The tool operates in the following way. CLI / App just shows the Input / Ouput.
+The tool operates in the following way:
 
 - Detect RBE2 and RBE3 elements in your model
 - Do a group segmentation for all connected (not by RBE2/RBE3) parts

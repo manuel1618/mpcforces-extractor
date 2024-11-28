@@ -52,11 +52,6 @@ tasks:
     cmds:
       - poetry run python -m mpcforces_extractor.app
 
-  cli:
-    desc: Run the CLI
-    cmds:
-      - poetry run python -m mpcforces_extractor.cli
-
   docs-serve:
     desc: Serve the documentation locally with mkdocs. Deploy with mike (will commit)
     deps:
