@@ -7,6 +7,7 @@ To install this tool, you can simply use the pip install command like so:
 ```bash
 pip install mpcforces-extractor
 ```
+
 After installing it, you can access the tool via: ```mpcforces-extractor``` which will start the [app](app.md).
 
 ## Test Files
