@@ -9,7 +9,7 @@ theme:
     - scheme: default
       primary: indigo
       toggle:
-        icon: material/brightness-7 
+        icon: material/brightness-7
         name: Switch to dark mode
     # Palette toggle for dark mode
     - scheme: slate
@@ -22,7 +22,6 @@ nav:
   - Home: index.md
   - Quick-Start: quick_start.md
   - App: app.md
-  - CLI: cli.md
   - Direct: source_code.md
   - Dev-Coverage: coverage.md
 
