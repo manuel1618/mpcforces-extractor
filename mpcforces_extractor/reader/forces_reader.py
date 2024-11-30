@@ -2,7 +2,7 @@ from typing import List
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 
-class MPCForcesReader:
+class ForcesReader:
     """
     Class to read the MPC forces file and extract the forces for each node
     """
@@ -23,7 +23,7 @@ class MPCForcesReader:
             return file.readlines()
         return []
 
-    def build_subcases(self) -> None:
+    def build_subcases(self, force_type: ForceType) -> None:
         """
         This method is used to extract the forces from the MPC forces file
         and build the subcases
@@ -74,7 +74,7 @@ class MPCForcesReader:
 
                     force = [force_x, force_y, force_z, moment_x, moment_y, moment_z]
 
-                    subcase.add_force(node_id, force, ForceType.MPCFORCE)
+                    subcase.add_force(node_id, force, force_type)
                     self.node_ids.append(node_id)
 
                     i += 1

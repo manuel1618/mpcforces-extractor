@@ -40,7 +40,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
         "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
     @patch(
-        "mpcforces_extractor.reader.mpcforces_reader.MPCForcesReader._MPCForcesReader__read_lines"
+        "mpcforces_extractor.reader.forces_reader.ForcesReader._ForcesReader__read_lines"
     )
     def test_extract_forces_and_summary(
         self, mock_read_lines_mpc, mock_read_lines_fem, mock_mpcf_file_exists

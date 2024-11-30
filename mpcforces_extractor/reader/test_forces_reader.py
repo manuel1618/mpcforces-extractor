@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import patch
 
-from mpcforces_extractor.reader.mpcforces_reader import MPCForcesReader
-from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.reader.forces_reader import ForcesReader
+from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 
 @patch(
-    "mpcforces_extractor.reader.mpcforces_reader.MPCForcesReader._MPCForcesReader__read_lines"
+    "mpcforces_extractor.reader.forces_reader.ForcesReader._ForcesReader__read_lines"
 )
-class TestMPCForcesReader(unittest.TestCase):
+class TestForcesReader(unittest.TestCase):
     def test_forces(self, mock_read_lines):
         mpcf_file_path = "dummypath"
         mock_read_lines.return_value = [
@@ -24,9 +24,9 @@ class TestMPCForcesReader(unittest.TestCase):
         # reset instances
         Subcase.reset()
 
-        mpc_reader = MPCForcesReader(mpcf_file_path)
+        mpc_reader = ForcesReader(mpcf_file_path)
         mpc_reader.file_content = mock_read_lines.return_value
-        mpc_reader.build_subcases()
+        mpc_reader.build_subcases(ForceType.MPCFORCE)
 
         self.assertEqual(len(Subcase.subcases), 1)
         subacase: Subcase = Subcase.subcases[0]
