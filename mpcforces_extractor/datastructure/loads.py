@@ -64,16 +64,10 @@ class SPC:
         self.node_id = node_id
         self.system_id = system_id
         self.dofs = dofs
-        self.reaction_force = None
         if node_id in SPC.node_id_2_instance:
             print("Error: SPC already exists for node_id", node_id)
         SPC.node_id_2_instance[node_id] = self
-
-    def set_reaction_force(self, reaction_force: List[float]):
-        """
-        Set the reaction force
-        """
-        self.reaction_force = reaction_force
+        self.subcase_id2force = {}
 
 
 class SPCCluster:
@@ -129,6 +123,10 @@ class SPCCluster:
                         print(f"Node {spc.node_id} not found in spcf, setting to 0.")
                         continue
                     force_vector = node_id2forces[spc.node_id]
+
+                    # add the force to the SPC instance
+                    spc.subcase_id2force[subcase.subcase_id] = force_vector
+
                     sum_forces = [sf + f for sf, f in zip(sum_forces, force_vector)]
                 subcase_id2summed_force[subcase.subcase_id] = sum_forces
             spc_cluster.subcase_id2summed_force = subcase_id2summed_force

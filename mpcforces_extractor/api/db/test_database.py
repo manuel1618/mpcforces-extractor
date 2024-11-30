@@ -1,6 +1,6 @@
 import os
 import pytest
-from mpcforces_extractor.api.db.database import MPCDatabase
+from mpcforces_extractor.api.db.database import Database
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Node, Element
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
@@ -52,7 +52,7 @@ async def get_db():
     subcase.add_force(5, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
     subcase.add_force(6, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
 
-    db = MPCDatabase("test.db")
+    db = Database("test.db")
     db.populate_database()
     db_save = db  # Save the initialized database
     return db_save
