@@ -2,8 +2,8 @@ import os
 import time
 from typing import Optional
 from mpcforces_extractor.reader.modelreaders import FemFileReader
-from mpcforces_extractor.reader.mpcforces_reader import MPCForcesReader
-from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.reader.forces_reader import ForcesReader
+from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 
 class MPCForceExtractor:
@@ -41,8 +41,8 @@ class MPCForceExtractor:
         in a dictory with the rigid element as the key and the property2forces dict as the value
         """
         if self.__mpcf_file_exists():
-            self.mpc_forces_reader = MPCForcesReader(self.mpcf_file_path)
-            self.mpc_forces_reader.build_subcases()
+            self.mpc_forces_reader = ForcesReader(self.mpcf_file_path)
+            self.mpc_forces_reader.build_subcases(force_type=ForceType.MPCFORCE)
             self.subcases = Subcase.subcases
 
         self.reader = FemFileReader(self.fem_file_path, block_size)
