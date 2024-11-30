@@ -1,20 +1,25 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from fastapi import HTTPException
 from sqlmodel import Session, create_engine, SQLModel, select, text
 from sqlalchemy.sql.expression import asc, desc
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.entities import Node
 from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.loads import SPCCluster, SPC
+
+
 from mpcforces_extractor.api.db.models import (
     RBE2DBModel,
     RBE3DBModel,
     NodeDBModel,
     SubcaseDBModel,
+    SPCDBModel,
+    SPCClusterDBModel,
 )
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 
 
-class MPCDatabase:
+class Database:
     """
     A Database class to store MPC instances, Nodes and Subcases
     """
@@ -35,6 +40,8 @@ class MPCDatabase:
         self.rbe2s = {}
         self.rbe3s = {}
         self.subcases = {}
+        self.spcs = {}
+        self.spc_clusters = {}
 
         self.engine = create_engine(f"sqlite:///{file_path}")
 
@@ -61,6 +68,11 @@ class MPCDatabase:
                 subcase.id: subcase
                 for subcase in session.exec(select(SubcaseDBModel)).all()
             }
+            self.spcs = {spc.id: spc for spc in session.exec(select(SPCDBModel)).all()}
+            self.spc_clusters = {
+                spc_cluster.id: spc_cluster
+                for spc_cluster in session.exec(select(SPCClusterDBModel)).all()
+            }
 
     def populate_database(self, load_all_nodes=False):
         """
@@ -82,6 +94,8 @@ class MPCDatabase:
             self.populate_nodes(load_all_nodes, session)
 
             self.populate_mpcs(session)
+
+            self.populate_spcs(session)
 
             # Populate Subcases
             for subcase in Subcase.subcases:
@@ -105,6 +119,31 @@ class MPCDatabase:
                 subcase.id: subcase
                 for subcase in session.exec(select(SubcaseDBModel)).all()
             }
+
+    def populate_spcs(self, session):
+        """
+        Function to populate the database with SPCs
+        """
+        clusters = SPCCluster.id_2_instances
+        for cluster_id, cluster in clusters.items():
+            spc_ids = ",".join([str(spc.node_id) for spc in cluster.spcs])
+            subcase_id2summed_forces: Dict = cluster.subcase_id2summed_force
+
+            db_cluster = SPCClusterDBModel(
+                id=cluster_id,
+                spc_ids=spc_ids,
+                subcase_id2summed_forces=subcase_id2summed_forces,
+            )
+            session.add(db_cluster)
+
+        for node_id, spc in SPC.node_id_2_instance.items():
+            db_spc = SPCDBModel(
+                node_id=node_id,
+                system_id=spc.system_id,
+                dofs=spc.dofs,
+                subcase_id2force=spc.subcase_id2force,
+            )
+            session.add(db_spc)
 
     def populate_nodes(self, load_all_nodes=False, session=None):
         """
@@ -293,3 +332,15 @@ class MPCDatabase:
         Get all subcases
         """
         return list(self.subcases.values())
+
+    async def get_spc_clusters(self) -> List[SPCClusterDBModel]:
+        """
+        Get all spc clusters
+        """
+        return list(self.spc_clusters.values())
+
+    async def get_spcs(self) -> List[SPCDBModel]:
+        """
+        Get all spcs
+        """
+        return list(self.spcs.values())

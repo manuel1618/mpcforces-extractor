@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from mpcforces_extractor.api.db.database import NodeDBModel
 from mpcforces_extractor.api.dependencies import get_db
 from mpcforces_extractor.api.config import ITEMS_PER_PAGE
-from mpcforces_extractor.api.db.database import MPCDatabase
+from mpcforces_extractor.api.db.database import Database
 
 router = APIRouter()
 
@@ -27,7 +27,7 @@ async def get_nodes(
         1, ge=-1, le=1, alias="sortDirection"
     ),  # Sorting direction: 1 (asc) or -1 (desc)
     filter_data: FilterDataModel,
-    db: MPCDatabase = Depends(get_db),  # Dependency for DB session
+    db: Database = Depends(get_db),  # Dependency for DB session
     subcase_id: int = Query(None, alias="subcaseId"),
 ) -> List[NodeDBModel]:
     """

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPC List</title>
+    <link rel="stylesheet" href="/static/css/styles.css"> <!-- External CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/assets/favicon.ico" type="image/x-icon">
+</head>
+
+{% include 'navbar.html' %}
+
+<!-- Main Body -->
+
+<body class="dark-mode">
+    <div class="container mt-5">
+        <h1>SPC Cluster</h1>
+
+        <!-- Table to display the MPCs -->
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th data-sort="id">Cluster ID <span id="id-sort-icon">▲▼</span></th>
+                    <th> Node Ids</th>
+                    <th>Fx</th>
+                    <th>Fy</th>
+                    <th>Fz</th>
+                    <th>Fabs</th>
+                    <th>Mx</th>
+                    <th>My</th>
+                    <th>Mz</th>
+                    <th>Mabs</th>
+                </tr>
+            </thead>
+            <tbody id="spc-cluster-table-body">
+                <!-- Rows will be inserted here -->
+            </tbody>
+        </table>
+
+    </div>
+    <!-- External JavaScript -->
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/spcClusterPage.js"></script>
+</body>
+
+</html>
