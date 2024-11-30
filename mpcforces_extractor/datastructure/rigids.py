@@ -1,7 +1,7 @@
 from typing import Dict, List
 from enum import Enum
 from mpcforces_extractor.datastructure.entities import Node, Element
-from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 
 class MPC_CONFIG(Enum):
@@ -76,7 +76,7 @@ class MPC:
         for part_id, node_ids in self.part_id2node_ids.items():
             sum_forces = [0, 0, 0]
             if subcase is not None:
-                sum_forces = subcase.get_sum_forces(node_ids)
+                sum_forces = subcase.get_sum_forces(node_ids, ForceType.MPCFORCE)
             part_id2forces[part_id] = sum_forces
         return part_id2forces
 

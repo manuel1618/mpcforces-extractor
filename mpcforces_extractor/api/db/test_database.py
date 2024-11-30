@@ -3,7 +3,7 @@ import pytest
 from mpcforces_extractor.api.db.database import MPCDatabase
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Node, Element
-from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 # Initialize db_save at the module level
 db_save = None  # Ensure db_save is defined before use
@@ -45,12 +45,12 @@ async def get_db():
     Element(2, 2, [node6, node5])
 
     subcase = Subcase(1, 1.0)
-    subcase.add_force(1, [1.0, 0, 0, 0, 0, 0])
-    subcase.add_force(2, [1.0, 0, 0, 0, 0, 0])
-    subcase.add_force(3, [1.0, 0, 0, 0, 0, 0])
-    subcase.add_force(4, [1.0, 0, 0, 0, 0, 0])
-    subcase.add_force(5, [1.0, 0, 0, 0, 0, 0])
-    subcase.add_force(6, [1.0, 0, 0, 0, 0, 0])
+    subcase.add_force(1, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
+    subcase.add_force(2, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
+    subcase.add_force(3, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
+    subcase.add_force(4, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
+    subcase.add_force(5, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
+    subcase.add_force(6, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
 
     db = MPCDatabase("test.db")
     db.populate_database()
@@ -86,7 +86,7 @@ async def test_subcases():
     subcase = subcases[0]
     assert subcase.id == 1
     assert subcase.time == 1.0
-    assert subcase.node_id2forces["1"] == [1.0, 0, 0, 0, 0, 0]
+    assert subcase.node_id2mpcforces["1"] == [1.0, 0, 0, 0, 0, 0]
 
 
 # remove the db.db after all test
