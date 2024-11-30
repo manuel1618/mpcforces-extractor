@@ -3,7 +3,7 @@ site_url: https://manuel1618.github.io/mpcforces-extractor/
 
 theme:
   name: material
-  custom_dir: overrides
+  custom_dir: docs/overrides
   palette:
     # Palette toggle for light mode
     - scheme: default
