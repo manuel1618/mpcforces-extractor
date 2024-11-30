@@ -4,7 +4,7 @@ from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 class ForcesReader:
     """
-    Class to read the MPC forces file and extract the forces for each node
+    Class to read the MPC / SPC forces file and extract the forces for each node
     """
 
     file_path: str = None
@@ -35,7 +35,7 @@ class ForcesReader:
             line = self.file_content[i].strip()
 
             if line.startswith("$SUBCASE"):
-                subcase_id = int(line.replace("$SUBCASE", "").strip())
+                subcase_id = int(line[0:23].replace("$SUBCASE", "").strip())
             if line.startswith("$TIME"):
                 time = float(line.replace("$TIME", "").strip())
                 if Subcase.get_subcase_by_id(subcase_id):
@@ -51,6 +51,10 @@ class ForcesReader:
                     and not self.file_content[i].strip() == ""
                 ):
                     line = self.file_content[i]
+
+                    if line.strip().startswith("SUM"):
+                        i += 1
+                        continue
 
                     # take the first 8 characters as the node id
                     node_id = int(line[:8].strip())
