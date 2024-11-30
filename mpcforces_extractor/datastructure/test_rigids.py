@@ -1,6 +1,6 @@
 import unittest
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
-from mpcforces_extractor.datastructure.entities import Node, Element
+from mpcforces_extractor.datastructure.entities import Node, Element, Part
 from mpcforces_extractor.datastructure.subcases import Subcase
 
 
@@ -60,6 +60,7 @@ class TestRigids(unittest.TestCase):
             coords=[0, 0, 0],
         )
         Element.reset_graph()
+        Part.reset()
         Element(1, 1, [node1, node2, node3, node4])
 
         mpc = MPC(
