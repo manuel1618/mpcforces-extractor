@@ -1,6 +1,6 @@
 import os
 import time
-from mpcforces_extractor.force_extractor import MPCForceExtractor
+from mpcforces_extractor.force_extractor import MPCForceExtractor, SPCForcesExtractor
 from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
 from mpcforces_extractor.datastructure.entities import Node, Element1D, Element
@@ -32,6 +32,17 @@ def main():
         input_folder + f"/{model_name}.mpcf",
         output_folder + f"/{model_name}",
     )
+
+    spc_forces_extractor = SPCForcesExtractor(
+        input_folder + f"/{model_name}.fem",
+        input_folder + f"/{model_name}.spcf",
+    )
+
+    # Debug
+    spc_forces_extractor.build_fem_and_subcase_data(blocksize)
+    for subcase in spc_forces_extractor.subcases:
+        print(subcase.subcase_id, subcase.time)
+        print(subcase.node_id2spcforces)
 
     # Write Summary
     mpc_force_extractor.build_fem_and_subcase_data(blocksize)

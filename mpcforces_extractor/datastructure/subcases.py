@@ -70,7 +70,6 @@ class Subcase:
         for subcase in Subcase.subcases:
             if subcase.subcase_id == subcase_id:
                 return subcase
-        print(f"No Subcase with id {id} was found.")
         return None
 
     @staticmethod
