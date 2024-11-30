@@ -35,7 +35,6 @@ def main():
     mpc_force_extractor = MPCForceExtractor(input_folder + f"/{model_name}.mpcf")
     mpc_force_extractor.build_subcase_data()
     spc_forces_extractor = SPCForcesExtractor(input_folder + f"/{model_name}.spcf")
-    spc_forces_extractor.build_subcase_data()
 
     # Debug
     spc_forces_extractor.build_subcase_data()
@@ -44,10 +43,12 @@ def main():
         print(subcase.node_id2spcforces)
 
     SPCCluster.build_spc_cluster()
+    SPCCluster.calculate_force_sum()
 
     for spc_cluster in SPCCluster.id_2_instances.values():
         print(spc_cluster.id, len(spc_cluster.spcs))
         print(spc_cluster.spcs[0])
+        print(spc_cluster.subcase_id2summed_force)
 
 
 if __name__ == "__main__":

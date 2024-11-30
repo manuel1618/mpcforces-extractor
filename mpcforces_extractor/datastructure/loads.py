@@ -1,6 +1,7 @@
 from typing import List, Dict
 import networkx as nx
 from mpcforces_extractor.datastructure.entities import Node, Element
+from mpcforces_extractor.datastructure.subcases import Subcase
 
 
 class Moment:
@@ -85,6 +86,7 @@ class SPCCluster:
     def __init__(self, spcs: List[SPC]):
         self.spcs = spcs
         self.id = len(SPCCluster.id_2_instances) + 1
+        self.subcase_id2summed_force = {}
         SPCCluster.id_2_instances[self.id] = self
 
     def add_spcc(self, spcc: SPC):
@@ -109,3 +111,24 @@ class SPCCluster:
             for node in connected_component:
                 spcs.append(SPC.node_id_2_instance[node.id])
             SPCCluster(spcs)
+
+    @staticmethod
+    def calculate_force_sum() -> None:
+        """
+        This method is used to calculate the sum of the spc forces
+        for each subcase and for each spc cluster
+        """
+        # Calculate the sum of the forces for each spc cluster
+        for _, spc_cluster in SPCCluster.id_2_instances.items():
+            subcase_id2summed_force = {}
+            for subcase in Subcase.subcases:
+                node_id2forces = subcase.node_id2spcforces
+                sum_forces = [0, 0, 0, 0, 0, 0]
+                for spc in spc_cluster.spcs:
+                    if spc.node_id not in node_id2forces:
+                        print(f"Node {spc.node_id} not found in spcf, setting to 0.")
+                        continue
+                    force_vector = node_id2forces[spc.node_id]
+                    sum_forces = [sf + f for sf, f in zip(sum_forces, force_vector)]
+                subcase_id2summed_force[subcase.subcase_id] = sum_forces
+            spc_cluster.subcase_id2summed_force = subcase_id2summed_force
