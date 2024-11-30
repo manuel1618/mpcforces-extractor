@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, mock_open
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.reader.modelreaders import FemFileReader
-from mpcforces_extractor.datastructure.entities import Element
+from mpcforces_extractor.datastructure.entities import Element, Part
 from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
 from mpcforces_extractor.datastructure.subcases import Subcase
@@ -21,6 +21,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
         """
         # reset instances
         Element.reset_graph()
+        Part.reset()
         Subcase.reset()
 
         # Test the init method
@@ -55,6 +56,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
 
         # reset instances
         Element.reset_graph()
+        Part.reset()
         Subcase.reset()
         MPC.reset()
 
@@ -107,6 +109,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
 
         # reset instances
         Element.reset_graph()
+        Part.reset()
         Subcase.reset()
 
         # Test the extract_forces method
@@ -139,6 +142,7 @@ class TestFMPCForceExtractor(unittest.TestCase):
 
         # reset instances
         Element.reset_graph()
+        Part.reset()
 
         reader = FemFileReader(None, 8)
         reader.create_entities()
