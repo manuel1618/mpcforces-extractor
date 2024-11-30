@@ -19,6 +19,9 @@ class TestFMPCForceExtractor(unittest.TestCase):
         """
         Test the init method. Make sure all variables are set correctly (correct type)
         """
+        # reset instances
+        Element.reset_graph()
+        Subcase.reset()
 
         # Test the init method
         force_extractor = MPCForceExtractor(
@@ -49,6 +52,11 @@ class TestFMPCForceExtractor(unittest.TestCase):
         mock_read_lines_fem.return_value = get_simple_model_fem()
         mock_read_lines_mpc.return_value = get_simple_model_mpc()
         mock_mpcf_file_exists.return_value = True
+
+        # reset instances
+        Element.reset_graph()
+        Subcase.reset()
+        MPC.reset()
 
         # Test the extract_forces method
         force_extractor = MPCForceExtractor(
@@ -97,6 +105,10 @@ class TestFMPCForceExtractor(unittest.TestCase):
 
         mock_read_lines_fem.return_value = get_simple_model_fem()
 
+        # reset instances
+        Element.reset_graph()
+        Subcase.reset()
+
         # Test the extract_forces method
         force_extractor = MPCForceExtractor(
             fem_file_path="test.fem",
@@ -124,6 +136,9 @@ class TestFMPCForceExtractor(unittest.TestCase):
     def test_visualize_tcl_commands(self, mock_read_lines_fem, mock_write):
 
         mock_read_lines_fem.return_value = get_simple_model_fem()
+
+        # reset instances
+        Element.reset_graph()
 
         reader = FemFileReader(None, 8)
         reader.create_entities()

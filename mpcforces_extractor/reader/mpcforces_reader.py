@@ -30,7 +30,6 @@ class MPCForcesReader:
         """
         subcase_id = 0
         time = 0
-        Subcase.reset()
         subcase = None
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i].strip()
