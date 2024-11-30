@@ -13,7 +13,6 @@ class MPCForceExtractor:
 
     def __init__(self, mpcf_file_path) -> None:
         self.mpcf_file_path: str = mpcf_file_path
-        self.reader: FemFileReader = None
         self.mpc_forces_reader = None
         self.subcases = []
 
@@ -44,7 +43,6 @@ class SPCForcesExtractor:
 
     def __init__(self, spcf_file_path: str) -> None:
         self.spcf_file_path: str = spcf_file_path
-        self.reader: FemFileReader = None
         self.spc_forces_reader = None
         self.subcases = []
 
@@ -56,6 +54,8 @@ class SPCForcesExtractor:
             self.spc_forces_reader = ForcesReader(self.spcf_file_path)
             self.spc_forces_reader.build_subcases(force_type=ForceType.SPCFORCE)
             self.subcases = Subcase.subcases
+        else:
+            print("SPC forces file does not exist")
 
     def __spcf_file_exists(self) -> bool:
         """
