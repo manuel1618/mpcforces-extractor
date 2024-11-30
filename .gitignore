@@ -167,6 +167,11 @@ cython_debug/
 *.h3d
 *.spcf
 *.mpcf
+*.mvw
+*.out
+*.mesg
+*.stat
+
 
 data/output/**
 data/models/**

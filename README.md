@@ -48,6 +48,8 @@ In order to make testing the tool easier, you can download the following files:
 
 [m.mpcf](docs/assets/models/m.mpcf)
 
+[m.spcf](docs/assets/models/m.spcf)
+
 ## Questions?
 
 - Write me a e-mail :)
