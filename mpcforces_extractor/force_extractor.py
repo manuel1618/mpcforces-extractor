@@ -3,8 +3,6 @@ import time
 from typing import Optional
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.reader.mpcforces_reader import MPCForcesReader
-from mpcforces_extractor.datastructure.entities import Element
-from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.subcases import Subcase
 
 
@@ -23,10 +21,6 @@ class MPCForceExtractor:
         self.reader: FemFileReader = None
         self.mpc_forces_reader = None
         self.subcases = []
-        # reset the graph (very important) and the MPCs
-        Element.reset_graph()
-        MPC.reset()
-        Subcase.reset()
 
         if output_folder:
             # create output folder if it does not exist, otherwise delete the content

@@ -21,6 +21,9 @@ class TestMPCForcesReader(unittest.TestCase):
             "",
         ]
 
+        # reset instances
+        Subcase.reset()
+
         mpc_reader = MPCForcesReader(mpcf_file_path)
         mpc_reader.file_content = mock_read_lines.return_value
         mpc_reader.build_subcases()

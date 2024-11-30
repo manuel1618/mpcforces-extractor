@@ -3,6 +3,9 @@ import time
 from mpcforces_extractor.force_extractor import MPCForceExtractor
 from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
 from mpcforces_extractor.writer.summary_writer import SummaryWriter
+from mpcforces_extractor.datastructure.entities import Node, Element1D, Element
+from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.rigids import MPC
 
 
 def main():
@@ -16,6 +19,13 @@ def main():
     model_name = "m"
     # model_name = "Flange"
     blocksize = 8
+
+    # Clear all Instances (important)
+    Node.reset()
+    Element1D.reset()
+    Element.reset_graph()
+    Subcase.reset()
+    MPC.reset()
 
     mpc_force_extractor = MPCForceExtractor(
         input_folder + f"/{model_name}.fem",
