@@ -1,7 +1,7 @@
 from typing import List, Dict
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Element1D, Element, Node
-from mpcforces_extractor.datastructure.loads import Moment, Force
+from mpcforces_extractor.datastructure.loads import Moment, Force, SPC
 
 
 class FemFileReader:
@@ -29,6 +29,7 @@ class FemFileReader:
     rigid_elements: List[MPC] = []
     node2property = {}
     load_id2load: Dict = {}
+    node_id2spc: Dict = {}
     blocksize: int = None
 
     def __init__(self, file_path, block_size: int):
@@ -269,3 +270,32 @@ class FemFileReader:
                     compenents_from_file=components_from_file,
                 )
                 FemFileReader.load_id2load[moment_id] = moment
+
+    def get_spcs(self):
+        """
+        This method is used to extract the constraints (SPCs) from the .fem file
+        """
+
+        spc_id2system_id = {}
+        spc_id_2dof_id2dof_value = {}
+
+        for i, _ in enumerate(self.file_content[self.endElementLine :]):
+            line = self.file_content[i]
+
+            if line.startswith("SPC"):
+                line_content = self.split_line(line)
+                system_id = int(line_content[1])
+                node_id = int(line_content[2])
+                dof_id = int(line_content[3])
+                dof_value = float(line_content[4])
+
+                if node_id not in spc_id2system_id:
+                    spc_id2system_id[node_id] = system_id
+                    spc_id_2dof_id2dof_value[node_id] = {}
+                    spc_id_2dof_id2dof_value[node_id][dof_id] = dof_value
+                else:
+                    print("Duplicate SPC found, ignoring. Node id: ", node_id)
+
+        for node_id, system_id in spc_id2system_id.items():
+            spc = SPC(node_id, system_id, spc_id_2dof_id2dof_value[node_id])
+            self.node_id2spc[node_id] = spc
