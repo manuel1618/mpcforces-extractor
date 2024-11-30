@@ -160,8 +160,8 @@ async function addNodesToTable(nodes) {
             <td>${node.coord_x.toFixed(3)}</td>
             <td>${node.coord_y.toFixed(3)}</td>
             <td>${node.coord_z.toFixed(3)}</td>
-            <td>${calculateForceMagnitude(subcase?.node_id2forces[node.id] || []).linear}</td>
-            <td>${calculateForceMagnitude(subcase?.node_id2forces[node.id] || []).moment}</td>
+            <td>${calculateForceMagnitude(subcase?.node_id2mpcforces[node.id] || []).linear}</td>
+            <td>${calculateForceMagnitude(subcase?.node_id2mpcforces[node.id] || []).moment}</td>
         `;
         fragment.appendChild(row);
     });

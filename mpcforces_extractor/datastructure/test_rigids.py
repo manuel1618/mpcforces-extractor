@@ -34,7 +34,7 @@ class TestRigids(unittest.TestCase):
         self.assertEqual(mpc.dofs, "123")
 
     def test_sum_forces_by_connected_parts(self):
-        node_id2force = {
+        node_id2mpcforce = {
             1: [1, 1, 1, 0, 0, 0],
             2: [2, 2, 2, 0, 0, 0],
         }
@@ -71,7 +71,7 @@ class TestRigids(unittest.TestCase):
         )
 
         subcase = Subcase(1, 1)
-        subcase.node_id2forces = node_id2force
+        subcase.node_id2mpcforces = node_id2mpcforce
 
         forces = mpc.get_part_id2force(subcase)
         self.assertTrue(forces[1] == [3, 3, 3, 0, 0, 0])

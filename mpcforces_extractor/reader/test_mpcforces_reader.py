@@ -29,12 +29,12 @@ class TestMPCForcesReader(unittest.TestCase):
         mpc_reader.build_subcases()
 
         self.assertEqual(len(Subcase.subcases), 1)
-        subacase = Subcase.subcases[0]
+        subacase: Subcase = Subcase.subcases[0]
         self.assertEqual(
-            subacase.node_id2forces[1],
+            subacase.node_id2mpcforces[1],
             [-1.0, 1.0, 1.0, 1.0, 0.0, 0.0],
         )
         self.assertEqual(
-            Subcase.get_subcase_by_id(1).node_id2forces[2],
+            Subcase.get_subcase_by_id(1).node_id2mpcforces[2],
             [-1.0, 1.0, 1.0, 0.0, 1.0, 0.0],
         )

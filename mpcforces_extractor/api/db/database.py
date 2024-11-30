@@ -87,7 +87,7 @@ class MPCDatabase:
             for subcase in Subcase.subcases:
                 db_subcase = SubcaseDBModel(
                     id=subcase.subcase_id,
-                    node_id2forces=subcase.node_id2forces,
+                    node_id2mpcforces=subcase.node_id2mpcforces,
                     time=subcase.time,
                 )
                 session.add(db_subcase)
@@ -229,8 +229,8 @@ class MPCDatabase:
             # 0 for subcase means that its not necessary to add forces data as the request is coords or id
             if subcase_id not in (0, self.last_subcase_id):
                 subcase = self.subcases[subcase_id]
-                node_id2forces = subcase.node_id2forces
-                for node_id, forces in node_id2forces.items():
+                node_id2mpcforces = subcase.node_id2mpcforces
+                for node_id, forces in node_id2mpcforces.items():
                     node = session.exec(
                         select(NodeDBModel).filter(NodeDBModel.id == node_id)
                     ).first()

@@ -61,5 +61,6 @@ class SubcaseDBModel(SQLModel, table=True):
     """
 
     id: int = Field(primary_key=True)
-    node_id2forces: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+    node_id2mpcforces: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+    node_id2spcforces: Dict = Field(default_factory=dict, sa_column=Column(JSON))
     time: float = Field()

@@ -1,5 +1,5 @@
 from typing import List
-from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 
 class MPCForcesReader:
@@ -38,7 +38,10 @@ class MPCForcesReader:
                 subcase_id = int(line.replace("$SUBCASE", "").strip())
             if line.startswith("$TIME"):
                 time = float(line.replace("$TIME", "").strip())
-                subcase = Subcase(subcase_id, time)
+                if Subcase.get_subcase_by_id(subcase_id):
+                    subcase = Subcase.get_subcase_by_id(subcase_id)
+                else:
+                    subcase = Subcase(subcase_id, time)
 
             if "X-FORCE" in line:
                 i += 2
@@ -71,7 +74,7 @@ class MPCForcesReader:
 
                     force = [force_x, force_y, force_z, moment_x, moment_y, moment_z]
 
-                    subcase.add_force(node_id, force)
+                    subcase.add_force(node_id, force, ForceType.MPCFORCE)
                     self.node_ids.append(node_id)
 
                     i += 1
