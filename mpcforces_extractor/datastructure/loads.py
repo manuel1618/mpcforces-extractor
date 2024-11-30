@@ -1,4 +1,6 @@
 from typing import List, Dict
+import networkx as nx
+from mpcforces_extractor.datastructure.entities import Node, Element
 
 
 class Moment:
@@ -50,6 +52,8 @@ class SPC:
     Simple representation of a SPC from the .fem file (Single Point Constraint)
     """
 
+    node_id_2_instance = {}
+
     def __init__(
         self,
         node_id: int,
@@ -60,6 +64,9 @@ class SPC:
         self.system_id = system_id
         self.dofs = dofs
         self.reaction_force = None
+        if node_id in SPC.node_id_2_instance:
+            print("Error: SPC already exists for node_id", node_id)
+        SPC.node_id_2_instance[node_id] = self
 
     def set_reaction_force(self, reaction_force: List[float]):
         """
@@ -73,11 +80,32 @@ class SPCCluster:
     A collection of SPCs
     """
 
-    def __init__(self):
-        self.spccs = []
+    id_2_instances = {}
+
+    def __init__(self, spcs: List[SPC]):
+        self.spcs = spcs
+        self.id = len(SPCCluster.id_2_instances) + 1
+        SPCCluster.id_2_instances[self.id] = self
 
     def add_spcc(self, spcc: SPC):
         """
         Add a SPC to the cluster
         """
-        self.spccs.append(spcc)
+        self.spcs.append(spcc)
+
+    @staticmethod
+    def build_spc_cluster() -> None:
+        """
+        This method is used to build the SPC cluster
+        """
+        graph: nx.Graph = Element.graph.copy()
+        all_spc_nodes = set()
+        for node_id, _ in SPC.node_id_2_instance.items():
+            all_spc_nodes.add(Node.node_id2node[node_id])
+        spc_graph = graph.subgraph(all_spc_nodes)
+        connected_components = list(nx.connected_components(spc_graph))
+        for connected_component in connected_components:
+            spcs = []
+            for node in connected_component:
+                spcs.append(SPC.node_id_2_instance[node.id])
+            SPCCluster(spcs)

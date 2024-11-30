@@ -282,7 +282,11 @@ class FemFileReader:
         for i, _ in enumerate(self.file_content[self.endElementLine :]):
             line = self.file_content[i]
 
-            if line.startswith("SPC"):
+            line_content = self.split_line(line)
+            if len(line_content) < 2:
+                continue
+
+            if line_content[0].strip() == "SPC":
                 line_content = self.split_line(line)
                 system_id = int(line_content[1])
                 node_id = int(line_content[2])
