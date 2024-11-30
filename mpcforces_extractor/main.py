@@ -6,6 +6,7 @@ from mpcforces_extractor.force_extractor import (
 from mpcforces_extractor.datastructure.entities import Node, Element1D, Element
 from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.datastructure.rigids import MPC
+from mpcforces_extractor.datastructure.loads import SPCCluster
 
 
 def main():
@@ -41,6 +42,12 @@ def main():
     for subcase in spc_forces_extractor.subcases:
         print(subcase.subcase_id, subcase.time)
         print(subcase.node_id2spcforces)
+
+    SPCCluster.build_spc_cluster()
+
+    for spc_cluster in SPCCluster.id_2_instances.values():
+        print(spc_cluster.id, len(spc_cluster.spcs))
+        print(spc_cluster.spcs[0])
 
 
 if __name__ == "__main__":
