@@ -1,15 +1,10 @@
-from typing import List
+from typing import List, Dict
 
 
 class Moment:
     """
     Simple representation of a moment from the .fem file
     """
-
-    id: int
-    node_id: int
-    system_id: int
-    compenents: List[float]
 
     def __init__(
         self,
@@ -33,11 +28,6 @@ class Force:
     Simple representation of a force from the .fem file
     """
 
-    id: int
-    node_id: int
-    system_id: int
-    compenents: List[float]
-
     def __init__(
         self,
         *,
@@ -53,3 +43,41 @@ class Force:
         self.compenents = [
             scale_factor * float(compenent) for compenent in compenents_from_file
         ]
+
+
+class SPC:
+    """
+    Simple representation of a SPC from the .fem file (Single Point Constraint)
+    """
+
+    def __init__(
+        self,
+        node_id: int,
+        system_id: int,
+        dofs: Dict[int, float],
+    ):
+        self.node_id = node_id
+        self.system_id = system_id
+        self.dofs = dofs
+        self.reaction_force = None
+
+    def set_reaction_force(self, reaction_force: List[float]):
+        """
+        Set the reaction force
+        """
+        self.reaction_force = reaction_force
+
+
+class SPCCluster:
+    """
+    A collection of SPCs
+    """
+
+    def __init__(self):
+        self.spccs = []
+
+    def add_spcc(self, spcc: SPC):
+        """
+        Add a SPC to the cluster
+        """
+        self.spccs.append(spcc)

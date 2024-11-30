@@ -2,7 +2,11 @@ import os
 from fastapi import APIRouter, HTTPException, Request
 from mpcforces_extractor.api.db.schemas import RunExtractorRequest
 from mpcforces_extractor.api.config import UPLOAD_FOLDER, OUTPUT_FOLDER
-from mpcforces_extractor.force_extractor import MPCForceExtractor
+from mpcforces_extractor.force_extractor import (
+    MPCForceExtractor,
+    SPCForcesExtractor,
+    FEMExtractor,
+)
 from mpcforces_extractor.datastructure.entities import Node, Element1D, Element
 from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.datastructure.rigids import MPC
@@ -32,14 +36,19 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
     blocksize = 8
     model_output_folder = str(OUTPUT_FOLDER) + os.sep + f"{fem_file.split('.')[0]}"
 
-    mpc_force_extractor = MPCForceExtractor(
-        str(UPLOAD_FOLDER) + os.sep + fem_file,
+    fem_file_extracter = FEMExtractor(
+        fem_file_path=str(UPLOAD_FOLDER) + os.sep + fem_file, block_size=blocksize
+    )
+    fem_file_extracter.extract_fem_data()
+
+    mpc_force_extractor = MPCForceExtractor(mpcf_file)
+
+    spc_forces_extractor = SPCForcesExtractor(
         str(UPLOAD_FOLDER) + os.sep + mpcf_file,
-        model_output_folder,
     )
 
-    # Write Summary
-    mpc_force_extractor.build_fem_and_subcase_data(blocksize)
+    spc_forces_extractor.build_subcase_data()
+    mpc_force_extractor.build_subcase_data()
     app = request.app
     app.db = MPCDatabase(model_output_folder + "/db.db")
     app.db.populate_database()

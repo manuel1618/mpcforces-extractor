@@ -1,10 +1,9 @@
 import unittest
 from unittest.mock import patch, mock_open
-from mpcforces_extractor.force_extractor import MPCForceExtractor
+from mpcforces_extractor.force_extractor import MPCForceExtractor, FEMExtractor
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.entities import Element, Part
 from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
-from mpcforces_extractor.writer.summary_writer import SummaryWriter
 from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.test_ressources.simple_model import (
@@ -26,13 +25,9 @@ class TestFMPCForceExtractor(unittest.TestCase):
 
         # Test the init method
         force_extractor = MPCForceExtractor(
-            fem_file_path="test.fem",
             mpcf_file_path="test.mpcf",
-            output_folder=None,
         )
-        self.assertEqual(force_extractor.fem_file_path, "test.fem")
         self.assertEqual(force_extractor.mpcf_file_path, "test.mpcf")
-        self.assertEqual(force_extractor.output_folder, None)
 
     @patch(
         "mpcforces_extractor.force_extractor.MPCForceExtractor._MPCForceExtractor__mpcf_file_exists"
@@ -61,12 +56,10 @@ class TestFMPCForceExtractor(unittest.TestCase):
         MPC.reset()
 
         # Test the extract_forces method
-        force_extractor = MPCForceExtractor(
-            fem_file_path="test.fem",
-            mpcf_file_path="test.mpcf",
-            output_folder=None,
-        )
-        force_extractor.build_fem_and_subcase_data(8)
+        fem_extractor = FEMExtractor(None, 8)
+        fem_extractor.build_fem_data()
+        force_extractor = MPCForceExtractor(mpcf_file_path="test.mpcf")
+        force_extractor.build_subcase_data()
 
         force_1 = [0.00, 0.00, -1.00, -0.91, 0.00, 0.00]
         force_2 = [0.00, 0.00, 1.00, 1.32, 5.84, 1.94]
@@ -83,19 +76,6 @@ class TestFMPCForceExtractor(unittest.TestCase):
             diff_2 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_2, force_calc_2)])
             print(diff_1, diff_2)
             self.assertTrue(diff_1 < 0.01 or diff_2 < 0.01)
-
-        summary_writer = SummaryWriter(force_extractor, force_extractor.output_folder)
-        summary_writer.add_header()
-        summary_writer.add_mpc_lines()
-
-        lines = [line.strip() for line in summary_writer.lines]
-        for line in lines:
-            print(line)
-
-        self.assertTrue("FZ: -1.000" in lines)
-        self.assertTrue("MX: -0.907" in lines)
-        self.assertTrue("FZ: 1.000" in lines)
-        self.assertTrue("MX: 1.319" in lines)
 
     @patch(
         "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
@@ -114,29 +94,16 @@ class TestFMPCForceExtractor(unittest.TestCase):
 
         # Test the extract_forces method
         force_extractor = MPCForceExtractor(
-            fem_file_path="test.fem",
             mpcf_file_path="none",
-            output_folder=None,
         )
-        force_extractor.build_fem_and_subcase_data(8)
+        force_extractor.build_subcase_data()
 
         assert len(Subcase.subcases) == 0
 
-        summary_writer = SummaryWriter(force_extractor, force_extractor.output_folder)
-        summary_writer.add_header()
-        summary_writer.add_mpc_lines()
-
-        lines = [line.strip() for line in summary_writer.lines]
-        for line in lines:
-            print(line)
-
-    @patch(
-        "mpcforces_extractor.visualization.tcl_visualize.open", new_callable=mock_open
-    )
     @patch(
         "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
-    def test_visualize_tcl_commands(self, mock_read_lines_fem, mock_write):
+    def test_visualize_tcl_commands(self, mock_read_lines_fem):
 
         mock_read_lines_fem.return_value = get_simple_model_fem()
 
