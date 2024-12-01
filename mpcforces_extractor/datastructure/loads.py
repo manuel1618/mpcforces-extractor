@@ -69,6 +69,13 @@ class SPC:
         SPC.node_id_2_instance[node_id] = self
         self.subcase_id2force = {}
 
+    @staticmethod
+    def reset():
+        """
+        Reset the SPC
+        """
+        SPC.node_id_2_instance = {}
+
 
 class SPCCluster:
     """
@@ -130,3 +137,10 @@ class SPCCluster:
                     sum_forces = [sf + f for sf, f in zip(sum_forces, force_vector)]
                 subcase_id2summed_force[subcase.subcase_id] = sum_forces
             spc_cluster.subcase_id2summed_force = subcase_id2summed_force
+
+    @staticmethod
+    def reset():
+        """
+        Reset the SPCCluster
+        """
+        SPCCluster.id_2_instances = {}

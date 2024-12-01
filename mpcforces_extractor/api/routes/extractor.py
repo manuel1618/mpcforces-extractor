@@ -11,7 +11,7 @@ from mpcforces_extractor.datastructure.entities import Node, Element1D, Element
 from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.api.db.database import Database
-from mpcforces_extractor.datastructure.loads import SPCCluster
+from mpcforces_extractor.datastructure.loads import SPCCluster, SPC
 
 
 router = APIRouter()
@@ -24,8 +24,9 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
     """
     fem_file = file_request.fem_filename
     mpcf_file = file_request.mpcf_filename
+    spcf_file = file_request.spcf_filename
 
-    print(f"Running extractor with files: {fem_file}, {mpcf_file}")
+    print(f"Running extractor with files: {fem_file}, {mpcf_file}, {spcf_file}")
 
     # Clear all Instances
     Node.reset()
@@ -33,25 +34,27 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
     Element.reset_graph()
     Subcase.reset()
     MPC.reset()
+    SPCCluster.reset()
+    SPC.reset()
 
-    blocksize = 8
+    block_size = 8
     model_output_folder = str(OUTPUT_FOLDER) + os.sep + f"{fem_file.split('.')[0]}"
+    fem_file_path = str(UPLOAD_FOLDER) + os.sep + fem_file
+    mpcf_file_path = str(UPLOAD_FOLDER) + os.sep + mpcf_file
+    spcf_file_path = str(UPLOAD_FOLDER) + os.sep + spcf_file
 
-    fem_file_extracter = FEMExtractor(
-        fem_file_path=str(UPLOAD_FOLDER) + os.sep + fem_file, block_size=blocksize
-    )
+    fem_file_extracter = FEMExtractor(fem_file_path, block_size)
     fem_file_extracter.build_fem_data()
 
-    mpc_force_extractor = MPCForceExtractor(mpcf_file)
+    if os.path.exists(mpcf_file_path):
+        mpc_force_extractor = MPCForceExtractor(mpcf_file_path)
+        mpc_force_extractor.build_subcase_data()
 
-    spc_forces_extractor = SPCForcesExtractor(
-        str(UPLOAD_FOLDER) + os.sep + mpcf_file,
-    )
-    spc_forces_extractor.build_subcase_data()
-    SPCCluster.build_spc_cluster()
-    SPCCluster.calculate_force_sum()
-
-    mpc_force_extractor.build_subcase_data()
+    if os.path.exists(spcf_file_path):
+        spc_forces_extractor = SPCForcesExtractor(spcf_file_path)
+        spc_forces_extractor.build_subcase_data()
+        SPCCluster.build_spc_cluster()
+        SPCCluster.calculate_force_sum()
 
     app = request.app
     app.db = Database(model_output_folder + "/db.db")

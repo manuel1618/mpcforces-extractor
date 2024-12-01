@@ -74,7 +74,7 @@ class SPCDBModel(SQLModel, table=True):
     node_id: int = Field(primary_key=True)
     system_id: int = Field()
     dofs: Dict = Field(default_factory=dict, sa_column=Column(JSON))
-    subcase_id2forces: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+    subcase_id2force: Dict = Field(default_factory=dict, sa_column=Column(JSON))
 
 
 class SPCClusterDBModel(SQLModel, table=True):

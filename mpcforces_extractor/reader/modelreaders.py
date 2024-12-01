@@ -290,13 +290,19 @@ class FemFileReader:
                 line_content = self.split_line(line)
                 system_id = int(line_content[1])
                 node_id = int(line_content[2])
-                dof_id = int(line_content[3])
+                dof_ids = line_content[3]
                 dof_value = float(line_content[4])
 
                 if node_id not in spc_id2system_id:
                     spc_id2system_id[node_id] = system_id
                     spc_id_2dof_id2dof_value[node_id] = {}
-                    spc_id_2dof_id2dof_value[node_id][dof_id] = dof_value
+                    if len(dof_ids) > 1:
+                        for i, _ in enumerate(dof_ids):
+                            spc_id_2dof_id2dof_value[node_id][
+                                int(dof_ids[i])
+                            ] = dof_value
+                    else:
+                        spc_id_2dof_id2dof_value[node_id][int(dof_ids)] = dof_value
                 else:
                     print("Duplicate SPC found, ignoring. Node id: ", node_id)
 
