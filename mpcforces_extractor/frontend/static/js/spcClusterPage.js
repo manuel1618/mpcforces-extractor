@@ -89,3 +89,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchSPCCluster();
 });
 
+document.getElementById('spc-cluster-title').addEventListener('click', function() {
+    location.reload(); // Reload the page
+});

@@ -131,3 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchMPCs();
 });
 
+document.getElementById('mpcs-title').addEventListener('click', function() {
+    location.reload(); // Reload the page
+});
