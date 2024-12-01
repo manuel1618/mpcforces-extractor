@@ -50,6 +50,13 @@ body.dark-mode .table {
 .nav-link-github {
     margin-right: 5px; /* Space between the non-clickable text and the image */
 }
+/* Add this to your CSS file */
+.navbar-nav .nav-link.active {
+    font-weight: bold;
+    color: #0056b3; /* Highlight color */
+    background-color: #e9ecef; /* Optional background shading */
+    border-radius: 5px; /* Optional for rounded look */
+}
 
 /* Optional CSS for sorting icons */
 #id-sort-icon {
