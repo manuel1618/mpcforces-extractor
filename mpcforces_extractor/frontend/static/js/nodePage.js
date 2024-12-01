@@ -169,11 +169,7 @@ async function addNodesToTable(nodes) {
     tableBody.appendChild(fragment);
 }
 
-function calculateForceMagnitude(forces) {
-    const linear = Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2).toFixed(2);
-    const moment = Math.sqrt(forces[3]**2 + forces[4]**2 + forces[5]**2).toFixed(2);
-    return { linear, moment };
-}
+
 
 async function updateSortIcons() {
     const sortableHeaders = document.querySelectorAll('th[data-sort]');
@@ -185,17 +181,7 @@ async function updateSortIcons() {
 }
 
 
-function displayError(message) {
-    let errorContainer = document.getElementById('error-container');
-    if (!errorContainer) {
-        errorContainer = document.createElement('div');
-        errorContainer.id = 'error-container';
-        errorContainer.style.color = 'red';
-        document.body.prepend(errorContainer);
-    }
-    errorContainer.textContent = message;
-    errorContainer.style.display = 'block';
-}
+
 
 
 function parseFilterData(inputElement) {
