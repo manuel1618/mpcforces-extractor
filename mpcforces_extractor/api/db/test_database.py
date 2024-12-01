@@ -52,7 +52,7 @@ async def get_db():
     subcase.add_force(5, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
     subcase.add_force(6, [1.0, 0, 0, 0, 0, 0], ForceType.MPCFORCE)
 
-    db = Database("test.db")
+    db = Database("C:/temp/test.db")
     db.populate_database()
     db_save = db  # Save the initialized database
     return db_save
@@ -92,4 +92,4 @@ async def test_subcases():
 # remove the db.db after all test
 def test_teardown():
     db_save.close()
-    os.remove("test.db")
+    os.remove("C:/temp/test.db")

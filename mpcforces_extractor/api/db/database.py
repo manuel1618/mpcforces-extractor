@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional, Dict
 from fastapi import HTTPException
 from sqlmodel import Session, create_engine, SQLModel, select, text
@@ -43,6 +44,10 @@ class Database:
         self.spcs = {}
         self.spc_clusters = {}
 
+        # create the folder if it does not exist
+        if not os.path.exists(os.path.dirname(file_path)) and file_path:
+            os.makedirs(os.path.dirname(file_path))
+
         self.engine = create_engine(f"sqlite:///{file_path}")
 
     def close(self):
@@ -85,6 +90,8 @@ class Database:
             session.exec(text("DROP TABLE IF EXISTS RBE3DBModel"))
             session.exec(text("DROP TABLE IF EXISTS nodedbmodel"))
             session.exec(text("DROP TABLE IF EXISTS subcasedbmodel"))
+            session.exec(text("DROP TABLE IF EXISTS spcdbmodel"))
+            session.exec(text("DROP TABLE IF EXISTS spcclusterdbmodel"))
 
         # Create the tables again
         SQLModel.metadata.create_all(self.engine)
@@ -102,6 +109,7 @@ class Database:
                 db_subcase = SubcaseDBModel(
                     id=subcase.subcase_id,
                     node_id2mpcforces=subcase.node_id2mpcforces,
+                    node_id2spcforces=subcase.node_id2spcforces,
                     time=subcase.time,
                 )
                 session.add(db_subcase)
@@ -124,11 +132,9 @@ class Database:
         """
         Function to populate the database with SPCs
         """
-        clusters = SPCCluster.id_2_instances
-        for cluster_id, cluster in clusters.items():
+        for cluster_id, cluster in SPCCluster.id_2_instances.items():
             spc_ids = ",".join([str(spc.node_id) for spc in cluster.spcs])
             subcase_id2summed_forces: Dict = cluster.subcase_id2summed_force
-
             db_cluster = SPCClusterDBModel(
                 id=cluster_id,
                 spc_ids=spc_ids,

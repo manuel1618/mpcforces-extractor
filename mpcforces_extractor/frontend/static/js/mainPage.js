@@ -42,6 +42,7 @@ function handleFileSelection(inputId, outputId, upload = false, disconnect = fal
 
 handleFileSelection('fem-file', 'fem-path', true);                // Upload only
 handleFileSelection('mpcf-file', 'mpcf-path', true);              // Upload only
+handleFileSelection('spcf-file', 'spcf-path', true);              // Upload only
 handleFileSelection('database-file', 'database-path', true, true); // Disconnect first, then upload
 
 
@@ -75,15 +76,29 @@ document.getElementById("import-db-button").addEventListener("click", async func
 document.getElementById('run-button').addEventListener('click', async function () {
     const femFile = document.getElementById('fem-file').files[0];
     const mpcfFile = document.getElementById('mpcf-file').files[0];
+    const spcfFile = document.getElementById('spcf-file').files[0];
 
     if (!femFile) {
-        alert("Please select both .fem file.");
+        alert("Please select both .fem file");
         return;
+    }
+
+    if (!spcfFile && !mpcfFile) {
+        alert("No spcf and mpcf file selected, the extractor will not run.");
+        return
+    } else if (!spcfFile) {
+        alert("Info: No spcf file selected, the extractor will run without spcf file");
+    } else if (!mpcfFile) {
+        alert("Info: No mpcf file selected, the extractor will run without mpcf file");
     }
 
     let mpcf_filename = ""
     if (mpcfFile) {
         mpcf_filename = mpcfFile.name
+    }
+    let spcf_filename = ""
+    if (spcfFile) {
+        spcf_filename = spcfFile.name
     }
 
     disconnectDb();
@@ -96,6 +111,7 @@ document.getElementById('run-button').addEventListener('click', async function (
         body: JSON.stringify({
             fem_filename: femFile.name,
             mpcf_filename: mpcf_filename,
+            spcf_filename: spcf_filename,
         }),
     });
     if (!response.ok) {
