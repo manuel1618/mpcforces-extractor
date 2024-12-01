@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 from mpcforces_extractor.force_extractor import MPCForceExtractor, FEMExtractor
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.entities import Element, Part
