@@ -18,12 +18,28 @@
     <div class="container mt-5">
         <h1>SPC Cluster</h1>
 
+        <div class="row mt-">
+            <div class="col-auto ms-3 mt-1">
+                <!-- Label Text before the Dropdown -->
+                <label for="subcase-dropdown" class="form-label float-right">Select a Subcase:</label>
+            </div>
+
+            <!-- Dropdown Subcase Menu -->
+            <div class="col-auto">
+                <!-- Dropdown Menu -->
+                <select id="subcase-dropdown" class="form-control float-right" style="max-width: 100px;">
+                    <!-- The function fetchSubcases() should populate the options dynamically -->
+                    fetchSubcases();
+                </select>
+            </div>
+        </div>
+
         <!-- Table to display the MPCs -->
         <table class="table mt-3">
             <thead>
                 <tr>
                     <th data-sort="id">Cluster ID <span id="id-sort-icon">▲▼</span></th>
-                    <th> Node Ids</th>
+                    <th>SPC Ids</th>
                     <th>Fx</th>
                     <th>Fy</th>
                     <th>Fz</th>

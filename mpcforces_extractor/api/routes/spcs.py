@@ -10,5 +10,4 @@ router = APIRouter()
 @router.get("", response_model=List[SPCDBModel])
 async def get_spcs(db=Depends(get_db)) -> List[SPCDBModel]:
     """Get all SPCs"""
-
     return await db.get_spcs()

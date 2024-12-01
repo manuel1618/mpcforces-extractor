@@ -35,6 +35,6 @@ app.include_router(subcases.router, prefix="/api/v1/subcases", tags=["subcases"]
 app.include_router(file_upload.router, prefix="/api/v1", tags=["file_upload"])
 app.include_router(extractor.router, prefix="/api/v1", tags=["extractor"])
 app.include_router(database.router, prefix="/api/v1", tags=["database"])
-app.include_router(spcs.router, prefix="/api/v1", tags=["spcs"])
-app.include_router(spc_cluster.router, prefix="/api/v1", tags=["spccluster"])
+app.include_router(spcs.router, prefix="/api/v1/spcs", tags=["spcs"])
+app.include_router(spc_cluster.router, prefix="/api/v1/spccluster", tags=["spccluster"])
 app.include_router(html_routes.router, tags=["html_routes"])
