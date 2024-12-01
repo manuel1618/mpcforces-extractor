@@ -25,11 +25,17 @@ class Database:
     A Database class to store MPC instances, Nodes and Subcases
     """
 
-    last_sort_column = "id"
-    last_sort_direction = 1
     last_subcase_id = None
-    last_query = None
-    last_filter = None
+
+    last_node_sort_column = "id"
+    last_node_sort_direction = 1
+    last_node_query = None
+    last_node_filter = None
+
+    last_spc_sort_column = "node_id"
+    last_spc_sort_direction = 1
+    last_spc_query = None
+    last_spc_filter = None
 
     def __init__(self, file_path: str):
         """
@@ -262,14 +268,14 @@ class Database:
         with Session(self.engine) as session:
 
             # early return if the last query is the same
-            if self.last_query is not None:
+            if self.last_node_query is not None:
                 if (
-                    self.last_sort_column == sort_column
-                    and self.last_sort_direction == sort_direction
-                    and self.last_filter == node_ids
+                    self.last_node_sort_column == sort_column
+                    and self.last_node_sort_direction == sort_direction
+                    and self.last_node_filter == node_ids
                 ):
                     return session.exec(
-                        self.last_query.offset(offset).limit(limit)
+                        self.last_node_query.offset(offset).limit(limit)
                     ).all()
 
             # Create the base query
@@ -310,10 +316,10 @@ class Database:
                 query = query.order_by(desc(getattr(NodeDBModel, sort_column)))
 
             # caching for speed
-            self.last_query = query
-            self.last_sort_column = sort_column
-            self.last_sort_direction = sort_direction
-            self.last_filter = node_ids
+            self.last_node_query = query
+            self.last_node_sort_column = sort_column
+            self.last_node_sort_direction = sort_direction
+            self.last_node_filter = node_ids
 
             # Execute the query and return the results (with pagination)
             return session.exec(query.offset(offset).limit(limit)).all()
@@ -354,8 +360,70 @@ class Database:
         """
         return list(self.spc_clusters.values())
 
-    async def get_spcs(self) -> List[SPCDBModel]:
+    async def get_all_spcs(self, spc_node_ids: List[int]) -> List[SPCDBModel]:
         """
         Get all spcs
         """
-        return list(self.spcs.values())
+        with Session(self.engine) as session:
+            if spc_node_ids:
+                statement = select(SPCDBModel).filter(
+                    SPCDBModel.node_id.in_(spc_node_ids)
+                )
+            else:
+                statement = select(SPCDBModel)
+            return session.exec(statement).all()
+
+    async def get_spcs(
+        self,
+        *,
+        offset: int,
+        limit: int = 100,
+        sort_column: str = "node_id",
+        sort_direction: int = 1,
+        spc_ids: Optional[List[int]] = None,
+    ) -> List[SPCDBModel]:
+        """
+        Get spcs for pagination, sorting, and filtering.
+
+        - offset: The offset for pagination.
+        - limit: The limit for pagination (default: 100).
+        - sort_column: The column to sort by (default: 'node_id').
+        - sort_direction: The direction of sorting (1 for ascending, -1 for descending).
+        - node_ids: An optional list of node IDs to filter by (default: None).
+        """
+
+        # Start a session with the database engine
+        with Session(self.engine) as session:
+
+            # early return if the last query is the same
+            if self.last_spc_query is not None:
+                if (
+                    self.last_spc_sort_column == sort_column
+                    and self.last_spc_sort_direction == sort_direction
+                    and self.last_spc_filter == spc_ids
+                ):
+                    return session.exec(
+                        self.last_spc_query.offset(offset).limit(limit)
+                    ).all()
+
+            # Create the base query
+            query = select(SPCDBModel)
+
+            # Apply filtering by node IDs if provided
+            if spc_ids:
+                query = query.filter(SPCDBModel.node_id.in_(spc_ids))
+
+            # Apply sorting based on the specified column and direction
+            if sort_direction == 1:
+                query = query.order_by(asc(getattr(SPCDBModel, sort_column)))
+            elif sort_direction == -1:
+                query = query.order_by(desc(getattr(SPCDBModel, sort_column)))
+
+            # caching for speed
+            self.last_spc_query = query
+            self.last_spc_sort_column = sort_column
+            self.last_spc_sort_direction = sort_direction
+            self.last_spc_filter = spc_ids
+
+            # Execute the query and return the results (with pagination)
+            return session.exec(query.offset(offset).limit(limit)).all()

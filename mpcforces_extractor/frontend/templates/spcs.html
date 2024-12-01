@@ -14,7 +14,11 @@
 
 <body class="dark-mode">
     <div class="container mt-5">
-        <h1>SPCs</h1>
+        <!-- Title -->
+        <div class="container mt-5">
+            <!-- Title -->
+            <h1 id="spcs-title" style="cursor: pointer;">SPCs</h1>
+        </div>
 
         <!-- Filter by ID Input Field -->
         <div class="row mt-">
@@ -48,12 +52,22 @@
             <table class="table mt-4">
                 <thead>
                     <tr>
-                        <th data-sort="id">ID <span id="id-sort-icon">▲▼</span></th>
-                        <th data-sort="coord_x">x (global) <span id="x-sort-icon">▲▼</span></th>
-                        <th data-sort="coord_y">y (global) <span id="y-sort-icon">▲▼</span></th>
-                        <th data-sort="coord_z">z (global) <span id="z-sort-icon">▲▼</span></th>
-                        <th data-sort="fabs"> Force <span id="z-sort-icon">▲▼</span></th>
-                        <th data-sort="mabs"> Moment<span id="z-sort-icon">▲▼</span></th>
+                        <th data-sort="node_id">Node ID <span id="node_id-sort-icon">▲▼</span></th>
+                        <th data-sort="system_id">Sys-ID <span id="system_id-sort-icon">▲▼</span></th>
+                        <th>dof1</th>
+                        <th>dof2</th>
+                        <th>dof3</th>
+                        <th>dof4</th>
+                        <th>dof5</th>
+                        <th>dof6</th>
+                        <th>Fx</th>
+                        <th>Fy</th>
+                        <th>Fz</th>
+                        <th>Fabs</th>
+                        <th>Mx</th>
+                        <th>My</th>
+                        <th>Mz</th>
+                        <th>Mabs</th>
                     </tr>
                 </thead>
 
