@@ -8,6 +8,7 @@ class RunExtractorRequest(SQLModel, table=False):
 
     fem_filename: str
     mpcf_filename: str
+    spcf_filename: str
 
 
 class DatabaseRequest(SQLModel, table=False):

@@ -1,8 +1,12 @@
-import os
-import time
-from mpcforces_extractor.force_extractor import MPCForceExtractor
-from mpcforces_extractor.visualization.tcl_visualize import VisualizerConnectedParts
-from mpcforces_extractor.writer.summary_writer import SummaryWriter
+from mpcforces_extractor.force_extractor import (
+    MPCForceExtractor,
+    SPCForcesExtractor,
+    FEMExtractor,
+)
+from mpcforces_extractor.datastructure.entities import Node, Element1D, Element
+from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.rigids import MPC
+from mpcforces_extractor.datastructure.loads import SPCCluster
 
 
 def main():
@@ -12,34 +16,39 @@ def main():
     """
 
     input_folder = "data/input"
-    output_folder = "data/output"
+    # output_folder = "data/output"
     model_name = "m"
     # model_name = "Flange"
     blocksize = 8
 
-    mpc_force_extractor = MPCForceExtractor(
-        input_folder + f"/{model_name}.fem",
-        input_folder + f"/{model_name}.mpcf",
-        output_folder + f"/{model_name}",
+    # Clear all Instances (important)
+    Node.reset()
+    Element1D.reset()
+    Element.reset_graph()
+    Subcase.reset()
+    MPC.reset()
+
+    fem_extractor = FEMExtractor(
+        input_folder + f"/{model_name}.fem", block_size=blocksize
     )
+    fem_extractor.build_fem_data()
+    mpc_force_extractor = MPCForceExtractor(input_folder + f"/{model_name}.mpcf")
+    mpc_force_extractor.build_subcase_data()
+    spc_forces_extractor = SPCForcesExtractor(input_folder + f"/{model_name}.spcf")
 
-    # Write Summary
-    mpc_force_extractor.build_fem_and_subcase_data(blocksize)
-    summary_writer = SummaryWriter(
-        mpc_force_extractor, mpc_force_extractor.output_folder
-    )
-    summary_writer.add_header()
-    summary_writer.add_mpc_lines()
-    summary_writer.write_lines()
+    # Debug
+    spc_forces_extractor.build_subcase_data()
+    for subcase in spc_forces_extractor.subcases:
+        print(subcase.subcase_id, subcase.time)
+        print(subcase.node_id2spcforces)
 
-    # Visualize the connected parts
-    start_time = time.time()
-    output_vis = os.path.join(output_folder, model_name, "tcl_visualization")
-    visualizer = VisualizerConnectedParts(output_vis)
-    visualizer.output_tcl_lines_for_part_vis()
+    SPCCluster.build_spc_cluster()
+    SPCCluster.calculate_force_sum()
 
-    print("TCL visualization lines written to", output_vis)
-    print("..took ", round(time.time() - start_time, 2), "seconds")
+    for spc_cluster in SPCCluster.id_2_instances.values():
+        print(spc_cluster.id, len(spc_cluster.spcs))
+        print(spc_cluster.spcs[0])
+        print(spc_cluster.subcase_id2summed_force)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPC List</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="/static/assets/favicon.ico" type="image/x-icon">
+</head>
+
+{% include 'navbar.html' %}
+
+<body class="dark-mode">
+    <div class="container mt-5">
+        <!-- Title -->
+        <div class="container mt-5">
+            <!-- Title -->
+            <h1 id="spcs-title" style="cursor: pointer;">SPCs</h1>
+        </div>
+
+        <!-- Filter by ID Input Field -->
+        <div class="row mt-">
+            <div class="col">
+                <input type="text" id="filter-id" class="form-control" placeholder="Filter by Node ID">
+            </div>
+
+            <!-- Filter Button and Reset Button -->
+            <div class="col">
+                <button id="filter-by-node-id-button" class="btn btn-secondary">Filter (enter)</button>
+                <button id="filter-reset-button" class="btn btn-secondary">Reset (escape)</button>
+            </div>
+
+            <div class="col-auto ms-3 mt-1">
+                <!-- Label Text before the Dropdown -->
+                <label for="subcase-dropdown" class="form-label float-right">Select a Subcase:</label>
+            </div>
+
+            <!-- Dropdown Subcase Menu -->
+            <div class="col-auto">
+                <!-- Dropdown Menu -->
+                <select id="subcase-dropdown" class="form-control float-right" style="max-width: 100px;">
+                    <!-- The function fetchSubcases() should populate the options dynamically -->
+                    fetchSubcases();
+                </select>
+            </div>
+        </div>
+
+        <!-- Table to display the SPCs -->
+        <div id="spc-table">
+            <table class="table mt-4">
+                <thead>
+                    <tr>
+                        <th data-sort="node_id">Node ID <span id="node_id-sort-icon">▲▼</span></th>
+                        <th data-sort="system_id">Sys-ID <span id="system_id-sort-icon">▲▼</span></th>
+                        <th>dof1</th>
+                        <th>dof2</th>
+                        <th>dof3</th>
+                        <th>dof4</th>
+                        <th>dof5</th>
+                        <th>dof6</th>
+                        <th>Fx</th>
+                        <th>Fy</th>
+                        <th>Fz</th>
+                        <th>Fabs</th>
+                        <th>Mx</th>
+                        <th>My</th>
+                        <th>Mz</th>
+                        <th>Mabs</th>
+                    </tr>
+                </thead>
+
+                <tbody id="spc-table-body">
+                    <!-- Rows will be inserted here -->
+                </tbody>
+            </table>
+
+            <!-- Pagination Buttons -->
+            <div class="pagination mt-3">
+                <button id="prev-button" class="btn btn-secondary">Previous</button>
+                <span id="pagination-info" class="mx-3">Page 1 of 1</span>
+                <button id="next-button" class="btn btn-secondary">Next</button>
+            </div>
+        </div>
+        <!-- Link to the external JavaScript file -->
+        <script src="/static/js/common.js"></script>
+        <script src="/static/js/spcPage.js"></script>
+</body>
+
+</html>

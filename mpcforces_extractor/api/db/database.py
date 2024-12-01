@@ -1,29 +1,41 @@
-from typing import List, Optional
+import os
+from typing import List, Optional, Dict
 from fastapi import HTTPException
 from sqlmodel import Session, create_engine, SQLModel, select, text
 from sqlalchemy.sql.expression import asc, desc
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.datastructure.entities import Node
 from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.loads import SPCCluster, SPC
+
+
 from mpcforces_extractor.api.db.models import (
     RBE2DBModel,
     RBE3DBModel,
     NodeDBModel,
     SubcaseDBModel,
+    SPCDBModel,
+    SPCClusterDBModel,
 )
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 
 
-class MPCDatabase:
+class Database:
     """
     A Database class to store MPC instances, Nodes and Subcases
     """
 
-    last_sort_column = "id"
-    last_sort_direction = 1
     last_subcase_id = None
-    last_query = None
-    last_filter = None
+
+    last_node_sort_column = "id"
+    last_node_sort_direction = 1
+    last_node_query = None
+    last_node_filter = None
+
+    last_spc_sort_column = "node_id"
+    last_spc_sort_direction = 1
+    last_spc_query = None
+    last_spc_filter = None
 
     def __init__(self, file_path: str):
         """
@@ -35,6 +47,12 @@ class MPCDatabase:
         self.rbe2s = {}
         self.rbe3s = {}
         self.subcases = {}
+        self.spcs = {}
+        self.spc_clusters = {}
+
+        # create the folder if it does not exist
+        if not os.path.exists(os.path.dirname(file_path)) and file_path:
+            os.makedirs(os.path.dirname(file_path))
 
         self.engine = create_engine(f"sqlite:///{file_path}")
 
@@ -61,6 +79,13 @@ class MPCDatabase:
                 subcase.id: subcase
                 for subcase in session.exec(select(SubcaseDBModel)).all()
             }
+            self.spcs = {
+                spc.node_id: spc for spc in session.exec(select(SPCDBModel)).all()
+            }
+            self.spc_clusters = {
+                spc_cluster.id: spc_cluster
+                for spc_cluster in session.exec(select(SPCClusterDBModel)).all()
+            }
 
     def populate_database(self, load_all_nodes=False):
         """
@@ -73,6 +98,8 @@ class MPCDatabase:
             session.exec(text("DROP TABLE IF EXISTS RBE3DBModel"))
             session.exec(text("DROP TABLE IF EXISTS nodedbmodel"))
             session.exec(text("DROP TABLE IF EXISTS subcasedbmodel"))
+            session.exec(text("DROP TABLE IF EXISTS spcdbmodel"))
+            session.exec(text("DROP TABLE IF EXISTS spcclusterdbmodel"))
 
         # Create the tables again
         SQLModel.metadata.create_all(self.engine)
@@ -83,11 +110,14 @@ class MPCDatabase:
 
             self.populate_mpcs(session)
 
+            self.populate_spcs(session)
+
             # Populate Subcases
             for subcase in Subcase.subcases:
                 db_subcase = SubcaseDBModel(
                     id=subcase.subcase_id,
-                    node_id2forces=subcase.node_id2forces,
+                    node_id2mpcforces=subcase.node_id2mpcforces,
+                    node_id2spcforces=subcase.node_id2spcforces,
                     time=subcase.time,
                 )
                 session.add(db_subcase)
@@ -105,6 +135,36 @@ class MPCDatabase:
                 subcase.id: subcase
                 for subcase in session.exec(select(SubcaseDBModel)).all()
             }
+            self.spcs = {
+                spc.node_id: spc for spc in session.exec(select(SPCDBModel)).all()
+            }
+            self.spc_clusters = {
+                spc_cluster.id: spc_cluster
+                for spc_cluster in session.exec(select(SPCClusterDBModel)).all()
+            }
+
+    def populate_spcs(self, session):
+        """
+        Function to populate the database with SPCs
+        """
+        for cluster_id, cluster in SPCCluster.id_2_instances.items():
+            spc_ids = ",".join([str(spc.node_id) for spc in cluster.spcs])
+            subcase_id2summed_forces: Dict = cluster.subcase_id2summed_force
+            db_cluster = SPCClusterDBModel(
+                id=cluster_id,
+                spc_ids=spc_ids,
+                subcase_id2summed_forces=subcase_id2summed_forces,
+            )
+            session.add(db_cluster)
+
+        for node_id, spc in SPC.node_id_2_instance.items():
+            db_spc = SPCDBModel(
+                node_id=node_id,
+                system_id=spc.system_id,
+                dofs=spc.dofs,
+                subcase_id2force=spc.subcase_id2force,
+            )
+            session.add(db_spc)
 
     def populate_nodes(self, load_all_nodes=False, session=None):
         """
@@ -208,14 +268,14 @@ class MPCDatabase:
         with Session(self.engine) as session:
 
             # early return if the last query is the same
-            if self.last_query is not None:
+            if self.last_node_query is not None:
                 if (
-                    self.last_sort_column == sort_column
-                    and self.last_sort_direction == sort_direction
-                    and self.last_filter == node_ids
+                    self.last_node_sort_column == sort_column
+                    and self.last_node_sort_direction == sort_direction
+                    and self.last_node_filter == node_ids
                 ):
                     return session.exec(
-                        self.last_query.offset(offset).limit(limit)
+                        self.last_node_query.offset(offset).limit(limit)
                     ).all()
 
             # Create the base query
@@ -229,8 +289,8 @@ class MPCDatabase:
             # 0 for subcase means that its not necessary to add forces data as the request is coords or id
             if subcase_id not in (0, self.last_subcase_id):
                 subcase = self.subcases[subcase_id]
-                node_id2forces = subcase.node_id2forces
-                for node_id, forces in node_id2forces.items():
+                node_id2mpcforces = subcase.node_id2mpcforces
+                for node_id, forces in node_id2mpcforces.items():
                     node = session.exec(
                         select(NodeDBModel).filter(NodeDBModel.id == node_id)
                     ).first()
@@ -256,10 +316,10 @@ class MPCDatabase:
                 query = query.order_by(desc(getattr(NodeDBModel, sort_column)))
 
             # caching for speed
-            self.last_query = query
-            self.last_sort_column = sort_column
-            self.last_sort_direction = sort_direction
-            self.last_filter = node_ids
+            self.last_node_query = query
+            self.last_node_sort_column = sort_column
+            self.last_node_sort_direction = sort_direction
+            self.last_node_filter = node_ids
 
             # Execute the query and return the results (with pagination)
             return session.exec(query.offset(offset).limit(limit)).all()
@@ -293,3 +353,77 @@ class MPCDatabase:
         Get all subcases
         """
         return list(self.subcases.values())
+
+    async def get_spc_clusters(self) -> List[SPCClusterDBModel]:
+        """
+        Get all spc clusters
+        """
+        return list(self.spc_clusters.values())
+
+    async def get_all_spcs(self, spc_node_ids: List[int]) -> List[SPCDBModel]:
+        """
+        Get all spcs
+        """
+        with Session(self.engine) as session:
+            if spc_node_ids:
+                statement = select(SPCDBModel).filter(
+                    SPCDBModel.node_id.in_(spc_node_ids)
+                )
+            else:
+                statement = select(SPCDBModel)
+            return session.exec(statement).all()
+
+    async def get_spcs(
+        self,
+        *,
+        offset: int,
+        limit: int = 100,
+        sort_column: str = "node_id",
+        sort_direction: int = 1,
+        spc_ids: Optional[List[int]] = None,
+    ) -> List[SPCDBModel]:
+        """
+        Get spcs for pagination, sorting, and filtering.
+
+        - offset: The offset for pagination.
+        - limit: The limit for pagination (default: 100).
+        - sort_column: The column to sort by (default: 'node_id').
+        - sort_direction: The direction of sorting (1 for ascending, -1 for descending).
+        - node_ids: An optional list of node IDs to filter by (default: None).
+        """
+
+        # Start a session with the database engine
+        with Session(self.engine) as session:
+
+            # early return if the last query is the same
+            if self.last_spc_query is not None:
+                if (
+                    self.last_spc_sort_column == sort_column
+                    and self.last_spc_sort_direction == sort_direction
+                    and self.last_spc_filter == spc_ids
+                ):
+                    return session.exec(
+                        self.last_spc_query.offset(offset).limit(limit)
+                    ).all()
+
+            # Create the base query
+            query = select(SPCDBModel)
+
+            # Apply filtering by node IDs if provided
+            if spc_ids:
+                query = query.filter(SPCDBModel.node_id.in_(spc_ids))
+
+            # Apply sorting based on the specified column and direction
+            if sort_direction == 1:
+                query = query.order_by(asc(getattr(SPCDBModel, sort_column)))
+            elif sort_direction == -1:
+                query = query.order_by(desc(getattr(SPCDBModel, sort_column)))
+
+            # caching for speed
+            self.last_spc_query = query
+            self.last_spc_sort_column = sort_column
+            self.last_spc_sort_direction = sort_direction
+            self.last_spc_filter = spc_ids
+
+            # Execute the query and return the results (with pagination)
+            return session.exec(query.offset(offset).limit(limit)).all()

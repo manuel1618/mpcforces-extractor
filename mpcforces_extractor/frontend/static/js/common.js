@@ -81,3 +81,50 @@ async function safeFetch(url, options = {}, custom_error_message = null) {
     }
 }
 
+function displayError(message) {
+    let errorContainer = document.getElementById('error-container');
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'error-container';
+        errorContainer.style.color = 'red';
+        document.body.prepend(errorContainer);
+    }
+    errorContainer.textContent = message;
+    errorContainer.style.display = 'block';
+}
+
+function calculateForceMagnitude(forces) {
+    const linear = Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2).toFixed(3);
+    const moment = Math.sqrt(forces[3]**2 + forces[4]**2 + forces[5]**2).toFixed(3);
+    return { linear, moment };
+}
+
+async function fetchSubcases(forceRefresh = false) {
+    if (!forceRefresh && cachedSubcases) return cachedSubcases; // Use cached data unless forced
+    const response = await safeFetch('/api/v1/subcases');
+    if (!response.ok) {
+        displayError('Error fetching Subcases.');
+        return [];
+    }
+    cachedSubcases = await response.json();
+    populateSubcaseDropdown(cachedSubcases);
+    return cachedSubcases;
+}
+
+function populateSubcaseDropdown(subcases) {
+    subcaseDropdown.innerHTML = '';
+    subcases.forEach(subcase => {
+        const option = document.createElement('option');
+        option.value = subcase.id;
+        option.textContent = subcase.id;
+        subcaseDropdown.appendChild(option);
+    });
+}
+
+function parseFilterData(inputElement) {
+    return inputElement
+        .trim()
+        .split(",")
+        .map(a => a.trim())
+        .filter(a => a !== "");
+}

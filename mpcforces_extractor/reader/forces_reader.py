@@ -1,10 +1,10 @@
 from typing import List
-from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 
-class MPCForcesReader:
+class ForcesReader:
     """
-    Class to read the MPC forces file and extract the forces for each node
+    Class to read the MPC / SPC forces file and extract the forces for each node
     """
 
     file_path: str = None
@@ -23,23 +23,25 @@ class MPCForcesReader:
             return file.readlines()
         return []
 
-    def build_subcases(self) -> None:
+    def build_subcases(self, force_type: ForceType) -> None:
         """
         This method is used to extract the forces from the MPC forces file
         and build the subcases
         """
         subcase_id = 0
         time = 0
-        Subcase.reset()
         subcase = None
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i].strip()
 
             if line.startswith("$SUBCASE"):
-                subcase_id = int(line.replace("$SUBCASE", "").strip())
+                subcase_id = int(line[0:23].replace("$SUBCASE", "").strip())
             if line.startswith("$TIME"):
                 time = float(line.replace("$TIME", "").strip())
-                subcase = Subcase(subcase_id, time)
+                if Subcase.get_subcase_by_id(subcase_id):
+                    subcase = Subcase.get_subcase_by_id(subcase_id)
+                else:
+                    subcase = Subcase(subcase_id, time)
 
             if "X-FORCE" in line:
                 i += 2
@@ -49,6 +51,10 @@ class MPCForcesReader:
                     and not self.file_content[i].strip() == ""
                 ):
                     line = self.file_content[i]
+
+                    if line.strip().startswith("SUM"):
+                        i += 1
+                        continue
 
                     # take the first 8 characters as the node id
                     node_id = int(line[:8].strip())
@@ -72,7 +78,7 @@ class MPCForcesReader:
 
                     force = [force_x, force_y, force_z, moment_x, moment_y, moment_z]
 
-                    subcase.add_force(node_id, force)
+                    subcase.add_force(node_id, force, force_type)
                     self.node_ids.append(node_id)
 
                     i += 1

@@ -2,7 +2,7 @@ import os
 from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, HTTPException, Request
 from mpcforces_extractor.api.config import UPLOAD_FOLDER, TEMPLATES_DIR
-from mpcforces_extractor.api.db.database import MPCDatabase
+from mpcforces_extractor.api.db.database import Database
 from mpcforces_extractor.api.db.schemas import DatabaseRequest
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
@@ -29,7 +29,7 @@ async def import_db(request: Request, db_request: DatabaseRequest):
 
     # Reinitialize the database
     if not hasattr(app, "db"):
-        app.db = MPCDatabase(db_path)
+        app.db = Database(db_path)
     app.db.reinitialize_db(db_path)
     return {"message": "Database imported successfully!"}
 

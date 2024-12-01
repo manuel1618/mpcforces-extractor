@@ -61,5 +61,27 @@ class SubcaseDBModel(SQLModel, table=True):
     """
 
     id: int = Field(primary_key=True)
-    node_id2forces: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+    node_id2mpcforces: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+    node_id2spcforces: Dict = Field(default_factory=dict, sa_column=Column(JSON))
     time: float = Field()
+
+
+class SPCDBModel(SQLModel, table=True):
+    """
+    Database Representation of SPC Class
+    """
+
+    node_id: int = Field(primary_key=True)
+    system_id: int = Field()
+    dofs: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+    subcase_id2force: Dict = Field(default_factory=dict, sa_column=Column(JSON))
+
+
+class SPCClusterDBModel(SQLModel, table=True):
+    """
+    Database Representation of SPCCluster Class
+    """
+
+    id: int = Field(primary_key=True)
+    spc_ids: str = Field()
+    subcase_id2summed_forces: Dict = Field(default_factory=dict, sa_column=Column(JSON))

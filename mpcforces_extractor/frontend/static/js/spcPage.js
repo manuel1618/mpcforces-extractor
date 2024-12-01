@@ -1,82 +1,81 @@
 let currentPage = 1;  // Track the current page
 let total_pages = 0;  // Track the total number of pages
-const NODES_PER_PAGE = 100;
-let allNodes = [];
-let sortColumn = "id"; // Default sort column
+const SPCS_PER_PAGE = 100;
+let allSPCs = [];
+let sortColumn = "node_id"; // Default sort column
 let sortDirection = 1; // 1 for ascending, -1 for descending
 let cachedSubcases = null;
 const filterInput = document.getElementById('filter-id'); // used multiple times
 const subcaseDropdown = document.getElementById('subcase-dropdown'); // used multiple times
 
-async function fetchAllNodes() {
-    if (allNodes.length > 0) return; // Skip fetching if data already exists
+async function fetchAllSPCs() {
+    if (allSPCs.length > 0) return; // Skip fetching if data already exists
     
-    const response = await safeFetch('/api/v1/nodes/all', {
+    const response = await safeFetch('/api/v1/spcs/all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: [] })
     });
 
-
     if (!response.ok) {
-        displayError('Error fetching Nodes.');
+        displayError('Error fetching SPCs.');
         return;
     }
-    allNodes = await response.json();
-    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
+    allSPCs = await response.json();
+    total_pages = Math.ceil(allSPCs.length / SPCS_PER_PAGE);
 }
 
 /**
  * Used for recalculating the total pages when the filter is applied
  * @returns 
  */
-async function fetchAllFilteredNodes() {
+async function fetchAllFilteredSPCs() {
     const filterData = parseFilterData(filterInput.value);
-    const response = await safeFetch('/api/v1/nodes/all', {
+    const response = await safeFetch('/api/v1/spcs/all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: filterData })
     });
-    if (!response.ok) {
-        displayError('Error fetching Nodes.');
-        return;
+    if (response == null){
+        displayError('Error fetching SPCs.');
+        addSPCsToTable([]); // Clear the table
+        return
     }
-    const allFilteredNodes = await response.json();
-    total_pages = Math.ceil(allFilteredNodes.length / NODES_PER_PAGE);
+
+    const allFilteredSPCs = await response.json();
+    console.log(allFilteredSPCs);
+    total_pages = Math.ceil(allFilteredSPCs.length / SPCS_PER_PAGE);
 }
 
-async function fetchNodes(page = 1) {
-    const subcaseId = (sortColumn === 'fabs' || sortColumn === 'mabs')
-        ? subcaseDropdown.value
-        : 0;
 
+
+async function fetchSPCs(page = 1) {
     const filterData = parseFilterData(filterInput.value);
-    await fetchAndRenderNodes({ page, filterData, subcaseId });
+    await fetchAndRenderSPCs({ page, filterData });
 }
 
-async function filterNodes() {
+async function filterSPCs() {
     currentPage = 1; // Reset to first page
-    await fetchAllFilteredNodes();
-    await fetchAndRenderNodes({ page: currentPage, filterData: parseFilterData(filterInput.value) });
+    await fetchAllFilteredSPCs();
+    await fetchAndRenderSPCs({ page: currentPage, filterData: parseFilterData(filterInput.value) });
     updatePagination();
 }
 
-async function resetNodes() {
+async function resetSPCs() {
     filterInput.value = '';
     currentPage = 1;
-    await fetchAndRenderNodes({ page: currentPage });
-    total_pages = Math.ceil(allNodes.length / NODES_PER_PAGE);
+    await fetchAndRenderSPCs({ page: currentPage });
+    total_pages = Math.ceil(allSPCs.length / SPCS_PER_PAGE);
     updatePagination();
 }
 
 
-async function fetchAndRenderNodes({ page = 1, filterData = [], subcaseId = 0, sortColumnOverride = null, sortDirectionOverride = null } = {}) {
+async function fetchAndRenderSPCs({ page = 1, filterData = [], subcaseId = 0, sortColumnOverride = null, sortDirectionOverride = null } = {}) {
     try {
         const queryParams = new URLSearchParams({
             page: page.toString(),
             sortColumn: sortColumnOverride || sortColumn,
             sortDirection: sortDirectionOverride || sortDirection,
-            subcaseId: subcaseId?.toString() || ""
         });
 
         const fetch_options = {
@@ -85,16 +84,16 @@ async function fetchAndRenderNodes({ page = 1, filterData = [], subcaseId = 0, s
             body: JSON.stringify({ ids: filterData })
         };
 
-        const response = await safeFetch(`/api/v1/nodes?${queryParams.toString()}`, fetch_options);
+        const response = await safeFetch(`/api/v1/spcs?${queryParams.toString()}`, fetch_options);
         if (!response.ok) {
-            displayError('Error fetching Nodes.');
+            displayError('Error fetching SPCs.');
             return;
         }
 
         const nodes = await response.json();
 
         if (Array.isArray(nodes) && nodes.length > 0) {
-            addNodesToTable(nodes);
+            addSPCsToTable(nodes);
             currentPage = page;
             // update pagination
             const prevButton = document.getElementById('prev-button');
@@ -105,23 +104,23 @@ async function fetchAndRenderNodes({ page = 1, filterData = [], subcaseId = 0, s
             updateSortIcons();
         } else {
             // Handle empty state
-            addNodesToTable([]);
+            addSPCsToTable([]);
         }
     } catch (error) {
-        displayError('Error fetching Nodes.');
+        displayError('Error fetching SPCs.');
     }
 }
 
 
-async function addNodesToTable(nodes) {
-    const tableBody = document.getElementById('node-table-body');
+async function addSPCsToTable(spcs) {
+    const tableBody = document.getElementById('spc-table-body');
     tableBody.innerHTML = '';
 
-    if (!nodes || nodes.detail === "Not Found") {
+    if (!spcs || spcs.detail === "Not Found") {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
         cell.colSpan = 6;
-        cell.textContent = 'No nodes found';
+        cell.textContent = 'No spcs found';
         row.appendChild(cell);
         tableBody.appendChild(row);
         return;
@@ -129,23 +128,65 @@ async function addNodesToTable(nodes) {
 
     const subcases = cachedSubcases || await fetchSubcases();
     const subcase = subcases.find(subcase => subcase.id == subcaseDropdown.value);
-
+    
     const fragment = document.createDocumentFragment();
-    nodes.forEach(node => {
+    spcs.forEach(spc => {
+        const force = subcase?.node_id2spcforces[spc.node_id] || [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
         const row = document.createElement('tr');
+        const dofs = spc.dofs;
+
+        dof1 = dofs["1"];
+        dof2 = dofs["2"];
+        dof3 = dofs["3"];
+        dof4 = dofs["4"];
+        dof5 = dofs["5"];
+        dof6 = dofs["6"];
+
+        if (dof1 == null) {
+            dof1 = "n/a";
+        }
+        if (dof2 == null) {
+            dof2 = "n/a";
+        }
+        if (dof3 == null) {
+            dof3 = "n/a";
+        }
+        if (dof4 == null) {
+            dof4 = "n/a";
+        }
+        if (dof5 == null) {
+            dof5 = "n/a";
+        }
+        if (dof6 == null) {
+            dof6 = "n/a";
+        }
+
         row.innerHTML = `
-            <td>${node.id}</td>
-            <td>${node.coord_x.toFixed(3)}</td>
-            <td>${node.coord_y.toFixed(3)}</td>
-            <td>${node.coord_z.toFixed(3)}</td>
-            <td>${calculateForceMagnitude(subcase?.node_id2mpcforces[node.id] || []).linear}</td>
-            <td>${calculateForceMagnitude(subcase?.node_id2mpcforces[node.id] || []).moment}</td>
+            <td>${spc.node_id}</td>
+            <td>${spc.system_id}</td>
+            <td>${dof1}</td>
+            <td>${dof2}</td>
+            <td>${dof3}</td>
+            <td>${dof4}</td>
+            <td>${dof5}</td>
+            <td>${dof6}</td>
+            <td>${force[0].toFixed(3)}</td>
+            <td>${force[1].toFixed(3)}</td>
+            <td>${force[2].toFixed(3)}</td>
+            <td>${calculateForceMagnitude(force).linear}</td>
+            <td>${force[3].toFixed(3)}</td>
+            <td>${force[4].toFixed(3)}</td>
+            <td>${force[5].toFixed(3)}</td>
+            <td>${calculateForceMagnitude(force).moment}</td>
+
         `;
         fragment.appendChild(row);
     });
 
     tableBody.appendChild(fragment);
 }
+
+
 
 async function updateSortIcons() {
     const sortableHeaders = document.querySelectorAll('th[data-sort]');
@@ -156,24 +197,26 @@ async function updateSortIcons() {
     });
 }
 
+
+
 // Filter nodes by ID
 document.getElementById('filter-by-node-id-button').addEventListener('click', async () => {
-    filterNodes()
+    filterSPCs()
 });
 
 
 filterInput.addEventListener('keyup', async (event) => {
     if (event.key === 'Enter') {
-        filterNodes();
+        filterSPCs();
     } else if (event.key === 'Escape') {
         filterInput.value = '';
-        resetNodes();
+        resetSPCs();
     }
 });
 
-// Reset filter and display all nodes
+// Reset filter and display all SPCs
 document.getElementById('filter-reset-button').addEventListener('click', () => {
-    resetNodes()
+    resetSPCs()
 });
 
 function updatePagination() {
@@ -189,7 +232,7 @@ function updatePagination() {
 document.getElementById('prev-button').addEventListener('click', async () => {
     if (currentPage > 1) {
         currentPage -= 1;
-        await fetchNodes(currentPage);
+        await fetchSPCs(currentPage);
     }
     updatePagination();
 });
@@ -197,7 +240,7 @@ document.getElementById('prev-button').addEventListener('click', async () => {
 document.getElementById('next-button').addEventListener('click', async () => {
     if (currentPage < total_pages) {
         currentPage += 1;
-        await fetchNodes(currentPage);
+        await fetchSPCs(currentPage);
     }
     updatePagination();
 });
@@ -216,21 +259,24 @@ document.querySelectorAll('th[data-sort]').forEach(header => {
         }
 
         // Fetch the sorted nodes
-        await fetchNodes(currentPage);
+        await fetchSPCs(currentPage);
         updateSortIcons();
     });
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchSubcases();
-    await fetchAllNodes();
+    await fetchAllSPCs();
 
-    if (allNodes.length > 0) {
+    if (allSPCs.length > 0) {
         currentPage = 1;
-        await fetchNodes(currentPage);
+        await fetchSPCs(currentPage);
     }
 
     updatePagination();
     updateSortIcons();
 });
 
+document.getElementById('spcs-title').addEventListener('click', function() {
+    location.reload(); // Reload the page
+});

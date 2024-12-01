@@ -26,3 +26,17 @@ async def read_nodes(request: Request):
 async def read_root(request: Request):
     """Render the nodes.html template"""
     return templates.TemplateResponse("main.html", {"request": request})
+
+
+# Route for SPC view (HTML)
+@router.get("/spcs", response_class=HTMLResponse)
+async def read_spcs(request: Request):
+    """Render the spcs.html template"""
+    return templates.TemplateResponse("spcs.html", {"request": request})
+
+
+# Route for SPC Cluster view (HTML)
+@router.get("/spcclusters", response_class=HTMLResponse)
+async def read_spc_clusters(request: Request):
+    """Render the spcclusters.html template"""
+    return templates.TemplateResponse("spcclusters.html", {"request": request})
