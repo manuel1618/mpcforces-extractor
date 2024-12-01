@@ -73,7 +73,9 @@ class Database:
                 subcase.id: subcase
                 for subcase in session.exec(select(SubcaseDBModel)).all()
             }
-            self.spcs = {spc.id: spc for spc in session.exec(select(SPCDBModel)).all()}
+            self.spcs = {
+                spc.node_id: spc for spc in session.exec(select(SPCDBModel)).all()
+            }
             self.spc_clusters = {
                 spc_cluster.id: spc_cluster
                 for spc_cluster in session.exec(select(SPCClusterDBModel)).all()
@@ -126,6 +128,13 @@ class Database:
             self.subcases = {
                 subcase.id: subcase
                 for subcase in session.exec(select(SubcaseDBModel)).all()
+            }
+            self.spcs = {
+                spc.node_id: spc for spc in session.exec(select(SPCDBModel)).all()
+            }
+            self.spc_clusters = {
+                spc_cluster.id: spc_cluster
+                for spc_cluster in session.exec(select(SPCClusterDBModel)).all()
             }
 
     def populate_spcs(self, session):
