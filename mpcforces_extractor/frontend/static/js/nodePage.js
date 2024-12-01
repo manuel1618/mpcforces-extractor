@@ -234,3 +234,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateSortIcons();
 });
 
+document.getElementById('nodes-title').addEventListener('click', function() {
+    location.reload(); // Reload the page
+});
