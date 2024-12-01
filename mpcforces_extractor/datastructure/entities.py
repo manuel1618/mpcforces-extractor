@@ -80,7 +80,7 @@ class Element:
 
         # Graph - careful: Careless implementation regarding nodes:
         # every node is connected to every other node.
-        # Real implementation should be done depending on element keyword TODO
+        # Real implementation should be done depending on element keyword
         for node in nodes:
             for node2 in nodes:
                 if node.id != node2.id:
@@ -110,8 +110,7 @@ class Element:
         """
         This method is used to get the part_id2node_ids using the graph
         """
-
-        if force_update or not Element.part_id2node_ids:
+        if force_update or not Part.part_id2node_ids:
             start_time = time.time()
             print("Building the part_id2node_ids using the graph")
 
@@ -123,10 +122,34 @@ class Element:
             )
             print("..took ", round(time.time() - start_time, 2), "seconds")
 
-            for i, connected_component in enumerate(connected_components):
-                Element.part_id2node_ids[i + 1] = [
-                    node.id for node in connected_component
-                ]
+            for _, connected_component in enumerate(connected_components):
+                Part(connected_component)
 
-            return Element.part_id2node_ids
-        return Element.part_id2node_ids
+            return Part.part_id2node_ids
+        return Part.part_id2node_ids
+
+
+class Part:
+    """
+    This class ressembles a part in the model
+    A part has a collection of connected nodes
+    """
+
+    total_parts = 0
+    part_id2node_ids = {}
+
+    def __init__(self, nodes: List[Node]):
+        self.id = Part.total_parts + 1
+        Part.total_parts += 1
+        self.node_id2Node = {}
+        for node in nodes:
+            self.node_id2Node[node.id] = node
+        self.part_id2node_ids[self.id] = [node.id for node in nodes]
+
+    @staticmethod
+    def reset():
+        """
+        This method resets all parts
+        """
+        Part.total_parts = 0
+        Part.part_id2node_ids = {}
