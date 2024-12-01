@@ -12,29 +12,6 @@ async function fetchSPCCluster() {
         spcclusters = await response.json();
         renderTable(spcclusters);
 }
-
-async function fetchSubcases(forceRefresh = false) {
-    if (!forceRefresh && cachedSubcases) return cachedSubcases; // Use cached data unless forced
-    const response = await safeFetch('/api/v1/subcases');
-    if (!response.ok) {
-        displayError('Error fetching Subcases.');
-        return [];
-    }
-    cachedSubcases = await response.json();
-    populateSubcaseDropdown(cachedSubcases);
-    return cachedSubcases;
-}
-
-function populateSubcaseDropdown(subcases) {
-    subcaseDropdown.innerHTML = '';
-    subcases.forEach(subcase => {
-        const option = document.createElement('option');
-        option.value = subcase.id;
-        option.textContent = subcase.id;
-        subcaseDropdown.appendChild(option);
-    });
-}
-
 // Function to render the table
 async function renderTable(data) {
     const tableBody = document.getElementById('spc-cluster-table-body');

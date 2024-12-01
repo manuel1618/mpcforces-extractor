@@ -8,18 +8,6 @@ let cachedSubcases = null;
 const filterInput = document.getElementById('filter-id'); // used multiple times
 const subcaseDropdown = document.getElementById('subcase-dropdown'); // used multiple times
 
-async function fetchSubcases(forceRefresh = false) {
-    if (!forceRefresh && cachedSubcases) return cachedSubcases; // Use cached data unless forced
-    const response = await safeFetch('/api/v1/subcases');
-    if (!response.ok) {
-        displayError('Error fetching Subcases.');
-        return [];
-    }
-    cachedSubcases = await response.json();
-    populateSubcaseDropdown(cachedSubcases);
-    return cachedSubcases;
-}
-
 async function fetchAllNodes() {
     if (allNodes.length > 0) return; // Skip fetching if data already exists
     
@@ -55,16 +43,6 @@ async function fetchAllFilteredNodes() {
     }
     const allFilteredNodes = await response.json();
     total_pages = Math.ceil(allFilteredNodes.length / NODES_PER_PAGE);
-}
-
-function populateSubcaseDropdown(subcases) {
-    subcaseDropdown.innerHTML = '';
-    subcases.forEach(subcase => {
-        const option = document.createElement('option');
-        option.value = subcase.id;
-        option.textContent = subcase.id;
-        subcaseDropdown.appendChild(option);
-    });
 }
 
 async function fetchNodes(page = 1) {
@@ -169,8 +147,6 @@ async function addNodesToTable(nodes) {
     tableBody.appendChild(fragment);
 }
 
-
-
 async function updateSortIcons() {
     const sortableHeaders = document.querySelectorAll('th[data-sort]');
     sortableHeaders.forEach(header => {
@@ -178,18 +154,6 @@ async function updateSortIcons() {
         const icon = header.querySelector('span');
         icon.textContent = (sortColumn === column) ? (sortDirection === 1 ? '▲' : '▼') : '↕'; // Default to bi-directional
     });
-}
-
-
-
-
-
-function parseFilterData(inputElement) {
-    return inputElement
-        .trim()
-        .split(",")
-        .map(a => a.trim())
-        .filter(a => a !== "");
 }
 
 // Filter nodes by ID
