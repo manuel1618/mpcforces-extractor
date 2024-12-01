@@ -134,3 +134,7 @@ window.addEventListener('DOMContentLoaded', async function () {
     const result = await response.json()
     document.getElementById('directory-hint').innerText = `Hint: ${result.output_folder}`;
 });
+
+document.getElementById('main-title').addEventListener('click', function() {
+    location.reload(); // Reload the page
+});
