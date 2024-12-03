@@ -19,7 +19,8 @@ This tool is destined to solve this by automating it. The two major problems reg
 
 ## Overview
 
-![v0 1 7 2-ProcessAndFrontend](https://github.com/user-attachments/assets/c36d6c6f-9d6c-431c-be13-b4dfd9fa7393)
+![v0 1 7 5-ProcessAndFrontend](https://github.com/user-attachments/assets/24a1e811-a411-49e8-8a42-ef1d64d91fc2)
+
 
 As seen in the picture above, the .fem and .mpcf files are being transformed by the mpcforces-extractor in a .db file.
 This can be triggered from the main page and the extracted entities are saved in the .db and  can be seen on the mpc and node page. 
