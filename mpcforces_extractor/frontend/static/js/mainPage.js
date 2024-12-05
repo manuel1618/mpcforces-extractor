@@ -153,9 +153,10 @@ document.getElementById('run-button').addEventListener('click', async function (
  * Replace this with real progress streaming if backend supports it.
  */
 async function simulateProgress(progressBar) {
-    const steps = 10; // Number of simulated progress steps
+    const steps = 8; // Number of simulated progress steps
     for (let i = 1; i <= steps; i++) {
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+        const timeout = Math.random() * 500; // Random delay up to 0.5s
+        await new Promise(resolve => setTimeout(resolve, timeout)); // Simulate delay
         const progress = (i / steps) * 100;
         progressBar.style.width = `${progress}%`;
         progressBar.setAttribute('aria-valuenow', Math.round(progress));
