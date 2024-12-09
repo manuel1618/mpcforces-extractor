@@ -102,6 +102,13 @@ class SPCCluster:
         This method is used to build the SPC cluster
         """
         graph: nx.Graph = Element.graph.copy()
+
+        # add the SPC nodes to the graph if they are not already in the graph
+        for node_id, _ in SPC.node_id_2_instance.items():
+            node = Node.node_id2node[node_id]
+            if node not in graph:
+                graph.add_node(Node.node_id2node[node_id])
+
         all_spc_nodes = set()
         for node_id, _ in SPC.node_id_2_instance.items():
             all_spc_nodes.add(Node.node_id2node[node_id])
@@ -122,17 +129,6 @@ class SPCCluster:
             sum_temp += len(cluster.spcs)
         print("Total number of SPCs from all clusters: ", sum_temp)
         print("Number of all SPCs: ", len(SPC.node_id_2_instance))
-
-        # add clusters with node size 1
-        all_cluster_spcs = []
-        number_of_cluters_with_size_1 = 0
-        for cluster in SPCCluster.id_2_instances.values():
-            all_cluster_spcs.extend(cluster.spcs)
-        for _, spc in SPC.node_id_2_instance.items():
-            if spc not in all_cluster_spcs:
-                number_of_cluters_with_size_1 += 1
-                SPCCluster([spc])
-        print("Number of clusters with size 1 created: ", number_of_cluters_with_size_1)
 
     @staticmethod
     def calculate_force_sum() -> None:

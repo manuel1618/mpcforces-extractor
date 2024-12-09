@@ -49,16 +49,16 @@ class ForcesReader:
                 while i < len(self.file_content):
 
                     line = self.file_content[i]
-                    if (
-                        line.strip().startswith("SUM")
-                        or line.strip() == ""
-                        or line.strip().startswith("---")
-                    ):
+                    if line.strip() == "":
                         i += 1
                         continue
 
                     # take the first 8 characters as the node id
-                    node_id = int(line[:8].strip())
+                    try:
+                        node_id = int(line[:8].strip())
+                    except ValueError:
+                        i += 1
+                        continue
 
                     # take the next 13 characters as the force values
                     n = 13
