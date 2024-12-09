@@ -109,6 +109,13 @@ document.getElementById('run-button').addEventListener('click', async function (
         // Disconnect the database if necessary
         await disconnectDb();
 
+        // Notfy the user that the extractor is running
+        document.getElementById('run-button').disabled = true;
+        document.getElementById('run-button').innerText = 'Running...';
+        progressBar.style.width = '5%';
+        progressBar.setAttribute('aria-valuenow', 100);
+        progressBar.innerText = '5%';
+
         // Send request to run the extractor
         const response = await safeFetch('/api/v1/run-extractor', {
             method: 'POST',
@@ -140,11 +147,15 @@ document.getElementById('run-button').addEventListener('click', async function (
         progressBar.innerText = `Completed: ${result.message}`;
         progressBar.style.width = '100%';
         progressBar.setAttribute('aria-valuenow', 100);
+        document.getElementById('run-button').disabled = false;
+        document.getElementById('run-button').innerText = 'Run Extractor';
     } catch (error) {
         progressBar.style.width = '100%';
         progressBar.setAttribute('aria-valuenow', 100);
         progressBar.classList.add('bg-danger');
         progressBar.innerText = `Error: ${error.message}`;
+        document.getElementById('run-button').disabled = false;
+        document.getElementById('run-button').innerText = 'Run Extractor';
     }
 });
 
