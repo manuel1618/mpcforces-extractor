@@ -46,18 +46,19 @@ class ForcesReader:
             if "X-FORCE" in line:
                 i += 2
                 line = self.file_content[i].strip()
-                while (
-                    not self.file_content[i].startswith("---")
-                    and not self.file_content[i].strip() == ""
-                ):
-                    line = self.file_content[i]
+                while i < len(self.file_content):
 
-                    if line.strip().startswith("SUM"):
+                    line = self.file_content[i]
+                    if line.strip() == "":
                         i += 1
                         continue
 
                     # take the first 8 characters as the node id
-                    node_id = int(line[:8].strip())
+                    try:
+                        node_id = int(line[:8].strip())
+                    except ValueError:
+                        i += 1
+                        continue
 
                     # take the next 13 characters as the force values
                     n = 13

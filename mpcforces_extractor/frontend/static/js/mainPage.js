@@ -72,57 +72,109 @@ document.getElementById("import-db-button").addEventListener("click", async func
     
 });
 
-// Run Button Click Event Handler
+
 document.getElementById('run-button').addEventListener('click', async function () {
     const femFile = document.getElementById('fem-file').files[0];
     const mpcfFile = document.getElementById('mpcf-file').files[0];
     const spcfFile = document.getElementById('spcf-file').files[0];
 
+    const progressBar = document.querySelector('.progress-bar');
+    const progressBarContainer = document.querySelector('.progress');
+
+    // Validate file selection
     if (!femFile) {
-        alert("Please select both .fem file");
+        alert("Please select a .fem file.");
         return;
     }
-
     if (!spcfFile && !mpcfFile) {
-        alert("No spcf and mpcf file selected, the extractor will not run.");
-        return
-    } else if (!spcfFile) {
-        alert("Info: No spcf file selected, the extractor will run without spcf file");
-    } else if (!mpcfFile) {
-        alert("Info: No mpcf file selected, the extractor will run without mpcf file");
-    }
-
-    let mpcf_filename = ""
-    if (mpcfFile) {
-        mpcf_filename = mpcfFile.name
-    }
-    let spcf_filename = ""
-    if (spcfFile) {
-        spcf_filename = spcfFile.name
-    }
-
-    disconnectDb();
-    
-    const response = await safeFetch('/api/v1/run-extractor', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            fem_filename: femFile.name,
-            mpcf_filename: mpcf_filename,
-            spcf_filename: spcf_filename,
-        }),
-    });
-    if (!response.ok) {
-        document.getElementById('progress').innerText = 'Error: Failed to run extractor';
+        alert("No spcf and mpcf file selected. The extractor will not run.");
         return;
+    } else if (!spcfFile) {
+        alert("Info: No spcf file selected. The extractor will run without it.");
+    } else if (!mpcfFile) {
+        alert("Info: No mpcf file selected. The extractor will run without it.");
     }
-    
-    result = await response.json();
-    document.getElementById('progress').innerText = result.message;
 
+    let mpcf_filename = mpcfFile ? mpcfFile.name : "";
+    let spcf_filename = spcfFile ? spcfFile.name : "";
+
+    // Reset progress bar
+    progressBar.style.width = '0%';
+    progressBar.setAttribute('aria-valuenow', 0);
+    progressBar.innerText = '0%';
+
+    progressBarContainer.style.display = 'block'; // Ensure the bar is visible
+
+    try {
+        // Disconnect the database if necessary
+        await disconnectDb();
+
+        // Notfy the user that the extractor is running
+        document.getElementById('run-button').disabled = true;
+        document.getElementById('run-button').innerText = 'Running...';
+        progressBar.style.width = '5%';
+        progressBar.setAttribute('aria-valuenow', 100);
+        progressBar.innerText = '5%';
+
+        // Send request to run the extractor
+        const response = await safeFetch('/api/v1/run-extractor', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                fem_filename: femFile.name,
+                mpcf_filename: mpcf_filename,
+                spcf_filename: spcf_filename,
+            }),
+        });
+
+        if (!response.ok) {
+            progressBar.style.width = '100%';
+            progressBar.setAttribute('aria-valuenow', 100);
+            progressBar.classList.add('bg-danger');
+            progressBar.innerText = 'Error: Failed to run extractor.';
+            return;
+        }
+
+        // Simulate progress updates (replace with real progress if backend supports it)
+        await simulateProgress(progressBar);
+
+        // Handle successful response
+        const result = await response.json();
+        progressBar.classList.remove('bg-danger');
+        progressBar.classList.add('bg-success');
+        progressBar.innerText = `Completed: ${result.message}`;
+        progressBar.style.width = '100%';
+        progressBar.setAttribute('aria-valuenow', 100);
+        document.getElementById('run-button').disabled = false;
+        document.getElementById('run-button').innerText = 'Run Extractor';
+    } catch (error) {
+        progressBar.style.width = '100%';
+        progressBar.setAttribute('aria-valuenow', 100);
+        progressBar.classList.add('bg-danger');
+        progressBar.innerText = `Error: ${error.message}`;
+        document.getElementById('run-button').disabled = false;
+        document.getElementById('run-button').innerText = 'Run Extractor';
+    }
 });
+
+/**
+ * Simulates progress updates for a more dynamic experience.
+ * Replace this with real progress streaming if backend supports it.
+ */
+async function simulateProgress(progressBar) {
+    const steps = 8; // Number of simulated progress steps
+    for (let i = 1; i <= steps; i++) {
+        const timeout = Math.random() * 500; // Random delay up to 0.5s
+        await new Promise(resolve => setTimeout(resolve, timeout)); // Simulate delay
+        const progress = (i / steps) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', Math.round(progress));
+        progressBar.innerText = `${Math.round(progress)}%`;
+    }
+}
+
 
 // Call the function to fetch the directory when the page loads
 window.addEventListener('DOMContentLoaded', async function () {
