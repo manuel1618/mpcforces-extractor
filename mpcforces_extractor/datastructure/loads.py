@@ -113,6 +113,27 @@ class SPCCluster:
                 spcs.append(SPC.node_id_2_instance[node.id])
             SPCCluster(spcs)
 
+        # user info
+        print("Number of SPC Clusters: ", len(SPCCluster.id_2_instances))
+        sum_temp = 0
+        for cluster in SPCCluster.id_2_instances.values():
+            print("Cluster ID: ", cluster.id)
+            print("Number of SPCs: ", len(cluster.spcs))
+            sum_temp += len(cluster.spcs)
+        print("Total number of SPCs from all clusters: ", sum_temp)
+        print("Number of all SPCs: ", len(SPC.node_id_2_instance))
+
+        # add clusters with node size 1
+        all_cluster_spcs = []
+        number_of_cluters_with_size_1 = 0
+        for cluster in SPCCluster.id_2_instances.values():
+            all_cluster_spcs.extend(cluster.spcs)
+        for _, spc in SPC.node_id_2_instance.items():
+            if spc not in all_cluster_spcs:
+                number_of_cluters_with_size_1 += 1
+                SPCCluster([spc])
+        print("Number of clusters with size 1 created: ", number_of_cluters_with_size_1)
+
     @staticmethod
     def calculate_force_sum() -> None:
         """
