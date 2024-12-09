@@ -26,6 +26,10 @@ async function renderTable(data) {
 
     data.forEach(spcCluster => {
         const force = spcCluster.subcase_id2summed_forces[subcase.id] || [0, 0, 0, 0, 0, 0];
+        let numberSPCs = spcCluster.spc_ids.split(",").length;
+        if (numberSPCs===1) {
+            numberSPCs = numberSPCs + " ("+spcCluster.spc_ids+")"
+        }
 
         // Generate the row content, including the copy button
         const row = document.createElement('tr');
@@ -35,6 +39,7 @@ async function renderTable(data) {
                 <!-- Placeholder for the copy button -->
                 <div class="spc-ids-cell"></div>
             </td>
+            <td>${numberSPCs}</td>
             <td>${force[0].toFixed(3)}</td>
             <td>${force[1].toFixed(3)}</td>
             <td>${force[2].toFixed(3)}</td>
@@ -79,15 +84,43 @@ function sortTableById() {
     }
 }
 
+function sortTableBySpcCount(){
+    // Toggle sorting direction
+    sortDirection *= -1;
+
+    // Sort the global data array
+    spcclusters.sort((a, b) => (a.spc_ids.split(",").length - b.spc_ids.split(",").length) * sortDirection);
+
+    // Re-render the table with sorted data
+    renderTable(spcclusters);
+
+    // Update the sorting icon
+    const sortIcon = document.getElementById('spcCount-sort-icon');
+    if (sortDirection === 1) {
+        sortIcon.textContent = '▲'; // Ascending
+    } else {
+        sortIcon.textContent = '▼'; // Descending
+    }
+}
+
 // Attach sorting functionality to the ID column header
 document.addEventListener('DOMContentLoaded', async () => {
     const idHeader = document.querySelector('th[data-sort="id"]');
     if (idHeader) {
         idHeader.addEventListener('click', sortTableById);
     }
+    const spcCountHeader = document.querySelector('th[data-sort="spcCount"]');
+    if (spcCountHeader) {
+        spcCountHeader.addEventListener('click', sortTableBySpcCount);
+    }
+
     await fetchSubcases();
     await fetchSPCCluster();
 });
+
+
+
+
 
 document.getElementById('spc-cluster-title').addEventListener('click', function() {
     location.reload(); // Reload the page
