@@ -26,7 +26,10 @@ async function renderTable(data) {
 
     data.forEach(spcCluster => {
         const force = spcCluster.subcase_id2summed_forces[subcase.id] || [0, 0, 0, 0, 0, 0];
-        const numberSPCs = spcCluster.spc_ids.split(",").length;
+        let numberSPCs = spcCluster.spc_ids.split(",").length;
+        if (numberSPCs===1) {
+            numberSPCs = numberSPCs + " ("+spcCluster.spc_ids+")"
+        }
 
         // Generate the row content, including the copy button
         const row = document.createElement('tr');
