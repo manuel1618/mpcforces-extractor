@@ -46,13 +46,14 @@ class ForcesReader:
             if "X-FORCE" in line:
                 i += 2
                 line = self.file_content[i].strip()
-                while (
-                    not self.file_content[i].startswith("---")
-                    and not self.file_content[i].strip() == ""
-                ):
-                    line = self.file_content[i]
+                while i < len(self.file_content):
 
-                    if line.strip().startswith("SUM"):
+                    line = self.file_content[i]
+                    if (
+                        line.strip().startswith("SUM")
+                        or line.strip() == ""
+                        or line.strip().startswith("---")
+                    ):
                         i += 1
                         continue
 
