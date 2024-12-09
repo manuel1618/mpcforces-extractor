@@ -156,6 +156,13 @@ class FemFileReader:
                         i += 1
                         line2 = self.file_content[i]
 
+                # remove any + from each node_id if its there
+                node_ids = [
+                    node_id.replace("+", "")
+                    for node_id in node_ids
+                    if node_id.replace("+", "").strip() != ""
+                ]
+
                 nodes = [self.nodes_id2node[int(node_id)] for node_id in node_ids]
                 self.elements_3D.append(Element(element_id, property_id, nodes))
 
