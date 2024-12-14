@@ -53,6 +53,40 @@ class MPC:
         """
         MPC.config_2_id_2_instance = {}
 
+    @staticmethod
+    def get_all_mpcs() -> List["MPC"]:
+        """
+        This method is used to get all the MPCs
+        """
+        mpcs = []
+        for _, id2instance in MPC.config_2_id_2_instance.items():
+            for _, instance in id2instance.items():
+                mpcs.append(instance)
+        return mpcs
+
+    @staticmethod
+    def get_all_part_ids() -> List[int]:
+        """
+        This method is used to get all the part ids in a unique list
+        """
+        part_ids = set()
+        for mpc in MPC.get_all_mpcs():
+            for part_id, _ in mpc.part_id2node_ids.items():
+                part_ids.add(part_id)
+        return list(part_ids)
+
+    @staticmethod
+    def get_all_node_ids() -> List[int]:
+        """
+        This method is used to get all the node ids in a unique list
+        """
+        unique_node_ids = set()
+        for mpc in MPC.get_all_mpcs():
+            for _, node_ids in mpc.part_id2node_ids.items():
+                unique_node_ids.update(node_ids)
+                unique_node_ids.add(mpc.master_node.id)
+        return list(unique_node_ids)
+
     def get_part_id2force(self, subcase: Subcase) -> Dict:
         """
         This method is used to get the forces for each part of the MPC (connected slave nodes)
