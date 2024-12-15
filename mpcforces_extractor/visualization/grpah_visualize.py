@@ -1,3 +1,4 @@
+from enum import Enum
 from pyvis.network import Network
 from mpcforces_extractor.datastructure.entities import Node, Element1D, Element
 from mpcforces_extractor.datastructure.rigids import MPC
@@ -10,14 +11,24 @@ from mpcforces_extractor.force_extractor import (
 )
 
 
-class GrpahVisualize:
+class NodeType(Enum):
+    """
+    used for transform ids to graph ids
+    """
+
+    NODE = 1
+    PART = 2
+    MPC = 3
+
+
+class GrpahVisualizer:
     """
     This class is used to visualize the graph (Elements, Parts, Nodes, MPCs)
     """
 
     def __init__(self):
-        self.net = Network()
-        self.node_id2node = {}
+        self.net = Network(select_menu=True, notebook=False)
+        self.net.repulsion()
         self.__build_nodes()
         self.__build_edges()
 
@@ -25,33 +36,48 @@ class GrpahVisualize:
         """
         This method is used to build the nodes of the grpah (Nodes, Parts)
         """
-        nodes = MPC.get_all_node_ids()
-        for node in nodes:
-            self.__add_node(node, f"Node: {node}", f"{node}")
-            self.node_id2node[node] = Node.node_id2node[node]
-
         for part in MPC.get_all_part_ids():
-            self.__add_node(part, f"Part: {part}", f"{part}")
+            part_graph_id = GrpahVisualizer.to_graph_id(part, NodeType.PART)
+            self.__add_vertex(part_graph_id, f"Part: {part}", f"{part}")
+
+        for mpc in MPC.get_all_mpcs():
+            mpc_graph_id = GrpahVisualizer.to_graph_id(mpc.master_node.id, NodeType.MPC)
+            hover_info = f"master: {mpc.master_node.id}\n slaves: {len(mpc.nodes)}\n"
+            self.__add_vertex(mpc_graph_id, f"MPC: {mpc.master_node.id}", hover_info)
+            self.__append_to_vertex_hover(mpc_graph_id, "temp")
 
     def __build_edges(self):
         """
         This method is used to build the edges of the graph (MPC-Node, Part-Node)
         """
-        for rbe in MPC.get_all_mpcs():
-            for node in rbe.nodes:
-                self.__add_edge(rbe.master_node.id, node.id)
-
         for mpc in MPC.get_all_mpcs():
-            for part_id, nodes in mpc.part_id2node_ids.items():
-                for node_id in nodes:
-                    if node_id in self.node_id2node:
-                        self.__add_edge(part_id, node_id)
+            for part_id, _ in mpc.part_id2node_ids.items():
+                part_grpah_id = GrpahVisualizer.to_graph_id(part_id, NodeType.PART)
+                mpc_graph_id = GrpahVisualizer.to_graph_id(
+                    mpc.master_node.id, NodeType.MPC
+                )
+                self.__add_edge(part_grpah_id, mpc_graph_id)
 
-    def __add_node(self, node_id, label, hover_info):
+    @staticmethod
+    def to_graph_id(my_id, node_type):
+        """
+        Converts the id to a graph id
+        """
+        if node_type == NodeType.NODE:
+            return f"{my_id}"
+        return f"{node_type.name}_{my_id}"
+
+    def __add_vertex(self, node_id, label, hover_info):
         """
         Adds a node to the grpah
         """
         self.net.add_node(node_id, label=label, title=hover_info)
+
+    def __append_to_vertex_hover(self, vertex_id, text):
+        """
+        Adds a title (hover info) to the vertex
+        """
+        self.net.get_node(vertex_id)["title"] += f"\n{text}"
 
     def __add_edge(self, node1, node2):
         """
@@ -69,6 +95,11 @@ class GrpahVisualize:
         """
         Shows the graph in the browser
         """
+        # Enable filter menu for nodes
+        self.net.show_buttons(
+            filter_=["selection", "physics"]
+        )  # This will show a filter menu for nodes
+
         self.net.show(path, notebook=False)
 
 
@@ -79,7 +110,7 @@ def main():
 
     input_folder = "data/input"
     # output_folder = "data/output"
-    model_name = "m"
+    model_name = "flange"
     # model_name = "Flange"
     blocksize = 8
 
@@ -106,7 +137,7 @@ def main():
     for mpc in MPC.get_all_mpcs():
         mpc.get_subcase_id2part_id2force()
 
-    graph = GrpahVisualize()
+    graph = GrpahVisualizer()
     graph.show("graph.html")
 
 
