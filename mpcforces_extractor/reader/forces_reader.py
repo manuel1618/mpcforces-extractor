@@ -93,7 +93,6 @@ class ForcesReader:
                     moment_z = float(line_content[5]) if line_content[5] != "" else 0
 
                     force = [force_x, force_y, force_z, moment_x, moment_y, moment_z]
-                    print(node_id)
 
                     subcase.add_force(node_id, force, force_type)
                     self.node_ids.append(node_id)
