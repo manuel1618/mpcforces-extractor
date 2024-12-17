@@ -1,4 +1,5 @@
 from typing import List
+import time
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 
@@ -12,7 +13,10 @@ class ForcesReader:
 
     def __init__(self, file_path):
         self.file_path = file_path
+        print(f"Reading forces file: {file_path}")
+        start_time = time.time()
         self.file_content = self.__read_lines()
+        print("..took ", round(time.time() - start_time, 2), "seconds")
         self.node_ids = []
 
     def __read_lines(self) -> List[str]:
@@ -29,19 +33,22 @@ class ForcesReader:
         and build the subcases
         """
         subcase_id = 0
-        time = 0
+        subcase_time = 0
         subcase = None
+
+        print(f"Building subcases data from {force_type.name}")
+        start_time = time.time()
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i].strip()
 
             if line.startswith("$SUBCASE"):
                 subcase_id = int(line[0:23].replace("$SUBCASE", "").strip())
             if line.startswith("$TIME"):
-                time = float(line.replace("$TIME", "").strip())
+                subcase_time = float(line.replace("$TIME", "").strip())
                 if Subcase.get_subcase_by_id(subcase_id):
                     subcase = Subcase.get_subcase_by_id(subcase_id)
                 else:
-                    subcase = Subcase(subcase_id, time)
+                    subcase = Subcase(subcase_id, subcase_time)
 
             if "X-FORCE" in line:
                 i += 2
@@ -83,3 +90,5 @@ class ForcesReader:
                     self.node_ids.append(node_id)
 
                     i += 1
+
+        print("..took ", round(time.time() - start_time, 2), "seconds")
