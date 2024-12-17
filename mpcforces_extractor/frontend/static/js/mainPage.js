@@ -1,6 +1,7 @@
 async function uploadFile(file) {
     const chunkSize = 1024 * 1024; // 1MB
     let offset = 0;
+    file_size_mb = file.size / (1024 * 1024);
 
     while (offset < file.size) {
         const chunk = file.slice(offset, offset + chunkSize);
@@ -16,7 +17,8 @@ async function uploadFile(file) {
             document.getElementById('progress').innerText = `Error: Failed to upload chunk at offset ${offset}`;
             return;
         }
-        document.getElementById('progress').innerText = `Uploaded ${Math.min(offset + chunkSize, file.size)} of ${file.size} bytes`;
+        current_progress_mb = Math.min(offset + chunkSize, file.size) / (1024 * 1024);
+        document.getElementById('progress').innerText = 'Uploaded ' + current_progress_mb.toFixed(0) + ' MB / ' + file_size_mb.toFixed(0) + ' MB';
         offset += chunkSize;
     }
 }
