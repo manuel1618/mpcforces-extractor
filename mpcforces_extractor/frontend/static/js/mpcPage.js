@@ -75,11 +75,17 @@ function renderTable(data) {
                 const nodeIds = mpc.part_id2nodes[partId];
                 if (!nodeIds || nodeIds.length === 0) continue;
 
-                const force = Math.sqrt(
+                let force = Math.sqrt(
                     forces[0] ** 2 +
                     forces[1] ** 2 +
                     forces[2] ** 2
-                ).toFixed(4);
+                )
+                if (force > 0.1 && force < 10000) {
+                    force = force.toFixed(2);
+                } else {
+                    force = force.toExponential(2);
+                }
+
 
                 const label = document.createElement('span');
                 label.textContent = `Subcase ${subcaseId}, Part ${partId}: ${force} `;
