@@ -51,7 +51,12 @@ class ForcesReader:
                     subcase = Subcase(subcase_id, subcase_time)
 
             if "X-FORCE" in line:
-                i += 2
+                i += 1
+                line = self.file_content[i].strip()
+                # first index of + in line
+                first_column_length = line.find("+")
+
+                i += 1
                 line = self.file_content[i].strip()
                 while i < len(self.file_content):
 
@@ -60,16 +65,19 @@ class ForcesReader:
                         i += 1
                         continue
 
-                    # take the first 8 characters as the node id
+                    # take the first_column_length characters as the node id
                     try:
-                        node_id = int(line[:8].strip())
+                        node_id = int(line[:first_column_length].strip())
                     except ValueError:
                         i += 1
                         continue
 
                     # take the next 13 characters as the force values
                     n = 13
-                    line_content = [line[j : j + n] for j in range(8, len(line), n)]
+                    line_content = [
+                        line[j : j + n]
+                        for j in range(first_column_length, len(line), n)
+                    ]
                     line_content = line_content[:-1]
                     for j, _ in enumerate(line_content):
                         line_content[j] = line_content[j].strip()
@@ -85,6 +93,7 @@ class ForcesReader:
                     moment_z = float(line_content[5]) if line_content[5] != "" else 0
 
                     force = [force_x, force_y, force_z, moment_x, moment_y, moment_z]
+                    print(node_id)
 
                     subcase.add_force(node_id, force, force_type)
                     self.node_ids.append(node_id)
