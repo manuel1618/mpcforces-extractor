@@ -1,7 +1,7 @@
 async function uploadFile(file) {
     const chunkSize = 1024 * 1024; // 1MB
     let offset = 0;
-    file_size_mb = file.size / (1024 * 1024);
+    const file_size_mb = file.size / (1024.0 * 1024.0);
 
     while (offset < file.size) {
         const chunk = file.slice(offset, offset + chunkSize);
@@ -18,9 +18,14 @@ async function uploadFile(file) {
             return;
         }
         current_progress_mb = Math.min(offset + chunkSize, file.size) / (1024 * 1024);
-        document.getElementById('progress').innerText = 'Uploaded ' + current_progress_mb.toFixed(0) + ' MB / ' + file_size_mb.toFixed(0) + ' MB';
+        if (file_size_mb > 1) {
+            document.getElementById('progress').innerText = 'Uploaded ' + current_progress_mb.toFixed(0) + ' MB / ' + file_size_mb.toFixed(0) + ' MB';
+        } else {
+            document.getElementById('progress').innerText = 'Uploaded ' + current_progress_mb.toFixed(2) + ' MB / ' + file_size_mb.toFixed(2) + ' MB';
+        }
         offset += chunkSize;
     }
+    document.getElementById('progress').innerText = 'Upload complete (' + file_size_mb.toFixed(2) + ' MB)';
 }
 
 function handleFileSelection(inputId, outputId, upload = false, disconnect = false) {
