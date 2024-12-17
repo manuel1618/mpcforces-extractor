@@ -23,6 +23,7 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
     Run the extractor. This is the main endpoint to run the program
     """
     fem_file = file_request.fem_filename
+    model_name = fem_file.split(".")[0]
     mpcf_file = file_request.mpcf_filename
     spcf_file = file_request.spcf_filename
 
@@ -57,7 +58,7 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
         SPCCluster.calculate_force_sum()
 
     app = request.app
-    app.db = Database(model_output_folder + "/db.db")
+    app.db = Database(model_output_folder + f"/{model_name}.db")
     app.db.populate_database()
 
     # Implement your logic here to run the extractor using the provided filenames
