@@ -1,4 +1,5 @@
 from typing import List, Dict
+import time
 import networkx as nx
 from mpcforces_extractor.datastructure.entities import Node, Element
 from mpcforces_extractor.datastructure.subcases import Subcase
@@ -101,6 +102,9 @@ class SPCCluster:
         """
         This method is used to build the SPC cluster
         """
+
+        print("Building SPC Clusters")
+        start_time = time.time()
         graph: nx.Graph = Element.graph.copy()
 
         # add the SPC nodes to the graph if they are not already in the graph
@@ -129,6 +133,7 @@ class SPCCluster:
             sum_temp += len(cluster.spcs)
         print("Total number of SPCs from all clusters: ", sum_temp)
         print("Number of all SPCs: ", len(SPC.node_id_2_instance))
+        print("..took ", round(time.time() - start_time, 2), "seconds")
 
     @staticmethod
     def calculate_force_sum() -> None:
@@ -137,6 +142,8 @@ class SPCCluster:
         for each subcase and for each spc cluster
         """
         # Calculate the sum of the forces for each spc cluster
+        print("Calculating the sum of the forces for each SPC Cluster")
+        start_time = time.time()
         for _, spc_cluster in SPCCluster.id_2_instances.items():
             subcase_id2summed_force = {}
             for subcase in Subcase.subcases:
@@ -154,6 +161,7 @@ class SPCCluster:
                     sum_forces = [sf + f for sf, f in zip(sum_forces, force_vector)]
                 subcase_id2summed_force[subcase.subcase_id] = sum_forces
             spc_cluster.subcase_id2summed_force = subcase_id2summed_force
+        print("..took ", round(time.time() - start_time, 2), "seconds")
 
     @staticmethod
     def reset():
