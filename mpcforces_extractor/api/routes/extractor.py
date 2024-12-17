@@ -1,4 +1,5 @@
 import os
+import time
 from fastapi import APIRouter, HTTPException, Request
 from mpcforces_extractor.api.db.schemas import RunExtractorRequest
 from mpcforces_extractor.api.config import UPLOAD_FOLDER, OUTPUT_FOLDER
@@ -38,6 +39,8 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
     SPCCluster.reset()
     SPC.reset()
 
+    total_start_time = time.time()
+
     block_size = 8
     model_output_folder = str(OUTPUT_FOLDER) + os.sep + f"{fem_file.split('.')[0]}"
     fem_file_path = str(UPLOAD_FOLDER) + os.sep + fem_file
@@ -60,6 +63,14 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
     app = request.app
     app.db = Database(model_output_folder + f"/{model_name}.db")
     app.db.populate_database()
+
+    total_end_time = time.time()
+    total_time = total_end_time - total_start_time
+    total_time_mins = total_time / 60.0
+    print("---------------------------------")
+    print(
+        f"Total time taken: {round(total_time,2)} s (= {round(total_time_mins,2)} mins)"
+    )
 
     # Implement your logic here to run the extractor using the provided filenames
     # For example, call your main routine here
