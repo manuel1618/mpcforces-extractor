@@ -38,3 +38,7 @@ class TestForcesReader(unittest.TestCase):
             Subcase.get_subcase_by_id(1).node_id2mpcforces[2],
             [-1.0, 1.0, 1.0, 0.0, 1.0, 0.0],
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

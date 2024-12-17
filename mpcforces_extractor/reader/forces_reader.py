@@ -1,4 +1,5 @@
 from typing import List
+import time
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 
 
@@ -12,7 +13,10 @@ class ForcesReader:
 
     def __init__(self, file_path):
         self.file_path = file_path
+        print(f"Reading forces file: {file_path}")
+        start_time = time.time()
         self.file_content = self.__read_lines()
+        print("..took ", round(time.time() - start_time, 2), "seconds")
         self.node_ids = []
 
     def __read_lines(self) -> List[str]:
@@ -29,22 +33,30 @@ class ForcesReader:
         and build the subcases
         """
         subcase_id = 0
-        time = 0
+        subcase_time = 0
         subcase = None
+
+        print(f"Building subcases data from {force_type.name}")
+        start_time = time.time()
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i].strip()
 
             if line.startswith("$SUBCASE"):
                 subcase_id = int(line[0:23].replace("$SUBCASE", "").strip())
             if line.startswith("$TIME"):
-                time = float(line.replace("$TIME", "").strip())
+                subcase_time = float(line.replace("$TIME", "").strip())
                 if Subcase.get_subcase_by_id(subcase_id):
                     subcase = Subcase.get_subcase_by_id(subcase_id)
                 else:
-                    subcase = Subcase(subcase_id, time)
+                    subcase = Subcase(subcase_id, subcase_time)
 
             if "X-FORCE" in line:
-                i += 2
+                i += 1
+                line = self.file_content[i].strip()
+                # first index of + in line
+                first_column_length = line.find("+")
+
+                i += 1
                 line = self.file_content[i].strip()
                 while i < len(self.file_content):
 
@@ -53,16 +65,19 @@ class ForcesReader:
                         i += 1
                         continue
 
-                    # take the first 8 characters as the node id
+                    # take the first_column_length characters as the node id
                     try:
-                        node_id = int(line[:8].strip())
+                        node_id = int(line[:first_column_length].strip())
                     except ValueError:
                         i += 1
                         continue
 
                     # take the next 13 characters as the force values
                     n = 13
-                    line_content = [line[j : j + n] for j in range(8, len(line), n)]
+                    line_content = [
+                        line[j : j + n]
+                        for j in range(first_column_length, len(line), n)
+                    ]
                     line_content = line_content[:-1]
                     for j, _ in enumerate(line_content):
                         line_content[j] = line_content[j].strip()
@@ -83,3 +98,5 @@ class ForcesReader:
                     self.node_ids.append(node_id)
 
                     i += 1
+
+        print("..took ", round(time.time() - start_time, 2), "seconds")
