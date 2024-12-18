@@ -1,8 +1,8 @@
 import os
-import time
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.reader.forces_reader import ForcesReader
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
+from mpcforces_extractor.logging.logger import Logger
 
 
 class MPCForceExtractor:
@@ -55,7 +55,7 @@ class SPCForcesExtractor:
             self.spc_forces_reader.build_subcases(force_type=ForceType.SPCFORCE)
             self.subcases = Subcase.subcases
         else:
-            print("SPC forces file does not exist")
+            Logger().log_warn("SPC Forces file does not exist")
 
     def __spcf_file_exists(self) -> bool:
         """
@@ -80,23 +80,20 @@ class FEMExtractor:
         """
         Builds the main entities from the FEM file
         """
+        logger = Logger()
         self.reader = FemFileReader(self.fem_file_path, self.block_size)
-        print("Reading the FEM file")
-        start_time = time.time()
+        logger.start_timing("Reading the FEM file")
         self.reader.create_entities()
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+        logger.stop_timing("Reading the FEM file")
 
-        print("Building the mpcs")
-        start_time = time.time()
+        logger.start_timing("Building the rigid elements")
         self.reader.get_rigid_elements()
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+        logger.stop_timing("Building the rigid elements")
 
-        print("Building the loads")
-        start_time = time.time()
+        logger.start_timing("Building the loads")
         self.reader.get_loads()
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+        logger.stop_timing("Building the loads")
 
-        print("Building the constraints")
-        start_time = time.time()
+        logger.start_timing("Building the constraints")
         self.reader.get_spcs()
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+        logger.stop_timing("Building the constraints")
