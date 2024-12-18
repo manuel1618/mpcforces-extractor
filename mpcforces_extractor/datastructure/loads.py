@@ -1,8 +1,8 @@
 from typing import List, Dict
-import time
 import networkx as nx
 from mpcforces_extractor.datastructure.entities import Node, Element
 from mpcforces_extractor.datastructure.subcases import Subcase
+from mpcforces_extractor.logging.logger import Logger
 
 
 class Moment:
@@ -66,7 +66,7 @@ class SPC:
         self.system_id = system_id
         self.dofs = dofs
         if node_id in SPC.node_id_2_instance:
-            print("Error: SPC already exists for node_id", node_id)
+            Logger().log_err("Error: SPC already exists for node_id", node_id)
         SPC.node_id_2_instance[node_id] = self
         self.subcase_id2force = {}
 
@@ -103,8 +103,8 @@ class SPCCluster:
         This method is used to build the SPC cluster
         """
 
-        print("Building SPC Clusters")
-        start_time = time.time()
+        logger = Logger()
+        logger.start_timing("Building SPC Clusters")
         graph: nx.Graph = Element.graph.copy()
 
         # add the SPC nodes to the graph if they are not already in the graph
@@ -133,7 +133,7 @@ class SPCCluster:
             sum_temp += len(cluster.spcs)
         print("Total number of SPCs from all clusters: ", sum_temp)
         print("Number of all SPCs: ", len(SPC.node_id_2_instance))
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+        logger.stop_timing("Building SPC Clusters")
 
     @staticmethod
     def calculate_force_sum() -> None:
@@ -142,8 +142,8 @@ class SPCCluster:
         for each subcase and for each spc cluster
         """
         # Calculate the sum of the forces for each spc cluster
-        print("Calculating the sum of the forces for each SPC Cluster")
-        start_time = time.time()
+        logger = Logger()
+        logger.start_timing("Calculating the sum of the forces for each SPC Cluster")
         for _, spc_cluster in SPCCluster.id_2_instances.items():
             subcase_id2summed_force = {}
             for subcase in Subcase.subcases:
@@ -161,7 +161,7 @@ class SPCCluster:
                     sum_forces = [sf + f for sf, f in zip(sum_forces, force_vector)]
                 subcase_id2summed_force[subcase.subcase_id] = sum_forces
             spc_cluster.subcase_id2summed_force = subcase_id2summed_force
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+        logger.stop_timing("Calculating the sum of the forces for each SPC Cluster")
 
     @staticmethod
     def reset():
