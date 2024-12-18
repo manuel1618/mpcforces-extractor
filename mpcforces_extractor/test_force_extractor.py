@@ -74,7 +74,6 @@ class TestFMPCForceExtractor(unittest.TestCase):
 
             diff_1 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_1, force_calc_1)])
             diff_2 = sum([abs(a_i - b_i) for a_i, b_i in zip(force_2, force_calc_2)])
-            print(diff_1, diff_2)
             self.assertTrue(diff_1 < 0.01 or diff_2 < 0.01)
 
     @patch(

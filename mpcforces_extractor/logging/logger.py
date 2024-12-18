@@ -70,7 +70,11 @@ class Logger:
         """Stop the timer for a specific label and log the elapsed time."""
         if label in self._timings:
             elapsed_time = time.time() - self._timings[label]
-            self.log_info(f"[TIMER] {label}: {elapsed_time:.6f} seconds")
+            if elapsed_time > 60:
+                elapsed_time /= 60
+                self.log_info(f"[TIMER] {label}: {elapsed_time:.2f} minutes")
+            else:
+                self.log_info(f"[TIMER] {label}: {elapsed_time:.2f} seconds")
             del self._timings[label]
         else:
             self.log_err(f"Timer with label '{label}' was not started.")
@@ -84,12 +88,12 @@ class Logger:
 
 
 # Usage Example:
-logger = Logger()
-logger.log_header("Application Start")
-logger.log_info("This is an informational message.")
-logger.log_warn("This is a warning message.")
-logger.log_err("This is an error message.")
-logger.start_timing("example_task")
-time.sleep(2)  # Simulating a task
-logger.stop_timing("example_task")
-logger.write_to_file("logfile.txt")
+# logger = Logger()
+# logger.log_header("Application Start")
+# logger.log_info("This is an informational message.")
+# logger.log_warn("This is a warning message.")
+# logger.log_err("This is an error message.")
+# logger.start_timing("example_task")
+# time.sleep(2)  # Simulating a task
+# logger.stop_timing("example_task")
+# logger.write_to_file("logfile.txt")

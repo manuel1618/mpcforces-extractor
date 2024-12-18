@@ -1,6 +1,6 @@
 from typing import List
-import time
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
+from mpcforces_extractor.logging.logger import Logger
 
 
 class ForcesReader:
@@ -13,10 +13,9 @@ class ForcesReader:
 
     def __init__(self, file_path):
         self.file_path = file_path
-        print(f"Reading forces file: {file_path}")
-        start_time = time.time()
+        Logger().start_timing("Reading forces file: " + file_path)
         self.file_content = self.__read_lines()
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+        Logger().stop_timing("Reading forces file: " + file_path)
         self.node_ids = []
 
     def __read_lines(self) -> List[str]:
@@ -36,8 +35,8 @@ class ForcesReader:
         subcase_time = 0
         subcase = None
 
-        print(f"Building subcases data from {force_type.name}")
-        start_time = time.time()
+        logger = Logger()
+        logger.start_timing("Building subcases data from " + force_type.name)
         for i, _ in enumerate(self.file_content):
             line = self.file_content[i].strip()
 
@@ -99,4 +98,4 @@ class ForcesReader:
 
                     i += 1
 
-        print("..took ", round(time.time() - start_time, 2), "seconds")
+        logger.stop_timing("Building subcases data from " + force_type.name)

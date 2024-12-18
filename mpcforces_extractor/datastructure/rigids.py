@@ -2,6 +2,7 @@ from typing import Dict, List
 from enum import Enum
 from mpcforces_extractor.datastructure.entities import Node, Element
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
+from mpcforces_extractor.logging.logger import Logger
 
 
 class MPC_CONFIG(Enum):
@@ -32,7 +33,7 @@ class MPC:
         self.element_id: int = element_id
         self.mpc_config: MPC_CONFIG = mpc_config
         if master_node is None:
-            print("Master_node2coords is None for element_id", element_id)
+            Logger().log_warn("Master_node2coords is None for element_id", element_id)
         self.master_node = master_node
         self.nodes: List = nodes
         self.dofs: int = dofs
@@ -43,7 +44,9 @@ class MPC:
             MPC.config_2_id_2_instance[mpc_config.value] = {}
 
         if element_id in MPC.config_2_id_2_instance[mpc_config.value]:
-            print("MPC element_id already exists", element_id)
+            Logger().log_err(
+                f"Element with id {element_id} already exists for config {mpc_config}"
+            )
         MPC.config_2_id_2_instance[mpc_config.value][element_id] = self
 
     @staticmethod

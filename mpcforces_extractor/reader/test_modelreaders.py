@@ -89,7 +89,6 @@ class TestFemFileReader(unittest.TestCase):
             self.assertTrue(
                 Node.node_id2node[i] in Element.element_id2element[497].nodes
             )
-        print(len(Element1D.all_elements))
         self.assertEqual(len(Element1D.all_elements), 1)
 
     @patch(
