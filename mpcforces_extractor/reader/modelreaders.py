@@ -2,6 +2,7 @@ from typing import List, Dict
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Element1D, Element, Node
 from mpcforces_extractor.datastructure.loads import Moment, Force, SPC
+from mpcforces_extractor.logging.logger import Logger
 
 
 class FemFileReader:
@@ -54,7 +55,7 @@ class FemFileReader:
             with open(self.file_path, "r", encoding="utf-8") as file:
                 return file.readlines()
         except FileNotFoundError:
-            print(f"File {self.file_path} not found")
+            Logger().log_err(f"File {self.file_path} not found")
             return []
 
     def __read_nodes(self):
@@ -311,7 +312,9 @@ class FemFileReader:
                     else:
                         spc_id_2dof_id2dof_value[node_id][int(dof_ids)] = dof_value
                 else:
-                    print("Duplicate SPC found, ignoring. Node id: ", node_id)
+                    Logger().log_warn(
+                        "Duplicate SPC found, ignoring. Node id: ", node_id
+                    )
 
         for node_id, system_id in spc_id2system_id.items():
             spc = SPC(node_id, system_id, spc_id_2dof_id2dof_value[node_id])

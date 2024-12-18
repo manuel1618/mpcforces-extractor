@@ -1,6 +1,6 @@
-import time
 from typing import List, Dict
 import networkx as nx
+from mpcforces_extractor.logging.logger import Logger
 
 
 class Node:
@@ -111,16 +111,10 @@ class Element:
         This method is used to get the part_id2node_ids using the graph
         """
         if force_update or not Part.part_id2node_ids:
-            start_time = time.time()
-            print("Building the part_id2node_ids using the graph")
-
-            print("...Calculating connected components")
+            logger = Logger()
+            logger.start_timing("Building the part_id2node_ids using the graph")
             connected_components = list(nx.connected_components(Element.graph.copy()))
-
-            print(
-                "Finished calculating the connected components, returning part_id2node_ids"
-            )
-            print("..took ", round(time.time() - start_time, 2), "seconds")
+            logger.stop_timing("Building the part_id2node_ids using the graph")
 
             for _, connected_component in enumerate(connected_components):
                 Part(connected_component)
