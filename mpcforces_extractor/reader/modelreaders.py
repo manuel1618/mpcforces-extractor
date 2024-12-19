@@ -1,4 +1,6 @@
+import multiprocessing
 from typing import List, Dict
+import psutil
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Element1D, Element, Node
 from mpcforces_extractor.datastructure.loads import Moment, Force, SPC
@@ -36,6 +38,7 @@ class FemFileReader:
     def __init__(self, file_path, block_size: int):
         self.file_path = file_path
         self.blocksize = block_size
+        self.node_lines = []
         self.nodes_id2node = {}
         self.rigid_elements = []
         self.node2property = {}
@@ -58,24 +61,62 @@ class FemFileReader:
             Logger().log_err(f"File {self.file_path} not found")
             return []
 
-    def __read_nodes(self):
+    def __identify_node_lines(self):
         """
-        This method is used to read the nodes from the .fem file
+        This method identifies the node lines in the file
         """
         grids_found = False
         for i, line in enumerate(self.file_content):
             if line.startswith("GRID"):
                 grids_found = True
-                line_content = self.split_line(line)
-                node_id = int(line_content[1])
-                x = self.__node_coord_parser(line_content[3])
-                y = self.__node_coord_parser(line_content[4])
-                z = self.__node_coord_parser(line_content[5])
-                node = Node(node_id, [x, y, z])
-                self.nodes_id2node[node.id] = node
-            if grids_found and not line.startswith("GRID"):
+                self.node_lines.append(line)
+            elif grids_found and not line.startswith("GRID"):
                 self.endGridLine = i
                 break
+
+    def _process_node_chunk(self, chunk: List[str]) -> Dict[int, "Node"]:
+        """
+        Process a chunk of node lines to extract nodes.
+        Returns a dictionary of node_id to Node.
+        """
+        nodes = {}
+        for line in chunk:
+            line_content = self.split_line(line)
+            node_id = int(line_content[1])
+            coords = [self.__node_coord_parser(line_content[j]) for j in range(3, 6)]
+            node = Node(node_id, coords)
+            nodes[node.id] = node
+        return nodes
+
+    def __read_nodes(self):
+        """
+        This method processes the identified node lines using parallelization.
+        """
+        self.__identify_node_lines()
+
+        if not self.node_lines:
+            return
+
+        number_of_processes = len(psutil.Process().cpu_affinity())
+        print(number_of_processes)
+
+        number_of_splits = min(len(self.node_lines), number_of_processes)
+
+        # Split node lines into chunks for parallel processing
+        chunk_size = len(self.node_lines) // number_of_splits
+        chunks = [
+            self.node_lines[i : i + chunk_size]
+            for i in range(0, len(self.node_lines), chunk_size)
+        ]
+
+        # Use multiprocessing to process chunks in parallel
+        with multiprocessing.Pool(processes=number_of_splits) as pool:
+            results = pool.map(self._process_node_chunk, chunks)
+
+        # After parallel processing, collect all the results
+        for result in results:
+            self.nodes_id2node.update(result)
+            Node.node_id2node.update(result)  # Update the class-level dictionary
 
     def __node_coord_parser(self, coord_str: str) -> float:
         """
