@@ -17,7 +17,7 @@ def main():
 
     input_folder = "data/input"
     # output_folder = "data/output"
-    model_name = "m"
+    model_name = "flange2"
     # model_name = "Flange"
     blocksize = 8
 
@@ -35,12 +35,7 @@ def main():
     mpc_force_extractor = MPCForceExtractor(input_folder + f"/{model_name}.mpcf")
     mpc_force_extractor.build_subcase_data()
     spc_forces_extractor = SPCForcesExtractor(input_folder + f"/{model_name}.spcf")
-
-    # Debug
     spc_forces_extractor.build_subcase_data()
-    for subcase in spc_forces_extractor.subcases:
-        print(subcase.subcase_id, subcase.time)
-        print(subcase.node_id2spcforces)
 
     SPCCluster.build_spc_cluster()
     SPCCluster.calculate_force_sum()
