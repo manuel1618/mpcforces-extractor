@@ -47,7 +47,16 @@ class modelReaderUtilities:
             number_of_processes = os.cpu_count()
             number_of_splits = min(len(lines), number_of_processes)
 
-        # Split node lines into chunks for parallel processing
         chunk_size = len(lines) // number_of_splits
-        chunks = [lines[i : i + chunk_size] for i in range(0, len(lines), chunk_size)]
+        chunk_indices = [i * chunk_size for i in range(number_of_splits)]
+        # shift the indices to the right as long as the index points to a line that starts with a + (continuation line)
+        for i, _ in enumerate(chunk_indices):
+            while lines[chunk_indices[i]].startswith("+"):
+                chunk_indices[i] += 1
+        chunks = [
+            lines[chunk_indices[i] : chunk_indices[i + 1]]
+            for i in range(number_of_splits - 1)
+        ]
+        chunks.append(lines[chunk_indices[-1] :])
+
         return chunks

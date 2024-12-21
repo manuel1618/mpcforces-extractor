@@ -38,7 +38,7 @@ tasks:
     desc: Run tests
     cmds:
       - >
-        python -m poetry run pytest 
+        python -m poetry run pytest
         --cov=mpcforces_extractor 
         --cov-report=html
 

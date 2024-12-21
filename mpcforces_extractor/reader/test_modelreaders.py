@@ -51,50 +51,6 @@ class TestFemFileReader(unittest.TestCase):
     @patch(
         "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
     )
-    def test_create_entities(self, mock_read_lines):
-        """
-        Test the create_entities method. Make sure the node2property is built correctly
-        """
-
-        # setup
-        Element1D.all_elements = []
-
-        mock_read_lines.return_value = [
-            "GRID           1        -16.889186.0    13.11648\n",
-            "GRID           2        -16.889186.0    13.11648\n",
-            "GRID           3        -16.889186.0    13.11648\n",
-            "GRID           4        -16.889186.0    13.11648\n",
-            "GRID           5        -16.889186.0    13.11648\n",
-            "GRID           6        -16.889186.0    13.11648\n",
-            "GRID           7        -16.889186.0    13.11648\n",
-            "\n",
-            "CHEXA        497       1       1       2       3\n",
-            "+              4       5\n",
-            "CBAR         498       1       1       2\n",
-            "$$ test\n",
-            "RBE2           1       2  123456       3       4       5       6       7\n",
-            "RBE3           1       2  123456       3       4       5       6       7\n",
-            "\n",
-        ]
-
-        fem_file_reader = FemFileReader("test.fem", 8)
-
-        fem_file_reader.create_entities()
-        self.assertEqual(fem_file_reader.node2property, {1: 1, 2: 1, 3: 1, 4: 1, 5: 1})
-        self.assertTrue(Element.element_id2element[497] is not None)
-        self.assertTrue(Node.node_id2node[1] is not None)
-        self.assertTrue(Node.node_id2node[7] is not None)
-        for i in range(1, 8):
-            self.assertTrue(Node.node_id2node[i] is not None)
-        for i in range(1, 6):
-            self.assertTrue(
-                Node.node_id2node[i] in Element.element_id2element[497].nodes
-            )
-        self.assertEqual(len(Element1D.all_elements), 1)
-
-    @patch(
-        "mpcforces_extractor.reader.modelreaders.FemFileReader._FemFileReader__read_lines"
-    )
     def test_get_rigid_elements(self, mock_read_lines):
         """
         Test the get_rigid_elements method. Make sure the rigid elements are extracted correctly

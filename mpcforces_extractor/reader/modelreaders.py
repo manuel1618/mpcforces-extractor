@@ -124,14 +124,23 @@ class FemFileReader:
                 self.nodes_id2node[node.id] = node
                 Node.node_id2node[node.id] = node
 
-    def create_entities(self):
+    def create_entities(self, parallel: bool = True):
         """
         This method is used to build the node2property dictionary.
         Its the main info needed for getting the forces by property
         """
+        if parallel:
+            element_lines = self.file_content[self.endGridLine :]
+            chunks = modelReaderUtilities.get_chunks(element_lines)
+            with ThreadPoolExecutor() as executor:
+                executor.map(self._process_entity_chunk, chunks)
+        else:
+            self._process_entity_chunk(self.file_content[self.endGridLine :])
+
+    def _process_entity_chunk(self, chunk: List[str]):
         elements_found = False
-        for i, _ in enumerate(self.file_content[self.endGridLine :]):
-            line = self.file_content[i]
+        for i, _ in enumerate(chunk):
+            line = chunk[i]
 
             if line.strip().startswith("+") and elements_found:
                 continue
@@ -146,8 +155,10 @@ class FemFileReader:
                 continue
 
             elements_found = True
-
             property_id = int(line_content[2])
+
+            nodes = []
+            node_ids = []
 
             if element_keyword in ["CBEAM", "CBAR", "CTUBE", "CROD"]:
                 element_id = int(line_content[1])
@@ -166,20 +177,16 @@ class FemFileReader:
                 node_ids = line_content[3:]
                 element_id = int(line_content[1])
 
-                if i < len(self.file_content) - 1:
+                if i < len(chunk) - 1:
                     i += 1
-                    line2 = self.file_content[i]
+                    line2 = chunk[i]
                     while line2.startswith("+"):
-                        line_content = modelReaderUtilities.split_line(
-                            line2, self.blocksize
-                        )
                         node_ids += modelReaderUtilities.split_line(
                             line2, self.blocksize
                         )[1:]
                         i += 1
-                        line2 = self.file_content[i]
+                        line2 = chunk[i]
 
-                # remove any + from each node_id if its there
                 node_ids = [
                     node_id.replace("+", "")
                     for node_id in node_ids
@@ -266,7 +273,7 @@ class FemFileReader:
         """
         This method is used to extract the loads from the .fem file (currently forces and moments)
         """
-        for i, _ in enumerate(self.file_content[self.endElementLine :]):
+        for i, _ in enumerate(self.file_content[self.endGridLine :]):
             line = self.file_content[i]
 
             if line.startswith("FORCE"):
