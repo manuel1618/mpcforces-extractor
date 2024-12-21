@@ -1,10 +1,11 @@
-import multiprocessing
+from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict
 import psutil
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Element1D, Element, Node
 from mpcforces_extractor.datastructure.loads import Moment, Force, SPC
 from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.reader.reader_utilities import modelReaderUtilities
 
 
 class FemFileReader:
@@ -43,7 +44,9 @@ class FemFileReader:
         self.rigid_elements = []
         self.node2property = {}
         self.file_content = self.__read_lines()
-        self.__read_nodes()
+        Logger().start_timing("Creating nodes")
+        self.__read_nodes(True)
+        Logger().stop_timing("Creating nodes")
         self.elements_1D = []
         self.elements_3D = []
         self.endGridLine = None
@@ -81,14 +84,17 @@ class FemFileReader:
         """
         nodes = {}
         for line in chunk:
-            line_content = self.split_line(line)
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             node_id = int(line_content[1])
-            coords = [self.__node_coord_parser(line_content[j]) for j in range(3, 6)]
+            coords = [
+                modelReaderUtilities.node_coord_parser(line_content[j])
+                for j in range(3, 6)
+            ]
             node = Node(node_id, coords)
             nodes[node.id] = node
         return nodes
 
-    def __read_nodes(self):
+    def __read_nodes(self, parallel: bool = True):
         """
         This method processes the identified node lines using parallelization.
         """
@@ -97,55 +103,37 @@ class FemFileReader:
         if not self.node_lines:
             return
 
-        number_of_processes = len(psutil.Process().cpu_affinity())
-        print(number_of_processes)
+        if parallel:
+            number_of_processes = len(psutil.Process().cpu_affinity())
+            print(number_of_processes)
 
-        number_of_splits = min(len(self.node_lines), number_of_processes)
+            number_of_splits = min(len(self.node_lines), number_of_processes)
 
-        # Split node lines into chunks for parallel processing
-        chunk_size = len(self.node_lines) // number_of_splits
-        chunks = [
-            self.node_lines[i : i + chunk_size]
-            for i in range(0, len(self.node_lines), chunk_size)
-        ]
+            # Split node lines into chunks for parallel processing
+            chunk_size = len(self.node_lines) // number_of_splits
+            chunks = [
+                self.node_lines[i : i + chunk_size]
+                for i in range(0, len(self.node_lines), chunk_size)
+            ]
 
-        # Use multiprocessing to process chunks in parallel
-        with multiprocessing.Pool(processes=number_of_splits) as pool:
-            results = pool.map(self._process_node_chunk, chunks)
+            with ThreadPoolExecutor() as executor:
+                futures = executor.map(self._process_node_chunk, chunks)
 
-        # After parallel processing, collect all the results
-        for result in results:
-            self.nodes_id2node.update(result)
-            Node.node_id2node.update(result)  # Update the class-level dictionary
-
-    def __node_coord_parser(self, coord_str: str) -> float:
-        """
-        This method is used to parse the node coordinates
-        """
-        # Problem is the expenential notation without the E in it
-        before_dot = coord_str.split(".")[0]
-        after_dot = coord_str.split(".")[1]
-        if "-" in after_dot:
-            return float(before_dot + "." + after_dot.replace("-", "e-"))
-        if "+" in after_dot:
-            return float(before_dot + "." + after_dot.replace("+", "e+"))
-
-        return float(coord_str)
-
-    def split_line(self, line: str) -> List:
-        """
-        This method is used to split a line into blocks of blocksize, and
-        remove the newline character and strip the content of the block
-        """
-        line_content = [
-            line[j : j + self.blocksize] for j in range(0, len(line), self.blocksize)
-        ]
-
-        if "\n" in line_content:
-            line_content.remove("\n")
-
-        line_content = [line.strip() for line in line_content]
-        return line_content
+            # After parallel processing, collect all the results
+            for result in futures:
+                self.nodes_id2node.update(result)
+                Node.node_id2node.update(result)  # Update the class-level dictionary
+        else:
+            for line in self.node_lines:
+                line_content = modelReaderUtilities.split_line(line, self.blocksize)
+                node_id = int(line_content[1])
+                coords = [
+                    modelReaderUtilities.node_coord_parser(line_content[j])
+                    for j in range(3, 6)
+                ]
+                node = Node(node_id, coords)
+                self.nodes_id2node[node.id] = node
+                Node.node_id2node[node.id] = node
 
     def create_entities(self):
         """
@@ -159,10 +147,10 @@ class FemFileReader:
             if line.strip().startswith("+") and elements_found:
                 continue
 
-            line_content = self.split_line(line)
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             if len(line_content) < 2:
                 continue
-            line_content = self.split_line(line)
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             element_keyword = line_content[0]
 
             if element_keyword not in self.element_keywords:
@@ -193,8 +181,12 @@ class FemFileReader:
                     i += 1
                     line2 = self.file_content[i]
                     while line2.startswith("+"):
-                        line_content = self.split_line(line2)
-                        node_ids += self.split_line(line2)[1:]
+                        line_content = modelReaderUtilities.split_line(
+                            line2, self.blocksize
+                        )
+                        node_ids += modelReaderUtilities.split_line(
+                            line2, self.blocksize
+                        )[1:]
                         i += 1
                         line2 = self.file_content[i]
 
@@ -225,7 +217,7 @@ class FemFileReader:
             if line.split(" ")[0] not in element_keywords:
                 continue
 
-            line_content = self.split_line(line)
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             element_id: int = int(line_content[1])
             dofs: int = None
             node_ids: List = []
@@ -249,7 +241,9 @@ class FemFileReader:
                 i += 1
                 line2 = self.file_content[i]
                 while line2.startswith("+"):
-                    line_content = self.split_line(line2)
+                    line_content = modelReaderUtilities.split_line(
+                        line2, self.blocksize
+                    )
                     for j, _ in enumerate(line_content):
                         if j == 0:
                             continue
@@ -287,7 +281,7 @@ class FemFileReader:
             line = self.file_content[i]
 
             if line.startswith("FORCE"):
-                line_content = self.split_line(line)
+                line_content = modelReaderUtilities.split_line(line, self.blocksize)
                 force_id = int(line_content[1])
                 node_id = int(line_content[2])
                 system_id = int(line_content[3])
@@ -304,7 +298,7 @@ class FemFileReader:
                 FemFileReader.load_id2load[force_id] = force
 
             if line.startswith("MOMENT"):
-                line_content = self.split_line(line)
+                line_content = modelReaderUtilities.split_line(line, self.blocksize)
                 moment_id = int(line_content[1])
                 node_id = int(line_content[2])
                 system_id = int(line_content[3])
@@ -331,12 +325,12 @@ class FemFileReader:
         for i, _ in enumerate(self.file_content[self.endElementLine :]):
             line = self.file_content[i]
 
-            line_content = self.split_line(line)
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             if len(line_content) < 2:
                 continue
 
             if line_content[0].strip() == "SPC":
-                line_content = self.split_line(line)
+                line_content = modelReaderUtilities.split_line(line, self.blocksize)
                 system_id = int(line_content[1])
                 node_id = int(line_content[2])
                 dof_ids = line_content[3]

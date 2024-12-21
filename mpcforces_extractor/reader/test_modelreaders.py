@@ -4,6 +4,7 @@ from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.datastructure.entities import Node, Element, Element1D
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 from mpcforces_extractor.datastructure.loads import Force, Moment
+from mpcforces_extractor.reader.reader_utilities import modelReaderUtilities
 
 
 class TestFemFileReader(unittest.TestCase):
@@ -38,13 +39,13 @@ class TestFemFileReader(unittest.TestCase):
         mock_read_lines.return_value = []
         mock_read_nodes.return_value = []
         # Test the split_line method
-        fem_file_reader = FemFileReader("test.fem", 8)
+        blocksize = 8
         line = "1234567890"
-        line_content = fem_file_reader.split_line(line)
+        line_content = modelReaderUtilities.split_line(line, blocksize)
         self.assertEqual(line_content, ["12345678", "90"])
 
         line = "123456789"
-        line_content = fem_file_reader.split_line(line)
+        line_content = modelReaderUtilities.split_line(line, blocksize)
         self.assertEqual(line_content, ["12345678", "9"])
 
     @patch(
