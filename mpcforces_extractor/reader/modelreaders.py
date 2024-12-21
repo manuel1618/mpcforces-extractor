@@ -1,8 +1,10 @@
+from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Element1D, Element, Node
 from mpcforces_extractor.datastructure.loads import Moment, Force, SPC
 from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.reader.reader_utilities import modelReaderUtilities
 
 
 class FemFileReader:
@@ -23,12 +25,13 @@ class FemFileReader:
         "CBEAM",
         "CBAR",
     ]
+    keyword_1d_elements = ["CROD", "CTUBE", "CBEAM", "CBAR"]
+    keyword_loadcollectors = ["FORCE", "MOMENT", "SPC"]
 
     file_path: str = None
     file_content: str = None
     nodes_id2node: Dict = {}
     rigid_elements: List[MPC] = []
-    node2property = {}
     load_id2load: Dict = {}
     node_id2spc: Dict = {}
     blocksize: int = None
@@ -36,13 +39,13 @@ class FemFileReader:
     def __init__(self, file_path, block_size: int):
         self.file_path = file_path
         self.blocksize = block_size
+        self.node_lines = []
         self.nodes_id2node = {}
         self.rigid_elements = []
-        self.node2property = {}
         self.file_content = self.__read_lines()
-        self.__read_nodes()
-        self.elements_1D = []
-        self.elements_3D = []
+        Logger().start_timing("Creating nodes")
+        self.__read_nodes(True)
+        Logger().stop_timing("Creating nodes")
         self.endGridLine = None
         self.endElementLine = None
 
@@ -58,117 +61,147 @@ class FemFileReader:
             Logger().log_err(f"File {self.file_path} not found")
             return []
 
-    def __read_nodes(self):
+    def __identify_node_lines(self):
         """
-        This method is used to read the nodes from the .fem file
+        This method identifies the node lines in the file
         """
         grids_found = False
         for i, line in enumerate(self.file_content):
             if line.startswith("GRID"):
                 grids_found = True
-                line_content = self.split_line(line)
-                node_id = int(line_content[1])
-                x = self.__node_coord_parser(line_content[3])
-                y = self.__node_coord_parser(line_content[4])
-                z = self.__node_coord_parser(line_content[5])
-                node = Node(node_id, [x, y, z])
-                self.nodes_id2node[node.id] = node
-            if grids_found and not line.startswith("GRID"):
+                self.node_lines.append(line)
+            elif grids_found and not line.startswith("GRID"):
                 self.endGridLine = i
                 break
 
-    def __node_coord_parser(self, coord_str: str) -> float:
+    def _process_node_chunk(self, chunk: List[str]) -> Dict[int, "Node"]:
         """
-        This method is used to parse the node coordinates
+        Process a chunk of node lines to extract nodes.
+        Returns a dictionary of node_id to Node.
         """
-        # Problem is the expenential notation without the E in it
-        before_dot = coord_str.split(".")[0]
-        after_dot = coord_str.split(".")[1]
-        if "-" in after_dot:
-            return float(before_dot + "." + after_dot.replace("-", "e-"))
-        if "+" in after_dot:
-            return float(before_dot + "." + after_dot.replace("+", "e+"))
+        nodes = {}
+        for line in chunk:
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
+            node_id = int(line_content[1])
+            coords = [
+                modelReaderUtilities.node_coord_parser(line_content[j])
+                for j in range(3, 6)
+            ]
+            node = Node(node_id, coords)
+            self.nodes_id2node[node.id] = node
+            nodes[node.id] = node
+        return nodes
 
-        return float(coord_str)
-
-    def split_line(self, line: str) -> List:
+    def __read_nodes(self, parallel: bool = True):
         """
-        This method is used to split a line into blocks of blocksize, and
-        remove the newline character and strip the content of the block
+        This method processes the identified node lines using parallelization.
         """
-        line_content = [
-            line[j : j + self.blocksize] for j in range(0, len(line), self.blocksize)
-        ]
+        self.__identify_node_lines()
 
-        if "\n" in line_content:
-            line_content.remove("\n")
+        if not self.node_lines:
+            return
 
-        line_content = [line.strip() for line in line_content]
-        return line_content
+        if parallel:
+            chunks = modelReaderUtilities.get_chunks(self.node_lines)
+            with ThreadPoolExecutor() as executor:
+                executor.map(self._process_node_chunk, chunks)
+        else:
+            self.__process_node_chunk(self.node_lines)
 
-    def create_entities(self):
+    def create_entities(self, parallel: bool = True):
         """
-        This method is used to build the node2property dictionary.
-        Its the main info needed for getting the forces by property
+        Creates the Elements based on the .fem file
         """
-        elements_found = False
-        for i, _ in enumerate(self.file_content[self.endGridLine :]):
-            line = self.file_content[i]
 
-            if line.strip().startswith("+") and elements_found:
+        if parallel:
+            chunks = modelReaderUtilities.get_chunks(
+                self.file_content[self.endGridLine : self.endElementLine],
+            )
+
+            with ThreadPoolExecutor() as executor:
+                futures = list(executor.map(self.process_element_chunk, chunks))
+
+            element_1d_id_prop_node1_node2 = []
+            element_3d_id_prop_nodes = []
+
+            # After parallel processing, collect all the results
+            for result in futures:
+                element_1d_id_prop_node1_node2 += result[0]
+                element_3d_id_prop_nodes += result[1]
+        else:
+            # Process all at once
+            element_1d_id_prop_node1_node2, element_3d_id_prop_nodes = (
+                self.process_element_chunk(
+                    self.file_content[self.endGridLine : self.endElementLine]
+                )
+            )
+
+        for element_id, property_id, node1, node2 in element_1d_id_prop_node1_node2:
+            Element1D(element_id, property_id, node1, node2)
+
+        for element_id, property_id, nodes in element_3d_id_prop_nodes:
+            Element(element_id, property_id, nodes)
+
+    def process_element_chunk(self, chunk: List[str]) -> List:
+        """
+        Processes a chunk of element lines to extract elements.
+        Returns a list of tuples containing element_id, property_id, and nodes.
+        """
+
+        # for element creation
+        element_1d_id_prop_node1_node2 = []
+        element_3d_id_prop_nodes = []
+
+        for i, line in enumerate(chunk):
+
+            if not line.startswith(tuple(FemFileReader.element_keywords)):
                 continue
 
-            line_content = self.split_line(line)
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             if len(line_content) < 2:
                 continue
-            line_content = self.split_line(line)
             element_keyword = line_content[0]
 
-            if element_keyword not in self.element_keywords:
+            if element_keyword not in FemFileReader.element_keywords:
                 continue
 
-            elements_found = True
+            if element_keyword in FemFileReader.keyword_loadcollectors:
+                self.endElementLine = i - 1
+                break
 
             property_id = int(line_content[2])
+            nodes = []
+            node_ids = []
 
-            if element_keyword in ["CBEAM", "CBAR", "CTUBE", "CROD"]:
+            if element_keyword in FemFileReader.keyword_1d_elements:
                 element_id = int(line_content[1])
                 node1 = Node.node_id2node[int(line_content[3])]
                 node2 = Node.node_id2node[int(line_content[4])]
-                element = Element1D(
-                    element_id,
-                    property_id,
-                    node1,
-                    node2,
+                element_1d_id_prop_node1_node2.append(
+                    (element_id, property_id, node1, node2)
                 )
-                self.elements_1D.append(element)
-                nodes = [node1, node2]
-
             else:
                 node_ids = line_content[3:]
                 element_id = int(line_content[1])
 
-                if i < len(self.file_content) - 1:
+                # Initialize node_ids and continue appending lines until we reach a line that doesn't start with "+"
+                while i + 1 < len(chunk) and chunk[i + 1].startswith("+"):
                     i += 1
-                    line2 = self.file_content[i]
-                    while line2.startswith("+"):
-                        line_content = self.split_line(line2)
-                        node_ids += self.split_line(line2)[1:]
-                        i += 1
-                        line2 = self.file_content[i]
+                    # Append node IDs from the next continuation line (ignoring the '+')
+                    node_ids += modelReaderUtilities.split_line(
+                        chunk[i], self.blocksize
+                    )[1:]
 
-                # remove any + from each node_id if its there
                 node_ids = [
-                    node_id.replace("+", "")
+                    node_id.replace("+", "").strip()
                     for node_id in node_ids
-                    if node_id.replace("+", "").strip() != ""
+                    if node_id.strip()
                 ]
 
                 nodes = [self.nodes_id2node[int(node_id)] for node_id in node_ids]
-                self.elements_3D.append(Element(element_id, property_id, nodes))
+                element_3d_id_prop_nodes.append((element_id, property_id, nodes))
 
-            for node in nodes:
-                self.node2property[node.id] = property_id
+        return element_1d_id_prop_node1_node2, element_3d_id_prop_nodes
 
     def get_rigid_elements(self):
         """
@@ -184,7 +217,7 @@ class FemFileReader:
             if line.split(" ")[0] not in element_keywords:
                 continue
 
-            line_content = self.split_line(line)
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             element_id: int = int(line_content[1])
             dofs: int = None
             node_ids: List = []
@@ -208,7 +241,9 @@ class FemFileReader:
                 i += 1
                 line2 = self.file_content[i]
                 while line2.startswith("+"):
-                    line_content = self.split_line(line2)
+                    line_content = modelReaderUtilities.split_line(
+                        line2, self.blocksize
+                    )
                     for j, _ in enumerate(line_content):
                         if j == 0:
                             continue
@@ -246,7 +281,7 @@ class FemFileReader:
             line = self.file_content[i]
 
             if line.startswith("FORCE"):
-                line_content = self.split_line(line)
+                line_content = modelReaderUtilities.split_line(line, self.blocksize)
                 force_id = int(line_content[1])
                 node_id = int(line_content[2])
                 system_id = int(line_content[3])
@@ -263,7 +298,7 @@ class FemFileReader:
                 FemFileReader.load_id2load[force_id] = force
 
             if line.startswith("MOMENT"):
-                line_content = self.split_line(line)
+                line_content = modelReaderUtilities.split_line(line, self.blocksize)
                 moment_id = int(line_content[1])
                 node_id = int(line_content[2])
                 system_id = int(line_content[3])
@@ -290,12 +325,15 @@ class FemFileReader:
         for i, _ in enumerate(self.file_content[self.endElementLine :]):
             line = self.file_content[i]
 
-            line_content = self.split_line(line)
+            if not line.startswith("SPC"):
+                continue
+
+            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             if len(line_content) < 2:
                 continue
 
             if line_content[0].strip() == "SPC":
-                line_content = self.split_line(line)
+                line_content = modelReaderUtilities.split_line(line, self.blocksize)
                 system_id = int(line_content[1])
                 node_id = int(line_content[2])
                 dof_ids = line_content[3]
