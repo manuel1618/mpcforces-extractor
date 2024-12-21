@@ -30,7 +30,6 @@ class FemFileReader:
     file_content: str = None
     nodes_id2node: Dict = {}
     rigid_elements: List[MPC] = []
-    node2property = {}
     load_id2load: Dict = {}
     node_id2spc: Dict = {}
     blocksize: int = None
@@ -41,13 +40,10 @@ class FemFileReader:
         self.node_lines = []
         self.nodes_id2node = {}
         self.rigid_elements = []
-        self.node2property = {}
         self.file_content = self.__read_lines()
         Logger().start_timing("Creating nodes")
         self.__read_nodes(True)
         Logger().stop_timing("Creating nodes")
-        self.elements_1D = []
-        self.elements_3D = []
         self.endGridLine = None
         self.endElementLine = None
 
@@ -124,23 +120,13 @@ class FemFileReader:
                 self.nodes_id2node[node.id] = node
                 Node.node_id2node[node.id] = node
 
-    def create_entities(self, parallel: bool = True):
+    def create_entities(self):
         """
-        This method is used to build the node2property dictionary.
-        Its the main info needed for getting the forces by property
+        Creates the Elements based on the .fem file
         """
-        if parallel:
-            element_lines = self.file_content[self.endGridLine :]
-            chunks = modelReaderUtilities.get_chunks(element_lines)
-            with ThreadPoolExecutor() as executor:
-                executor.map(self._process_entity_chunk, chunks)
-        else:
-            self._process_entity_chunk(self.file_content[self.endGridLine :])
-
-    def _process_entity_chunk(self, chunk: List[str]):
         elements_found = False
-        for i, _ in enumerate(chunk):
-            line = chunk[i]
+        lines = self.file_content[self.endGridLine :]
+        for i, line in enumerate(lines):
 
             if line.strip().startswith("+") and elements_found:
                 continue
@@ -148,7 +134,6 @@ class FemFileReader:
             line_content = modelReaderUtilities.split_line(line, self.blocksize)
             if len(line_content) < 2:
                 continue
-            line_content = modelReaderUtilities.split_line(line, self.blocksize)
             element_keyword = line_content[0]
 
             if element_keyword not in self.element_keywords:
@@ -159,33 +144,32 @@ class FemFileReader:
 
             nodes = []
             node_ids = []
+            element_id_keywords = ["CROD", "CTUBE", "CBEAM", "CBAR"]
 
-            if element_keyword in ["CBEAM", "CBAR", "CTUBE", "CROD"]:
+            if element_keyword in element_id_keywords:
                 element_id = int(line_content[1])
                 node1 = Node.node_id2node[int(line_content[3])]
                 node2 = Node.node_id2node[int(line_content[4])]
-                element = Element1D(
+                Element1D(
                     element_id,
                     property_id,
                     node1,
                     node2,
                 )
-                self.elements_1D.append(element)
-                nodes = [node1, node2]
 
             else:
                 node_ids = line_content[3:]
                 element_id = int(line_content[1])
 
-                if i < len(chunk) - 1:
+                if i < len(lines) - 1:
                     i += 1
-                    line2 = chunk[i]
+                    line2 = lines[i]
                     while line2.startswith("+"):
                         node_ids += modelReaderUtilities.split_line(
                             line2, self.blocksize
                         )[1:]
                         i += 1
-                        line2 = chunk[i]
+                        line2 = lines[i]
 
                 node_ids = [
                     node_id.replace("+", "")
@@ -194,10 +178,7 @@ class FemFileReader:
                 ]
 
                 nodes = [self.nodes_id2node[int(node_id)] for node_id in node_ids]
-                self.elements_3D.append(Element(element_id, property_id, nodes))
-
-            for node in nodes:
-                self.node2property[node.id] = property_id
+                Element(element_id, property_id, nodes)
 
     def get_rigid_elements(self):
         """
