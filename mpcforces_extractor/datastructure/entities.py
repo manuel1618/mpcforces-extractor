@@ -1,4 +1,5 @@
 from typing import List, Dict
+from itertools import combinations
 import networkx as nx
 from mpcforces_extractor.logging.logger import Logger
 
@@ -78,20 +79,21 @@ class Element:
         for node in nodes:
             node.add_element(self)
 
-        # Graph - careful: Careless implementation regarding nodes:
-        # every node is connected to every other node.
-        # Real implementation should be done depending on element keyword
-        for node in nodes:
-            for node2 in nodes:
-                if node.id != node2.id:
-                    # add the edge to the graph if it does not exist
-                    if not Element.graph.has_edge(node, node2):
-                        Element.graph.add_edge(node, node2)
+        self._add_edges_to_graph(nodes)
 
         self.centroid = self.__calculate_centroid()
         self.neighbors = []
         self.element_id2element[self.id] = self
-        Element.part_id2node_ids = {}
+
+    def _add_edges_to_graph(self, nodes):
+        """
+        Graph - careful: Careless implementation regarding nodes:
+        # every node is connected to every other node.
+        # Real implementation should be done depending on element keyword
+        """
+        for node, node2 in combinations(nodes, 2):
+            if not Element.graph.has_edge(node, node2):
+                Element.graph.add_edge(node, node2)
 
     def __calculate_centroid(self):
         """
