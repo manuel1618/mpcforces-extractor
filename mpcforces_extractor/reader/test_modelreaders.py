@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch
 from mpcforces_extractor.reader.modelreaders import FemFileReader
-from mpcforces_extractor.datastructure.entities import Node, Element, Element1D
 from mpcforces_extractor.datastructure.rigids import MPC_CONFIG
 from mpcforces_extractor.datastructure.loads import Force, Moment
 from mpcforces_extractor.reader.reader_utilities import modelReaderUtilities
