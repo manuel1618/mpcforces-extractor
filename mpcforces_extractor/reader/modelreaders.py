@@ -81,6 +81,10 @@ class FemFileReader:
         """
         nodes = {}
         for line in chunk:
+
+            if not line.startswith("GRID"):
+                continue
+
             line_content = modelReaderUtilities.split_line(line, self.blocksize)
             node_id = int(line_content[1])
             coords = [
@@ -88,6 +92,7 @@ class FemFileReader:
                 for j in range(3, 6)
             ]
             node = Node(node_id, coords)
+            self.nodes_id2node[node.id] = node
             nodes[node.id] = node
         return nodes
 
@@ -102,25 +107,10 @@ class FemFileReader:
 
         if parallel:
             chunks = modelReaderUtilities.get_chunks(self.node_lines)
-
             with ThreadPoolExecutor() as executor:
-                futures = executor.map(self._process_node_chunk, chunks)
-
-            # After parallel processing, collect all the results
-            for result in futures:
-                self.nodes_id2node.update(result)
-                Node.node_id2node.update(result)  # Update the class-level dictionary
+                executor.map(self._process_node_chunk, chunks)
         else:
-            for line in self.node_lines:
-                line_content = modelReaderUtilities.split_line(line, self.blocksize)
-                node_id = int(line_content[1])
-                coords = [
-                    modelReaderUtilities.node_coord_parser(line_content[j])
-                    for j in range(3, 6)
-                ]
-                node = Node(node_id, coords)
-                self.nodes_id2node[node.id] = node
-                Node.node_id2node[node.id] = node
+            self.__process_node_chunk(self.node_lines)
 
     def create_entities(self, parallel: bool = True):
         """
@@ -129,7 +119,7 @@ class FemFileReader:
 
         if parallel:
             chunks = modelReaderUtilities.get_chunks(
-                self.file_content[self.endGridLine : self.endElementLine], 4
+                self.file_content[self.endGridLine : self.endElementLine],
             )
 
             with ThreadPoolExecutor() as executor:
@@ -168,6 +158,9 @@ class FemFileReader:
 
         for i, line in enumerate(chunk):
 
+            if not line.startswith(tuple(FemFileReader.element_keywords)):
+                continue
+
             line_content = modelReaderUtilities.split_line(line, self.blocksize)
             if len(line_content) < 2:
                 continue
@@ -177,6 +170,7 @@ class FemFileReader:
                 continue
 
             if element_keyword in FemFileReader.keyword_loadcollectors:
+                self.endElementLine = i - 1
                 break
 
             property_id = int(line_content[2])
@@ -287,7 +281,7 @@ class FemFileReader:
         """
         This method is used to extract the loads from the .fem file (currently forces and moments)
         """
-        for i, _ in enumerate(self.file_content[self.endGridLine :]):
+        for i, _ in enumerate(self.file_content[self.endElementLine :]):
             line = self.file_content[i]
 
             if line.startswith("FORCE"):
@@ -334,6 +328,9 @@ class FemFileReader:
 
         for i, _ in enumerate(self.file_content[self.endElementLine :]):
             line = self.file_content[i]
+
+            if not line.startswith("SPC"):
+                continue
 
             line_content = modelReaderUtilities.split_line(line, self.blocksize)
             if len(line_content) < 2:
