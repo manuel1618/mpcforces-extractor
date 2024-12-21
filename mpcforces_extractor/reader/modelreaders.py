@@ -81,10 +81,6 @@ class FemFileReader:
         """
         nodes = {}
         for line in chunk:
-
-            if not line.startswith("GRID"):
-                continue
-
             line_content = modelReaderUtilities.split_line(line, self.blocksize)
             node_id = int(line_content[1])
             coords = [
