@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Dict
-import psutil
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Element1D, Element, Node
 from mpcforces_extractor.datastructure.loads import Moment, Force, SPC
@@ -104,17 +103,7 @@ class FemFileReader:
             return
 
         if parallel:
-            number_of_processes = len(psutil.Process().cpu_affinity())
-            print(number_of_processes)
-
-            number_of_splits = min(len(self.node_lines), number_of_processes)
-
-            # Split node lines into chunks for parallel processing
-            chunk_size = len(self.node_lines) // number_of_splits
-            chunks = [
-                self.node_lines[i : i + chunk_size]
-                for i in range(0, len(self.node_lines), chunk_size)
-            ]
+            chunks = modelReaderUtilities.get_chunks(self.node_lines)
 
             with ThreadPoolExecutor() as executor:
                 futures = executor.map(self._process_node_chunk, chunks)

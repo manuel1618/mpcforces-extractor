@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 
@@ -35,3 +36,18 @@ class modelReaderUtilities:
 
         line_content = [line.strip() for line in line_content]
         return line_content
+
+    @staticmethod
+    def get_chunks(lines: List[str], number_of_splits=0):
+        """
+        This method is used to split the node lines into chunks for parallel processing
+        """
+
+        if number_of_splits == 0:
+            number_of_processes = os.cpu_count()
+            number_of_splits = min(len(lines), number_of_processes)
+
+        # Split node lines into chunks for parallel processing
+        chunk_size = len(lines) // number_of_splits
+        chunks = [lines[i : i + chunk_size] for i in range(0, len(lines), chunk_size)]
+        return chunks
