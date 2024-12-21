@@ -25,6 +25,8 @@ class FemFileReader:
         "CBEAM",
         "CBAR",
     ]
+    keyword_1d_elements = ["CROD", "CTUBE", "CBEAM", "CBAR"]
+    keyword_loadcollectors = ["FORCE", "MOMENT", "SPC"]
 
     file_path: str = None
     file_content: str = None
@@ -120,65 +122,96 @@ class FemFileReader:
                 self.nodes_id2node[node.id] = node
                 Node.node_id2node[node.id] = node
 
-    def create_entities(self):
+    def create_entities(self, parallel: bool = True):
         """
         Creates the Elements based on the .fem file
         """
-        elements_found = False
-        lines = self.file_content[self.endGridLine :]
-        for i, line in enumerate(lines):
 
-            if line.strip().startswith("+") and elements_found:
-                continue
+        if parallel:
+            chunks = modelReaderUtilities.get_chunks(
+                self.file_content[self.endGridLine : self.endElementLine], 4
+            )
+
+            with ThreadPoolExecutor() as executor:
+                futures = list(executor.map(self.process_element_chunk, chunks))
+
+            element_1d_id_prop_node1_node2 = []
+            element_3d_id_prop_nodes = []
+
+            # After parallel processing, collect all the results
+            for result in futures:
+                element_1d_id_prop_node1_node2 += result[0]
+                element_3d_id_prop_nodes += result[1]
+        else:
+            # Process all at once
+            element_1d_id_prop_node1_node2, element_3d_id_prop_nodes = (
+                self.process_element_chunk(
+                    self.file_content[self.endGridLine : self.endElementLine]
+                )
+            )
+
+        for element_id, property_id, node1, node2 in element_1d_id_prop_node1_node2:
+            Element1D(element_id, property_id, node1, node2)
+
+        for element_id, property_id, nodes in element_3d_id_prop_nodes:
+            Element(element_id, property_id, nodes)
+
+    def process_element_chunk(self, chunk: List[str]) -> List:
+        """
+        Processes a chunk of element lines to extract elements.
+        Returns a list of tuples containing element_id, property_id, and nodes.
+        """
+
+        # for element creation
+        element_1d_id_prop_node1_node2 = []
+        element_3d_id_prop_nodes = []
+
+        for i, line in enumerate(chunk):
 
             line_content = modelReaderUtilities.split_line(line, self.blocksize)
             if len(line_content) < 2:
                 continue
             element_keyword = line_content[0]
 
-            if element_keyword not in self.element_keywords:
+            if element_keyword not in FemFileReader.element_keywords:
                 continue
 
-            elements_found = True
-            property_id = int(line_content[2])
+            if element_keyword in FemFileReader.keyword_loadcollectors:
+                break
 
+            property_id = int(line_content[2])
             nodes = []
             node_ids = []
-            element_id_keywords = ["CROD", "CTUBE", "CBEAM", "CBAR"]
 
-            if element_keyword in element_id_keywords:
+            if element_keyword in FemFileReader.keyword_1d_elements:
                 element_id = int(line_content[1])
                 node1 = Node.node_id2node[int(line_content[3])]
                 node2 = Node.node_id2node[int(line_content[4])]
-                Element1D(
-                    element_id,
-                    property_id,
-                    node1,
-                    node2,
+                element_1d_id_prop_node1_node2.append(
+                    (element_id, property_id, node1, node2)
                 )
-
             else:
                 node_ids = line_content[3:]
                 element_id = int(line_content[1])
 
-                if i < len(lines) - 1:
+                # Initialize node_ids and continue appending lines until we reach a line that doesn't start with "+"
+                while i + 1 < len(chunk) and chunk[i + 1].startswith("+"):
                     i += 1
-                    line2 = lines[i]
-                    while line2.startswith("+"):
-                        node_ids += modelReaderUtilities.split_line(
-                            line2, self.blocksize
-                        )[1:]
-                        i += 1
-                        line2 = lines[i]
+                    # Append node IDs from the next continuation line (ignoring the '+')
+                    node_ids += modelReaderUtilities.split_line(
+                        chunk[i], self.blocksize
+                    )[1:]
 
                 node_ids = [
-                    node_id.replace("+", "")
+                    node_id.replace("+", "").strip()
                     for node_id in node_ids
-                    if node_id.replace("+", "").strip() != ""
+                    if node_id.strip()
                 ]
 
                 nodes = [self.nodes_id2node[int(node_id)] for node_id in node_ids]
-                Element(element_id, property_id, nodes)
+                element_3d_id_prop_nodes.append((element_id, property_id, nodes))
+
+        return element_1d_id_prop_node1_node2, element_3d_id_prop_nodes
 
     def get_rigid_elements(self):
         """
