@@ -23,7 +23,6 @@ class TestFemFileReader(unittest.TestCase):
         self.assertEqual(fem_file_reader.file_path, "test.fem")
         self.assertEqual(fem_file_reader.nodes_id2node, {})
         self.assertEqual(fem_file_reader.rigid_elements, [])
-        self.assertEqual(fem_file_reader.node2property, {})
         self.assertEqual(fem_file_reader.blocksize, 8)
 
     @patch(

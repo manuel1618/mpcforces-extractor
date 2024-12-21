@@ -82,9 +82,9 @@ class FEMExtractor:
         """
         logger = Logger()
         self.reader = FemFileReader(self.fem_file_path, self.block_size)
-        logger.start_timing("Reading the FEM file")
+        logger.start_timing("Creating the entities (.fem)")
         self.reader.create_entities()
-        logger.stop_timing("Reading the FEM file")
+        logger.stop_timing("Creating the entities (.fem)")
 
         logger.start_timing("Building the rigid elements")
         self.reader.get_rigid_elements()
