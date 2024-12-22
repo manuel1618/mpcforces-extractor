@@ -51,7 +51,8 @@ class TestFemFileReader(unittest.TestCase):
     )
     def test_get_rigid_elements(self, mock_read_lines):
         """
-        Test the get_rigid_elements method. Make sure the rigid elements are extracted correctly
+        Test the rigid element creation by the create_entitites method.
+        Make sure the rigid elements are extracted correctly
         """
         mock_read_lines.return_value = [
             "GRID           1        -16.889186.0    13.11648\n",
@@ -74,8 +75,7 @@ class TestFemFileReader(unittest.TestCase):
         ]
 
         fem_file_reader = FemFileReader("test.fem", 8)
-
-        fem_file_reader.get_rigid_elements()
+        fem_file_reader.create_entities()
 
         # dont care about the order of the dict
         self.assertEqual(
