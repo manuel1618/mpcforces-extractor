@@ -74,8 +74,7 @@ class TestFemFileReader(unittest.TestCase):
         ]
 
         fem_file_reader = FemFileReader("test.fem", 8)
-
-        fem_file_reader.get_rigid_elements()
+        fem_file_reader.create_entities()
 
         # dont care about the order of the dict
         self.assertEqual(
