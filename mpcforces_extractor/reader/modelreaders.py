@@ -120,7 +120,7 @@ class FemFileReader:
             )
 
             with ThreadPoolExecutor() as executor:
-                futures = list(executor.map(self.process_element_chunk, chunks))
+                futures = list(executor.map(self.__process_element_chunk, chunks))
 
             element_1d_id_prop_node1_node2 = []
             element_3d_id_prop_nodes = []
@@ -137,7 +137,7 @@ class FemFileReader:
                 element_1d_id_prop_node1_node2,
                 element_3d_id_prop_nodes,
                 element_mpc_id_config_master_nodes_dofs,
-            ) = self.process_element_chunk(
+            ) = self.__process_element_chunk(
                 self.file_content[self.endGridLine : self.endElementLine]
             )
 
@@ -165,6 +165,9 @@ class FemFileReader:
             )
 
     def __process_1D_element(self, line_content: List[str]) -> Tuple:
+        """
+        Process a 1D element line to extract the element info.
+        """
         element_id = int(line_content[1])
         property_id = int(line_content[2])
         node1 = Node.node_id2node[int(line_content[3])]
@@ -174,6 +177,10 @@ class FemFileReader:
     def __process_3D_element(
         self, line_content: List[str], chunk: List[str], i: int
     ) -> List:
+        """
+        Process a 3D element line to extract the element info, gives back the info for
+        creation and the index of the last line processed.
+        """
         node_ids = line_content[3:]
         element_id = int(line_content[1])
         property_id = int(line_content[2])
@@ -193,6 +200,10 @@ class FemFileReader:
     def __process_MPC_element(
         self, line_content: List[str], chunk: List[str], i: int
     ) -> List:
+        """
+        Process an MPC element line to extract the MPC elements, gives back the info for
+        creation and the index of the last line processed.
+        """
         element_id: int = int(line_content[1])
         dofs: int = None
         node_ids: List = []
@@ -221,7 +232,7 @@ class FemFileReader:
         nodes = [self.nodes_id2node[id] for id in node_ids]
         return (element_id, mpc_config, master_node, nodes, dofs), i
 
-    def process_element_chunk(self, chunk: List[str]) -> List:
+    def __process_element_chunk(self, chunk: List[str]) -> List:
         """
         Processes a chunk of element lines to extract elements.
         Returns a list of tuples containing element_id, property_id, and nodes.
