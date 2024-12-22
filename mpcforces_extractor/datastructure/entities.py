@@ -115,7 +115,7 @@ class Element:
         if force_update or not Part.part_id2node_ids:
             logger = Logger()
             logger.start_timing("Building the part_id2node_ids using the graph")
-            connected_components = list(nx.connected_components(Element.graph.copy()))
+            connected_components = list(nx.connected_components(Element.graph))
             logger.stop_timing("Building the part_id2node_ids using the graph")
 
             for _, connected_component in enumerate(connected_components):

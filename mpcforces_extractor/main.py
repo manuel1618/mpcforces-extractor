@@ -45,6 +45,12 @@ def main():
         print(spc_cluster.spcs[0])
         print(spc_cluster.subcase_id2summed_force)
 
+    # building partid2forces for each mpc
+    for subcase in Subcase.subcases:
+        for _, mpcs in MPC.config_2_id_2_instance.items():
+            for mpc in mpcs.values():
+                mpc.get_part_id2force(subcase)
+
 
 if __name__ == "__main__":
     main()

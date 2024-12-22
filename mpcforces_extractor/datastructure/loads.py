@@ -105,17 +105,21 @@ class SPCCluster:
 
         logger = Logger()
         logger.start_timing("Building SPC Clusters")
-        graph: nx.Graph = Element.graph.copy()
+
+        # copy the graph
+        graph: nx.Graph = Element.graph
+
+        nodes_added = set()
 
         # add the SPC nodes to the graph if they are not already in the graph
+        all_spc_nodes = set()
         for node_id, _ in SPC.node_id_2_instance.items():
             node = Node.node_id2node[node_id]
             if node not in graph:
+                nodes_added.add(node)
                 graph.add_node(Node.node_id2node[node_id])
-
-        all_spc_nodes = set()
-        for node_id, _ in SPC.node_id_2_instance.items():
             all_spc_nodes.add(Node.node_id2node[node_id])
+
         spc_graph = graph.subgraph(all_spc_nodes)
         connected_components = list(nx.connected_components(spc_graph))
         for connected_component in connected_components:
@@ -123,6 +127,10 @@ class SPCCluster:
             for node in connected_component:
                 spcs.append(SPC.node_id_2_instance[node.id])
             SPCCluster(spcs)
+
+        # remove added nodes again
+        for node in nodes_added:
+            graph.remove_node(node)
 
         # user info
         print("Number of SPC Clusters: ", len(SPCCluster.id_2_instances))
