@@ -86,10 +86,6 @@ class FEMExtractor:
         self.reader.create_entities()
         logger.stop_timing("Creating the entities (.fem)")
 
-        logger.start_timing("Building the rigid elements")
-        self.reader.get_rigid_elements()
-        logger.stop_timing("Building the rigid elements")
-
         logger.start_timing("Building the loads")
         self.reader.get_loads()
         logger.stop_timing("Building the loads")
