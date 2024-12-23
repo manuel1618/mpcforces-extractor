@@ -1,5 +1,6 @@
 from typing import Dict, List
 from enum import Enum
+import numpy as np
 from mpcforces_extractor.datastructure.entities import Node, Element
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
 from mpcforces_extractor.util.logger import Logger
@@ -20,6 +21,7 @@ class MPC:
     """
 
     config_2_id_2_instance: Dict[int, "MPC"] = {}
+    all_instances: List["MPC"] = []
 
     def __init__(
         self,
@@ -34,20 +36,21 @@ class MPC:
         self.mpc_config: MPC_CONFIG = mpc_config
         if master_node is None:
             Logger().log_warn("Master_node2coords is None for element_id", element_id)
-        self.master_node = master_node
+        self.master_node: Node = master_node
         self.nodes: List = nodes
         self.dofs: int = dofs
         self.part_id2node_ids = {}
+        self.axis = None
 
         # config_2_id_2_instance
         if mpc_config.value not in MPC.config_2_id_2_instance:
             MPC.config_2_id_2_instance[mpc_config.value] = {}
-
         if element_id in MPC.config_2_id_2_instance[mpc_config.value]:
             Logger().log_err(
                 f"Element with id {element_id} already exists for config {mpc_config}"
             )
         MPC.config_2_id_2_instance[mpc_config.value][element_id] = self
+        MPC.all_instances.append(self)
 
     @staticmethod
     def reset():
@@ -93,3 +96,57 @@ class MPC:
             part_id2forces = self.get_part_id2force(subcase)
             subcase_id2part_id2forces[subcase.subcase_id] = part_id2forces
         return subcase_id2part_id2forces
+
+    def __fit_axis_for_cylindrical(self) -> List[float]:
+        """
+        This method is used to fit the axis for cylindrical MPCs
+        """
+        if self.axis is not None:
+            return self.axis
+
+        point_cloud = np.array([node.coords for node in self.nodes])
+        centroid = np.array(self.master_node.coords)
+        shifted_points = point_cloud - centroid
+
+        # Fit a cylinder axis using PCA (for simplicity)
+        covariance_matrix = np.cov(shifted_points, rowvar=False)
+        _, eigenvectors = np.linalg.eigh(covariance_matrix)
+        axis = eigenvectors[:, -1]
+        axis /= np.linalg.norm(axis)  # Normalize the axis
+
+        # Save the axis
+        self.axis = axis.tolist()
+        return self.axis
+
+    def get_part_id2axial_radial_forces(self, subcase: Subcase) -> Dict:
+        """
+        This method is used to get the axial and radial forces for the cylindrical MPCs
+        """
+        if self.axis is None:
+            self.axis = self.__fit_axis_for_cylindrical()
+
+        part_id2forces = self.get_part_id2force(subcase)
+
+        # Convert axis to a NumPy array
+        axis = np.array(self.axis)
+
+        part_id2axial_radial_forces = {}
+        for part_id, forces in part_id2forces.items():
+            # Forces are in global coordinates; extract only the first 3 components, no moments
+            forces = np.array(forces[0:3])
+
+            # Compute axial force (projection onto the axis)
+            axial_force_magnitude = np.dot(forces, axis)
+            axial_force = axial_force_magnitude * axis
+
+            # Compute radial force (remaining force perpendicular to the axis)
+            radial_force = forces - axial_force
+
+            # Store results
+            part_id2axial_radial_forces[part_id] = {
+                "axial_force": axial_force.tolist(),
+                "radial_force": radial_force.tolist(),
+                "axis": self.axis,
+            }
+
+        return part_id2axial_radial_forces
