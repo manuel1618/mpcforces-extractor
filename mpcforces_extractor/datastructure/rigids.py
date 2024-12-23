@@ -122,10 +122,23 @@ class MPC:
         """
         This method is used to get the axial and radial forces for the cylindrical MPCs
         """
-        if self.axis is None:
-            self.axis = self.__fit_axis_for_cylindrical()
 
         part_id2forces = self.get_part_id2force(subcase)
+        number_of_parts = len(self.part_id2node_ids.keys())
+        for part_id, nodes in self.part_id2node_ids.items():
+            if len(nodes) == 0:
+                number_of_parts -= 1
+        if number_of_parts < 2:
+            Logger().log_warn(
+                f"Only one part connected to the MPC: {self.element_id}. Calc axial forces not implemented."
+            )
+            # maybe do that later with a tolerance value.
+            # pca - max eigenvalue ... perpendicular... plane... all in tolerance ?
+            # then axial = perpendicular to max eigenvalue eigenvector
+            return {}
+
+        if self.axis is None:
+            self.axis = self.__fit_axis_for_cylindrical()
 
         # Convert axis to a NumPy array
         axis = np.array(self.axis)
