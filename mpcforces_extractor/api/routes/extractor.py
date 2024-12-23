@@ -79,7 +79,7 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
             f"Total time taken: {round(total_time,2)} s (= {round(total_time_mins,2)} mins)"
         )
 
-        logger.write_to_file(model_output_folder + f"/{model_name}_log.txt")
+        logger.write_to_file(model_output_folder + f"/{model_name}_log.html")
 
         return {"message": "Extractor run successfully!"}
     except Exception as e:
