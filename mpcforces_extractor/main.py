@@ -51,6 +51,10 @@ def main():
             for mpc in mpcs.values():
                 mpc.get_part_id2force(subcase)
 
+    # Axial / Radial Forces
+    for mpc in MPC.all_instances:
+        print(mpc.get_part_id2axial_radial_forces(Subcase.subcases[0]))
+
 
 if __name__ == "__main__":
     main()
