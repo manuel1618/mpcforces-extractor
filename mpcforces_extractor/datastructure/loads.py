@@ -2,7 +2,7 @@ from typing import List, Dict
 import networkx as nx
 from mpcforces_extractor.datastructure.entities import Node, Element
 from mpcforces_extractor.datastructure.subcases import Subcase
-from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.util.logger import Logger
 
 
 class Moment:

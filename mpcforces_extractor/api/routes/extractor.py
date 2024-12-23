@@ -13,7 +13,7 @@ from mpcforces_extractor.datastructure.subcases import Subcase
 from mpcforces_extractor.datastructure.rigids import MPC
 from mpcforces_extractor.api.db.database import Database
 from mpcforces_extractor.datastructure.loads import SPCCluster, SPC
-from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.util.logger import Logger
 
 router = APIRouter()
 

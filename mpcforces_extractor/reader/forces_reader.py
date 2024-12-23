@@ -1,6 +1,6 @@
 from typing import List
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
-from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.util.logger import Logger
 
 
 class ForcesReader:

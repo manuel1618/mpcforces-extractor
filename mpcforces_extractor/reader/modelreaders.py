@@ -3,7 +3,7 @@ from typing import List, Dict, Tuple
 from mpcforces_extractor.datastructure.rigids import MPC, MPC_CONFIG
 from mpcforces_extractor.datastructure.entities import Element1D, Element, Node
 from mpcforces_extractor.datastructure.loads import Moment, Force, SPC
-from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.util.logger import Logger
 from mpcforces_extractor.reader.reader_utilities import modelReaderUtilities
 
 
