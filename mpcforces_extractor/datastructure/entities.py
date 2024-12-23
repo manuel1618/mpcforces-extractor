@@ -1,7 +1,7 @@
 from typing import List, Dict
 from itertools import combinations
 import networkx as nx
-from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.util.logger import Logger
 
 
 class Node:

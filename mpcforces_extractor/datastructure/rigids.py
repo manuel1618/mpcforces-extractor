@@ -2,7 +2,7 @@ from typing import Dict, List
 from enum import Enum
 from mpcforces_extractor.datastructure.entities import Node, Element
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
-from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.util.logger import Logger
 
 
 class MPC_CONFIG(Enum):

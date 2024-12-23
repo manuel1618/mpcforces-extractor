@@ -31,14 +31,14 @@ class Logger:
     def _initialize(self):
         self._logs = []
         self._timings = {}
-        self._console = Console()
+        self._console = Console(record=True)
 
     def _log(self, message):
         """
         Logs to the console and stores the message in the logs list.
         """
         self._logs.append(message)
-        self._console.print(message)
+        self._console.log(message, _stack_offset=4)
 
     def log_header(self, header):
         """Log a header with separation lines."""
@@ -81,10 +81,13 @@ class Logger:
 
     def write_to_file(self, filepath):
         """
-        Write the logs to a file.
+        Write the logs to a file - use html for including rich text
         """
-        with open(filepath, "w", encoding="utf8") as f:
-            f.writelines(f"{line}\n" for line in self._logs)
+        try:
+            with open(filepath, "w", encoding="utf-8") as file:
+                file.write(self._console.export_html())
+        except Exception as e:
+            self.log_err(f"Error writing to file: {e}")
 
 
 # Usage Example:
