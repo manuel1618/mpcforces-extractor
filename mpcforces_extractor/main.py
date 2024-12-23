@@ -53,7 +53,11 @@ def main():
 
     # Axial / Radial Forces
     for mpc in MPC.all_instances:
-        print(mpc.get_part_id2axial_radial_forces(Subcase.subcases[0]))
+        mpc.get_part_id2axial_radial_forces(Subcase.subcases[0])
+
+    # print the axis
+    for mpc in MPC.all_instances:
+        print(mpc.axis)
 
 
 if __name__ == "__main__":
