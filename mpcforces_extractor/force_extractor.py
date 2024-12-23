@@ -2,7 +2,7 @@ import os
 from mpcforces_extractor.reader.modelreaders import FemFileReader
 from mpcforces_extractor.reader.forces_reader import ForcesReader
 from mpcforces_extractor.datastructure.subcases import Subcase, ForceType
-from mpcforces_extractor.logging.logger import Logger
+from mpcforces_extractor.util.logger import Logger
 
 
 class MPCForceExtractor:
