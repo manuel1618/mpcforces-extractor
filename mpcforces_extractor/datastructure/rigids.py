@@ -99,22 +99,50 @@ class MPC:
 
     def __fit_axis_for_cylindrical(self) -> List[float]:
         """
-        This method is used to fit the axis for cylindrical MPCs
+        This method is used to fit the axis for cylindrical MPCs.
+        Dynamically determines the axis based on eigenvalue clustering.
         """
         if self.axis is not None:
             return self.axis
 
         point_cloud = np.array([node.coords for node in self.nodes])
         centroid = np.array(self.master_node.coords)
-        shifted_points = point_cloud - centroid
+        shifted_points = (
+            point_cloud - centroid
+        )  # Center the points around the master node
 
-        # Fit a cylinder axis using PCA (for simplicity)
+        # PCA: Compute the covariance matrix and eigen decomposition
         covariance_matrix = np.cov(shifted_points, rowvar=False)
-        _, eigenvectors = np.linalg.eigh(covariance_matrix)
-        axis = eigenvectors[:, -1]
+        eigenvalues, eigenvectors = np.linalg.eigh(covariance_matrix)
+
+        print("Eigenvalues:", eigenvalues)
+
+        # Identify the outlier eigenvalue
+        mean_of_two_smallest = np.mean(sorted(eigenvalues)[:2])
+        differences = [abs(ev - mean_of_two_smallest) for ev in eigenvalues]
+        outlier_index = np.argmax(differences)
+
+        # Select the eigenvector corresponding to the outlier eigenvalue
+        axis = eigenvectors[:, outlier_index]
+
+        # Handle degenerate cases (e.g., 2D plane of points)
+        if np.isclose(
+            sorted(eigenvalues)[0], 0, atol=1e-6
+        ):  # Detect near-zero variance
+            Logger().log_warn(
+                f"Element {self.element_id} has a 2D plane of nodes; "
+                f"axis will be the cross product of the two dominant eigenvectors"
+            )
+            zero_index = np.argmin(eigenvalues)
+            # cross the other indices
+            axis = np.cross(
+                eigenvectors[:, (zero_index + 1) % 3],
+                eigenvectors[:, (zero_index + 2) % 3],
+            )
+
         axis /= np.linalg.norm(axis)  # Normalize the axis
 
-        # Save the axis
+        # Save and return the axis
         self.axis = axis.tolist()
         return self.axis
 
@@ -124,18 +152,6 @@ class MPC:
         """
 
         part_id2forces = self.get_part_id2force(subcase)
-        number_of_parts = len(self.part_id2node_ids.keys())
-        for part_id, nodes in self.part_id2node_ids.items():
-            if len(nodes) == 0:
-                number_of_parts -= 1
-        if number_of_parts < 2:
-            Logger().log_warn(
-                f"Only one part connected to the MPC: {self.element_id}. Calc axial forces not implemented."
-            )
-            # maybe do that later with a tolerance value.
-            # pca - max eigenvalue ... perpendicular... plane... all in tolerance ?
-            # then axial = perpendicular to max eigenvalue eigenvector
-            return {}
 
         if self.axis is None:
             self.axis = self.__fit_axis_for_cylindrical()
