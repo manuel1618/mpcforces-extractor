@@ -54,10 +54,13 @@ def main():
     # Axial / Radial Forces
     for mpc in MPC.all_instances:
         mpc.get_part_id2axial_radial_forces(Subcase.subcases[0])
+        _, max_radial_force = mpc.get_max_radial_force(Subcase.subcases[0])
+        shear_stres = mpc.get_shear_stress(max_radial_force)
 
-    # print the axis
-    for mpc in MPC.all_instances:
-        print(mpc.axis)
+        print(
+            f"MPC: {mpc.element_id} - Max Radial Force: {round(max_radial_force,2)},\
+                  Area: {round(mpc.area,2)}, Shear Stress: {round(shear_stres,2)}"
+        )
 
 
 if __name__ == "__main__":
