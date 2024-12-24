@@ -118,6 +118,18 @@ class MPC:
         covariance_matrix = np.cov(shifted_points, rowvar=False)
         eigenvalues, eigenvectors = np.linalg.eigh(covariance_matrix)
 
+        # Check if all eigenvalues are too similar (potential for a flat or degenerate structure)
+        if np.isclose(eigenvalues[0], eigenvalues[1], atol=1e-6) and np.isclose(
+            eigenvalues[1], eigenvalues[2], atol=1e-6
+        ):
+            Logger().log_error(
+                f"Element {self.element_id} has nearly identical eigenvalues {eigenvalues}; "
+                f"cylinder axis is ambiguous."
+            )
+            raise ValueError(
+                "Cylinder axis could not be determined; all eigenvalues are too similar."
+            )
+
         # Identify the outlier eigenvalue
         mean_of_two_smallest = np.mean(sorted(eigenvalues)[:2])
         differences = [abs(ev - mean_of_two_smallest) for ev in eigenvalues]
