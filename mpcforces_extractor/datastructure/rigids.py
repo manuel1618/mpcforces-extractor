@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from enum import Enum
 import numpy as np
 from mpcforces_extractor.datastructure.entities import Node, Element
@@ -41,6 +41,9 @@ class MPC:
         self.dofs: int = dofs
         self.part_id2node_ids = {}
         self.axis = None
+        self.diameter = None
+        self.length = None
+        self.area = None
 
         # config_2_id_2_instance
         if mpc_config.value not in MPC.config_2_id_2_instance:
@@ -115,8 +118,6 @@ class MPC:
         covariance_matrix = np.cov(shifted_points, rowvar=False)
         eigenvalues, eigenvectors = np.linalg.eigh(covariance_matrix)
 
-        print("Eigenvalues:", eigenvalues)
-
         # Identify the outlier eigenvalue
         mean_of_two_smallest = np.mean(sorted(eigenvalues)[:2])
         differences = [abs(ev - mean_of_two_smallest) for ev in eigenvalues]
@@ -144,7 +145,26 @@ class MPC:
 
         # Save and return the axis
         self.axis = axis.tolist()
+        self.__compute_diameter_length(shifted_points, axis)
+
         return self.axis
+
+    def __compute_diameter_length(
+        self, shifted_points: np.array, axis: np.array
+    ) -> None:
+
+        # Project points onto the axis
+        projections = np.dot(shifted_points, axis)
+
+        # Compute length (range of projections along the axis)
+        min_proj = np.min(projections)
+        max_proj = np.max(projections)
+
+        # Compute distances from points to the axis
+        distances = np.linalg.norm(shifted_points - np.outer(projections, axis), axis=1)
+
+        self.length = max_proj - min_proj
+        self.diameter = 2 * np.max(distances)
 
     def get_part_id2axial_radial_forces(self, subcase: Subcase) -> Dict:
         """
@@ -175,7 +195,35 @@ class MPC:
             part_id2axial_radial_forces[part_id] = {
                 "axial_force": axial_force.tolist(),
                 "radial_force": radial_force.tolist(),
-                "axis": self.axis,
             }
 
         return part_id2axial_radial_forces
+
+    def get_max_radial_force(self, subcase: Subcase) -> Tuple[int, float]:
+        """
+        This method is used to get the maximum radial force and the corresponding part id
+        """
+
+        part_id2axial_radial_forces = self.get_part_id2axial_radial_forces(subcase)
+        max_radial_force = 0
+
+        max_part_id = None
+        for part_id, forces in part_id2axial_radial_forces.items():
+            radial_force = np.linalg.norm(forces["radial_force"])  # magnitude
+            if radial_force > max_radial_force:
+                max_radial_force = radial_force
+                max_part_id = part_id
+
+        return max_part_id, max_radial_force
+
+    def get_shear_stress(self, max_radial_force: float) -> float:
+        """
+        This method is used to get the shear stress
+        """
+
+        if self.diameter is None:
+            Logger().log_warn("Diameter is None for element_id", self.element_id)
+            return 0
+        self.area = np.pi * (self.diameter / 2) ** 2
+        shear_stress = max_radial_force / self.area
+        return shear_stress
