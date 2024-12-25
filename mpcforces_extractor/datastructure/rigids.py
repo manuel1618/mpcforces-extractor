@@ -122,7 +122,7 @@ class MPC:
         if np.isclose(eigenvalues[0], eigenvalues[1], atol=1e-6) and np.isclose(
             eigenvalues[1], eigenvalues[2], atol=1e-6
         ):
-            Logger().log_error(
+            Logger().log_err(
                 f"Element {self.element_id} has nearly identical eigenvalues {eigenvalues}; "
                 f"cylinder axis is ambiguous."
             )
