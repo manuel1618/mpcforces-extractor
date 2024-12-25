@@ -39,11 +39,11 @@ class MPC:
         self.master_node: Node = master_node
         self.nodes: List = nodes
         self.dofs: int = dofs
-        self.part_id2node_ids = {}
-        self.axis = None
-        self.diameter = None
-        self.length = None
-        self.area = None
+        self.part_id2node_ids: Dict = {}
+        self.axis: List[float] = None
+        self.diameter: float = None
+        self.length: float = None
+        self.area: float = None
 
         # config_2_id_2_instance
         if mpc_config.value not in MPC.config_2_id_2_instance:
@@ -157,25 +157,26 @@ class MPC:
 
         # Save and return the axis
         self.axis = axis.tolist()
-        self.__compute_diameter_length(shifted_points, axis)
+        self.__compute_diameter_and_length(shifted_points, axis)
 
         return self.axis
 
-    def __compute_diameter_length(
+    def __compute_diameter_and_length(
         self, shifted_points: np.array, axis: np.array
     ) -> None:
-
+        """
+        Calculates the diameter and length of the cylindrical MPC
+        """
         # Project points onto the axis
         projections = np.dot(shifted_points, axis)
 
         # Compute length (range of projections along the axis)
         min_proj = np.min(projections)
         max_proj = np.max(projections)
+        self.length = max_proj - min_proj
 
         # Compute distances from points to the axis
         distances = np.linalg.norm(shifted_points - np.outer(projections, axis), axis=1)
-
-        self.length = max_proj - min_proj
         self.diameter = 2 * np.max(distances)
 
     def get_part_id2axial_radial_forces(self, subcase: Subcase) -> Dict:
@@ -188,9 +189,7 @@ class MPC:
         if self.axis is None:
             self.axis = self.__fit_axis_for_cylindrical()
 
-        # Convert axis to a NumPy array
         axis = np.array(self.axis)
-
         part_id2axial_radial_forces = {}
         for part_id, forces in part_id2forces.items():
             # Forces are in global coordinates; extract only the first 3 components, no moments
@@ -211,22 +210,23 @@ class MPC:
 
         return part_id2axial_radial_forces
 
-    def get_max_radial_force(self, subcase: Subcase) -> Tuple[int, float]:
+    def get_max_radial_force(self) -> Tuple[Subcase, int, float]:
         """
-        This method is used to get the maximum radial force and the corresponding part id
+        This method gets the maximum radial force and the corresponding subcase and part id
         """
-
-        part_id2axial_radial_forces = self.get_part_id2axial_radial_forces(subcase)
         max_radial_force = 0
-
         max_part_id = None
-        for part_id, forces in part_id2axial_radial_forces.items():
-            radial_force = np.linalg.norm(forces["radial_force"])  # magnitude
-            if radial_force > max_radial_force:
-                max_radial_force = radial_force
-                max_part_id = part_id
+        max_subcase = None
+        for subcase in Subcase.subcases:
+            part_id2axial_radial_forces = self.get_part_id2axial_radial_forces(subcase)
+            for part_id, forces in part_id2axial_radial_forces.items():
+                radial_force = np.linalg.norm(forces["radial_force"])  # magnitude
+                if radial_force > max_radial_force:
+                    max_radial_force = radial_force
+                    max_part_id = part_id
+                    max_subcase = subcase
 
-        return max_part_id, max_radial_force
+        return max_subcase, max_part_id, max_radial_force
 
     def get_shear_stress(self, max_radial_force: float) -> float:
         """

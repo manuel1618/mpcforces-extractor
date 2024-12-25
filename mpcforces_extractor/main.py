@@ -54,7 +54,7 @@ def main():
     # Axial / Radial Forces
     for mpc in MPC.all_instances:
         mpc.get_part_id2axial_radial_forces(Subcase.subcases[0])
-        _, max_radial_force = mpc.get_max_radial_force(Subcase.subcases[0])
+        _, _, max_radial_force = mpc.get_max_radial_force()
         shear_stres = mpc.get_shear_stress(max_radial_force)
 
         print(
