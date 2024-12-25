@@ -167,6 +167,33 @@ class TestMPCMethods(unittest.TestCase):
 
         self.assertAlmostEqual(shear_stress, expected_shear_stress, places=6)
 
+    def test_get_max_radial_force(self):
+        # Mock Subcases
+        subcase1 = Mock(spec=Subcase)
+        subcase2 = Mock(spec=Subcase)
+
+        Subcase.subcases = [subcase1, subcase2]
+
+        # Mock get_part_id2axial_radial_forces for each subcase
+        self.mpc.get_part_id2axial_radial_forces = Mock(
+            side_effect=[
+                {
+                    1: {"axial_force": [0.0, 0.0, 0.0], "radial_force": [3.0, 4.0, 0.0]}
+                },  # Subcase 1
+                {
+                    2: {"axial_force": [0.0, 0.0, 0.0], "radial_force": [6.0, 8.0, 0.0]}
+                },  # Subcase 2
+            ]
+        )
+
+        # Test get_max_radial_force
+        max_subcase, max_part_id, max_radial_force = self.mpc.get_max_radial_force()
+
+        # Validate results
+        self.assertEqual(max_subcase, subcase2)
+        self.assertEqual(max_part_id, 2)
+        self.assertAlmostEqual(max_radial_force, 10.0, places=6)
+
 
 if __name__ == "__main__":
     unittest.main()
