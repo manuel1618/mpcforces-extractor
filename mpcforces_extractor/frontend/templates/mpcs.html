@@ -20,6 +20,25 @@
             <!-- Title -->
             <h1 id="mpcs-title" style="cursor: pointer;">MPCs</h1>
         </div>
+        <!-- Filter Section -->
+        <div class="filter-section mt-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <select id="filter-field-select" class="form-control">
+                        <option value="id">Filter by ID</option>
+                        <option value="config">Filter by Config</option>
+                        <option value="master_node">Filter by Master Node</option>
+                    </select>
+                </div>
+                <input type="text" id="mpc-filter-input" class="form-control" placeholder="Enter filter value">
+                <div class="input-group-append">
+                    <button id="apply-filter-button" class="btn btn-primary">Apply</button>
+                    <button id="reset-filter-button" class="btn btn-secondary ml-2">Reset</button>
+                </div>
+            </div>
+        </div>
+
+
 
         <!-- Table to display the MPCs -->
         <table class="table mt-3">
@@ -27,8 +46,8 @@
                 <tr>
                     <th data-sort="id">ID <span id="id-sort-icon">▲▼</span></th>
                     <th>Config</th>
-                    <th>Master Node</th>
-                    <th>Slave Nodes</th>
+                    <th>Master</th>
+                    <th>Slaves</th>
                     <th>Part Id to Nodes</th>
                     <th>Extracted Forces</th>
                 </tr>
@@ -37,6 +56,13 @@
                 <!-- Rows will be inserted here -->
             </tbody>
         </table>
+
+        <!-- Pagination Buttons -->
+        <div class="pagination mt-3">
+            <button id="prev-button" class="btn btn-secondary">Previous</button>
+            <span id="pagination-info" class="mx-3">Page 1 of 1</span>
+            <button id="next-button" class="btn btn-secondary">Next</button>
+        </div>
 
     </div>
     <!-- External JavaScript -->
