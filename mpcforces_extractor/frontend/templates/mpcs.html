@@ -20,6 +20,25 @@
             <!-- Title -->
             <h1 id="mpcs-title" style="cursor: pointer;">MPCs</h1>
         </div>
+        <!-- Filter Section -->
+        <div class="filter-section mt-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <select id="filter-field-select" class="form-control">
+                        <option value="id">Filter by ID</option>
+                        <option value="config">Filter by Config</option>
+                        <option value="master_node">Filter by Master Node</option>
+                    </select>
+                </div>
+                <input type="text" id="mpc-filter-input" class="form-control" placeholder="Enter filter value">
+                <div class="input-group-append">
+                    <button id="apply-filter-button" class="btn btn-primary">Apply</button>
+                    <button id="reset-filter-button" class="btn btn-secondary ml-2">Reset</button>
+                </div>
+            </div>
+        </div>
+
+
 
         <!-- Table to display the MPCs -->
         <table class="table mt-3">
