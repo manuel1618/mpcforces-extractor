@@ -1,5 +1,8 @@
 let mpcsData = []; // Global variable to store fetched data
 let sortDirection = 1; // 1 for ascending, -1 for descending
+let currentPage = 1; // Track the current page
+const MPCS_PER_PAGE = 2; // Number of MPCs per page
+let total_pages = 0; // Total number of pages
 
 async function fetchMPCs() {
     try {
@@ -10,12 +13,30 @@ async function fetchMPCs() {
 
         // Combine both rbe2s and rbe3s into mpcs
         mpcsData = rbe2s.concat(rbs3s);
+        total_pages = Math.ceil(mpcsData.length / MPCS_PER_PAGE);
 
         // Initially render the table with unsorted data
-        renderTable(mpcsData);
+        renderTable(getCurrentPageData());
+        updatePagination();
     } catch (error) {
         console.error('Error fetching MPCs:', error);
     }
+}
+
+function getCurrentPageData() {
+    const startIndex = (currentPage - 1) * MPCS_PER_PAGE;
+    const endIndex = startIndex + MPCS_PER_PAGE;
+    return mpcsData.slice(startIndex, endIndex);
+}
+
+function updatePagination() {
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
+    const paginationInfo = document.getElementById('pagination-info');
+
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = currentPage === total_pages;
+    paginationInfo.textContent = `Page ${currentPage} of ${total_pages}`;
 }
 
 // Function to render the table
@@ -46,6 +67,7 @@ function renderTable(data) {
         const partId2NodesCell = document.createElement('td');
 
         const partId2Nodes = mpc.part_id2nodes;
+        console.log(partId2Nodes);
 
         partId2NodesCell.innerHTML = ""; // Clear content if any
 
@@ -139,4 +161,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('mpcs-title').addEventListener('click', function() {
     location.reload(); // Reload the page
+});
+
+document.getElementById('prev-button').addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        renderTable(getCurrentPageData());
+        updatePagination();
+    }
+});
+
+document.getElementById('next-button').addEventListener('click', () => {
+    if (currentPage < total_pages) {
+        currentPage++;
+        renderTable(getCurrentPageData());
+        updatePagination();
+    }
 });
