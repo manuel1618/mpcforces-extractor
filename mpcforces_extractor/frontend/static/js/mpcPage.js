@@ -63,7 +63,7 @@ function renderTable(data) {
         masterNodeCell.textContent = mpc.master_node;
 
         const nodeCell = document.createElement('td');
-        const slaveNodesButton = createCopyButton(mpc.nodes.split(",").join(", "), 'Copy Slave Nodes');
+        const slaveNodesButton = createCopyButton(mpc.nodes.split(",").join(", "), 'Copy');
         nodeCell.appendChild(slaveNodesButton);
 
         // Create the part_id2nodes cell
