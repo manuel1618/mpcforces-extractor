@@ -1,7 +1,7 @@
 let mpcsData = []; // Global variable to store fetched data
 let sortDirection = 1; // 1 for ascending, -1 for descending
 let currentPage = 1; // Track the current page
-const MPCS_PER_PAGE = 2; // Number of MPCs per page
+const MPCS_PER_PAGE = 10; // Number of MPCs per page
 let total_pages = 0; // Total number of pages
 
 async function fetchMPCs() {
@@ -13,10 +13,13 @@ async function fetchMPCs() {
 
         // Combine both rbe2s and rbe3s into mpcs
         mpcsData = rbe2s.concat(rbs3s);
+        // sort mpcsData by id
+        mpcsData.sort((a, b) => a.id - b.id);
         total_pages = Math.ceil(mpcsData.length / MPCS_PER_PAGE);
 
         // Initially render the table with unsorted data
-        renderTable(getCurrentPageData());
+        const mpcsDataSlice = getCurrentPageData();
+        renderTable(mpcsDataSlice);
         updatePagination();
     } catch (error) {
         console.error('Error fetching MPCs:', error);
@@ -150,6 +153,27 @@ function sortTableById() {
     }
 }
 
+// Filter stuff
+function resetFilter() {
+    document.getElementById('mpc-filter-input').value = ''; // Clear input
+    renderTable(mpcsData); // Render the original data
+}
+
+function filterMPCs() {
+    const filterField = document.getElementById('filter-field-select').value; // Field to filter by
+    const filterValue = document.getElementById('mpc-filter-input').value.trim().toLowerCase(); // User input
+
+    // Filter the mpcsData based on the selected field and value
+    const filteredData = mpcsData.filter(mpc => {
+        const fieldValue = mpc[filterField]?.toString().toLowerCase(); // Field value in lowercase
+        return fieldValue.includes(filterValue); // Check for match
+    });
+
+    // Render the filtered data
+    renderTable(filteredData);
+}
+
+
 // Attach sorting functionality to the ID column header
 document.addEventListener('DOMContentLoaded', () => {
     const idHeader = document.querySelector('th[data-sort="id"]');
@@ -176,5 +200,25 @@ document.getElementById('next-button').addEventListener('click', () => {
         currentPage++;
         renderTable(getCurrentPageData());
         updatePagination();
+    }
+});
+
+// Apply filter
+document.getElementById('apply-filter-button').addEventListener('click', () => {
+    filterMPCs();
+});
+
+// Reset filter
+document.getElementById('reset-filter-button').addEventListener('click', () => {
+    resetFilter();
+});
+
+// Optional: Trigger filtering on pressing "Enter" in the input field
+document.getElementById('mpc-filter-input').addEventListener('keyup', event => {
+    if (event.key === 'Enter') {
+        filterMPCs();
+    }
+    if (event.key === 'Escape') {
+        resetFilter();
     }
 });
