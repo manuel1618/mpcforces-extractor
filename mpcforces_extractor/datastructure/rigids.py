@@ -210,25 +210,42 @@ class MPC:
 
         return part_id2axial_radial_forces
 
-    def get_max_radial_force(self) -> Tuple[Subcase, int, float]:
+    def get_max_radial_force(self) -> Tuple[Subcase, int, float, Subcase, int, float]:
         """
         This method gets the maximum radial force and the corresponding subcase and part id
         """
-        max_radial_force = 0
-        max_part_id = None
-        max_subcase = None
+        max_radial_force = 0.0
+        max_radial_part_id = None
+        max_radial_subcase = None
+        max_axial_force = 0.0
+        max_axial_part_id = None
+        max_axial_subcase = None
+
         for subcase in Subcase.subcases:
             part_id2axial_radial_forces = self.get_part_id2axial_radial_forces(subcase)
             for part_id, forces in part_id2axial_radial_forces.items():
                 radial_force = np.linalg.norm(forces["radial_force"])  # magnitude
-                if radial_force > max_radial_force:
-                    max_radial_force = radial_force
-                    max_part_id = part_id
-                    max_subcase = subcase
+                axial_force = np.linalg.norm(forces["axial_force"])  # magnitude
+                if abs(radial_force) > max_radial_force:
+                    max_radial_force = abs(radial_force)
+                    max_radial_part_id = part_id
+                    max_radial_subcase = subcase
+                if abs(axial_force) > max_axial_force:
+                    max_axial_force = abs(axial_force)
+                    max_axial_part_id = part_id
+                    max_axial_subcase = subcase
+        return (
+            max_radial_subcase,
+            max_radial_part_id,
+            max_radial_force,
+            max_axial_subcase,
+            max_axial_part_id,
+            max_axial_force,
+        )
 
-        return max_subcase, max_part_id, max_radial_force
-
-    def get_shear_stress(self, max_radial_force: float) -> float:
+    def get_shear_and_axial_stress(
+        self, max_radial_force: float, max_axial_force
+    ) -> float:
         """
         This method is used to get the shear stress
         """
@@ -238,4 +255,5 @@ class MPC:
             return 0
         self.area = np.pi * (self.diameter / 2) ** 2
         shear_stress = max_radial_force / self.area
-        return shear_stress
+        axial_stress = max_axial_force / self.area
+        return (shear_stress, axial_stress)
