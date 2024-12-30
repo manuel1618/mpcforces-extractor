@@ -191,7 +191,7 @@ class TestMPCMethods(unittest.TestCase):
             ]
         )
 
-        # Test get_max_radial_force
+        # Test get_max_radial_and_axial_force
         (
             max_subcase,
             max_part_id,
@@ -199,7 +199,7 @@ class TestMPCMethods(unittest.TestCase):
             max_ax_subcase,
             max_ax_part,
             max_ax_stress,
-        ) = self.mpc.get_max_radial_force()
+        ) = self.mpc.get_max_radial_and_axial_force()
 
         # Validate results
         self.assertEqual(max_subcase, subcase2)
