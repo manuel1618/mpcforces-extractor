@@ -2,6 +2,14 @@ body {
     background-color: #f8f9fa;
 }
 
+
+/* Ensure higher specificity for centered alignment */
+table td.centered {
+    text-align: center !important; /* Override Bootstrap's text alignment */
+    vertical-align: middle !important; /* Override Bootstrap's vertical alignment */
+}
+
+
 /* Style for the "Copied" message */
 .copied-msg {
     display: inline-block;
@@ -15,6 +23,8 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     transition: opacity 0.3s ease;
 }
+
+
 
 .copied-msg.fade-out {
     opacity: 0;
