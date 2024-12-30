@@ -35,10 +35,17 @@
                     <button id="apply-filter-button" class="btn btn-primary">Apply</button>
                     <button id="reset-filter-button" class="btn btn-secondary ml-2">Reset</button>
                 </div>
+                <!-- Dropdown Subcase Menu -->
+                <div class="col-md-3">
+                    <label for="subcase-dropdown" class="col-form-label">Subcase:</label>
+                    <!-- Dropdown Menu -->
+                    <select id="subcase-dropdown" class="form-control float-right" style="max-width: 100px;" title="Subcase">
+                        <!-- The function fetchSubcases() should populate the options dynamically -->
+                        fetchSubcases();
+                    </select>
+                </div>
             </div>
         </div>
-
-
 
         <!-- Table to display the MPCs -->
         <table class="table mt-3">
@@ -48,8 +55,15 @@
                     <th>Config</th>
                     <th>Master</th>
                     <th>Slaves</th>
-                    <th>Part Id to Nodes</th>
-                    <th>Extracted Forces</th>
+                    <th>Part</th>
+                    <th>Fx</th>
+                    <th>Fy</th>
+                    <th>Fz</th>
+                    <th>Fabs</th>
+                    <th>Mx</th>
+                    <th>My</th>
+                    <th>Mz</th>
+                    <th>Mabs</th>
                 </tr>
             </thead>
             <tbody id="mpc-table-body">
