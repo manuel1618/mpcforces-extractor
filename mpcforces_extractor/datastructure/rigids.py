@@ -210,7 +210,7 @@ class MPC:
 
         return part_id2axial_radial_forces
 
-    def get_max_radial_and_axial_force(
+    def get_max_axial_and_radial_force(
         self,
     ) -> Tuple[Subcase, int, float, Subcase, int, float]:
         """
@@ -237,17 +237,15 @@ class MPC:
                     max_axial_part_id = part_id
                     max_axial_subcase = subcase
         return (
-            max_radial_subcase,
-            max_radial_part_id,
-            max_radial_force,
             max_axial_subcase,
             max_axial_part_id,
             max_axial_force,
+            max_radial_subcase,
+            max_radial_part_id,
+            max_radial_force,
         )
 
-    def get_shear_and_axial_stress(
-        self, max_radial_force: float, max_axial_force
-    ) -> float:
+    def get_stress(self, force: float) -> float:
         """
         This method is used to get the shear stress
         """
@@ -256,6 +254,4 @@ class MPC:
             Logger().log_warn("Diameter is None for element_id", self.element_id)
             return 0
         self.area = np.pi * (self.diameter / 2) ** 2
-        shear_stress = max_radial_force / self.area
-        axial_stress = max_axial_force / self.area
-        return (shear_stress, axial_stress)
+        return force / self.area

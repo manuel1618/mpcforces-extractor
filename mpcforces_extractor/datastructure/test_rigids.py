@@ -155,22 +155,21 @@ class TestMPCMethods(unittest.TestCase):
             decimal=6,
         )
 
-    def test_get_shear_stress(self):
+    def test_get_radial_stress(self):
         self.mpc.diameter = 2.0  # Set a known diameter
         max_radial_force = 10.0  # Example force
         max_axial_force = 5.0  # Example force
 
-        shear_stress, norm_stress = self.mpc.get_shear_and_axial_stress(
-            max_radial_force, max_axial_force
-        )
+        radial_stress = self.mpc.get_stress(max_radial_force)
+        axial_stress = self.mpc.get_stress(max_axial_force)
 
         # Area = pi * r^2 = pi * (diameter / 2)^2
         expected_area = np.pi * (2.0 / 2) ** 2
-        expected_shear_stress = max_radial_force / expected_area
-        expected_norm_stress = max_axial_force / expected_area
+        expected_radial_stress = max_radial_force / expected_area
+        expected_axial_stress = max_axial_force / expected_area
 
-        self.assertAlmostEqual(shear_stress, expected_shear_stress, places=6)
-        self.assertAlmostEqual(norm_stress, expected_norm_stress, places=6)
+        self.assertAlmostEqual(radial_stress, expected_radial_stress, places=6)
+        self.assertAlmostEqual(axial_stress, expected_axial_stress, places=6)
 
     def test_get_max_radial_axial_force(self):
         # Mock Subcases
@@ -191,15 +190,15 @@ class TestMPCMethods(unittest.TestCase):
             ]
         )
 
-        # Test get_max_radial_and_axial_force
+        # Test get_max_axial_and_radial_force
         (
+            max_ax_subcase,
+            max_ax_part,
+            max_ax_force,
             max_subcase,
             max_part_id,
             max_radial_force,
-            max_ax_subcase,
-            max_ax_part,
-            max_ax_stress,
-        ) = self.mpc.get_max_radial_and_axial_force()
+        ) = self.mpc.get_max_axial_and_radial_force()
 
         # Validate results
         self.assertEqual(max_subcase, subcase2)
@@ -208,7 +207,7 @@ class TestMPCMethods(unittest.TestCase):
 
         self.assertEqual(max_ax_subcase, subcase1)
         self.assertEqual(max_ax_part, 1)
-        self.assertAlmostEqual(max_ax_stress, 1.0, places=6)
+        self.assertAlmostEqual(max_ax_force, 1.0, places=6)
 
 
 if __name__ == "__main__":

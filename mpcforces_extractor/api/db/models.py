@@ -22,8 +22,8 @@ class RBE3DBModel(SQLModel, table=True):
     )  # Store subcase_id2part_id2axial_radial_forces as a dictionary
     diameter: float = (Field(),)
     length: float = (Field(),)
-    max_shear: float = (Field(),)
-    max_norm: float = (Field(),)
+    max_axial_stress: float = (Field(),)
+    max_radial_stress: float = (Field(),)
 
 
 class RBE2DBModel(SQLModel, table=True):
@@ -46,8 +46,8 @@ class RBE2DBModel(SQLModel, table=True):
     )  # Store subcase_id2part_id2axial_radial_forces as a dictionary
     diameter: float = (Field(),)
     length: float = (Field(),)
-    max_shear: float = (Field(),)
-    max_norm: float = (Field(),)
+    max_axial_stress: float = (Field(),)
+    max_radial_stress: float = (Field(),)
 
 
 class NodeDBModel(SQLModel, table=True):

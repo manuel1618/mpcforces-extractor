@@ -94,15 +94,16 @@ async function renderTable(data) {
         lengthCell.rowSpan = partIdsSorted.length + 1;
         lengthCell.classList.add('centered'); // Center-align
         
-        const maxShearCell = document.createElement('td');
-        maxShearCell.textContent = styleNumber(mpc.max_shear);
-        maxShearCell.rowSpan = partIdsSorted.length + 1;
-        maxShearCell.classList.add('centered'); // Center-align
+        const maxAxialStressCell = document.createElement('td');
+        maxAxialStressCell.textContent = styleNumber(mpc.max_axial_stress);
+        maxAxialStressCell.rowSpan = partIdsSorted.length + 1;
+        maxAxialStressCell.classList.add('centered'); // Center-align
+        
+        const maxRadCell = document.createElement('td');
+        maxRadCell.textContent = styleNumber(mpc.max_radial_stress);
+        maxRadCell.rowSpan = partIdsSorted.length + 1;
+        maxRadCell.classList.add('centered'); // Center-align
 
-        const maxNormalStressCell = document.createElement('td');
-        maxNormalStressCell.textContent = styleNumber(mpc.max_norm);
-        maxNormalStressCell.rowSpan = partIdsSorted.length + 1;
-        maxNormalStressCell.classList.add('centered'); // Center-align
     
         // Append parent row cells
         parentRow.appendChild(idCell);
@@ -111,8 +112,8 @@ async function renderTable(data) {
         parentRow.appendChild(nodeCell);
         parentRow.appendChild(diameterCell);
         parentRow.appendChild(lengthCell);
-        parentRow.appendChild(maxShearCell);
-        parentRow.appendChild(maxNormalStressCell);
+        parentRow.appendChild(maxAxialStressCell);
+        parentRow.appendChild(maxRadCell);
         tableBody.appendChild(parentRow);
     
         // Add sub-rows for each part
