@@ -49,8 +49,7 @@ function updatePagination() {
 async function renderTable(data) {
     const tableBody = document.getElementById('mpc-table-body');
 
-    const subcases = cachedSubcases || await fetchSubcases();
-    const subcase = subcases.find(subcase => subcase.id == subcaseDropdown.value);
+    cachedSubcases || await fetchSubcases(); // Fetch subcases if not already cached
 
     // Clear the table before appending new rows
     tableBody.innerHTML = '';
@@ -108,13 +107,6 @@ async function renderTable(data) {
             const fzCell = document.createElement('td');
             fzCell.textContent = styleNumber(forces[2]);
     
-            const mxCell = document.createElement('td');
-            mxCell.textContent = styleNumber(forces[3]);
-            const myCell = document.createElement('td');
-            myCell.textContent = styleNumber(forces[4]);
-            const mzCell = document.createElement('td');
-            mzCell.textContent = styleNumber(forces[5]);
-    
             const fAbsCell = document.createElement('td');
             fAbsCell.textContent = styleNumber(Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2));
             const mAbsCell = document.createElement('td');
@@ -126,9 +118,6 @@ async function renderTable(data) {
             row.appendChild(fyCell);
             row.appendChild(fzCell);
             row.appendChild(fAbsCell);
-            row.appendChild(mxCell);
-            row.appendChild(myCell);
-            row.appendChild(mzCell);
             row.appendChild(mAbsCell);
     
             tableBody.appendChild(row);
