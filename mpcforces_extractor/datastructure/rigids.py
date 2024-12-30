@@ -210,7 +210,9 @@ class MPC:
 
         return part_id2axial_radial_forces
 
-    def get_max_radial_force(self) -> Tuple[Subcase, int, float, Subcase, int, float]:
+    def get_max_radial_and_axial_force(
+        self,
+    ) -> Tuple[Subcase, int, float, Subcase, int, float]:
         """
         This method gets the maximum radial force and the corresponding subcase and part id
         """

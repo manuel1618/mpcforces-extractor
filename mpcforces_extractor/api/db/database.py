@@ -211,7 +211,9 @@ class Database:
                 sub2part2axial_radial_forces[sub.subcase_id] = (
                     mpc.get_part_id2axial_radial_forces(sub)
                 )
-            _, _, max_rad_force, _, _, max_axial_force = mpc.get_max_radial_force()
+            _, _, max_rad_force, _, _, max_axial_force = (
+                mpc.get_max_radial_and_axial_force()
+            )
             max_shear, max_norm = mpc.get_shear_and_axial_stress(
                 max_rad_force, max_axial_force
             )
