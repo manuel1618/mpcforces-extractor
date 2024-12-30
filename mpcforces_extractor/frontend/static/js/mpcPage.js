@@ -80,28 +80,27 @@ async function renderTable(data) {
 
         // Create the part_id2nodes cell
         const partId2NodesCell = document.createElement('td');
-        const partId2Nodes = mpc.part_id2nodes;
-        partId2NodesCell.innerHTML = ""; // Clear content if any
-        // Loop through the part_id2nodes dictionary
-        for (const [partId, nodeIds] of Object.entries(partId2Nodes)) {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.flexDirection = 'column'; // Stack buttons vertically
+        for (const [partId, nodeIds] of Object.entries(mpc.part_id2nodes)) {
             if (nodeIds.length >= 1) {
-                const button = createCopyButton(nodeIds.join(", "), `Part`+partId + ` Slaves`);
+                const button = createCopyButton(nodeIds.join(", "), `Part ` + partId);
                 button.style.marginBottom = '5px';
-                button.style.marginRight = '10px';
-                partId2NodesCell.appendChild(button);
-                partId2NodesCell.appendChild(document.createElement('br'));
+                buttonContainer.appendChild(button);
             }
         }
-        allSlavesButton = createCopyButton(Object.values(partId2Nodes).flat().join(", "), `All Slaves`);
-        allSlavesButton.style.marginBottom = '5px';
-        allSlavesButton.style.marginRight = '10px';
-        partId2NodesCell.appendChild(allSlavesButton);
-        partId2NodesCell.rowSpan = partIdsSorted.length + 1;
-        partId2NodesCell.classList.add('centered'); // Center-align
+        partId2NodesCell.appendChild(buttonContainer);
+        partId2NodesCell.rowSpan = partIdsSorted.length +1 ;
+
+        const allSlaveNodesCell = document.createElement('td');
+        const allSlaveNodesButton = createCopyButton(mpc.nodes, 'All');
+        allSlaveNodesCell.appendChild(allSlaveNodesButton);
+        allSlaveNodesCell.rowSpan = partIdsSorted.length + 1;
 
         const diameterCell = document.createElement('td');
         diameterCell.textContent = styleNumber(mpc.diameter);
-        diameterCell.rowSpan = partIdsSorted.length + 1;
+        diameterCell.rowSpan = partIdsSorted.length +1;
         diameterCell.classList.add('centered'); // Center-align
 
         const lengthCell = document.createElement('td');
@@ -124,6 +123,7 @@ async function renderTable(data) {
         parentRow.appendChild(configCell);
         parentRow.appendChild(masterNodeCell);
         parentRow.appendChild(partId2NodesCell);
+        parentRow.appendChild(allSlaveNodesCell);
         parentRow.appendChild(diameterCell);
         parentRow.appendChild(lengthCell);
         parentRow.appendChild(maxAxialStressCell);
@@ -133,19 +133,18 @@ async function renderTable(data) {
         // Add sub-rows for each part
         for (const partId of partIdsSorted) {
             const row = document.createElement('tr');
-            row.classList.add('sub-row'); // Add a class for styling
+
+            // first row no hline
+            if (partId == partIdsSorted[0]) {
+                row.classList.add('first-row'); // Add a class for styling
+            } else {
+                row.classList.add('sub-row'); // Add a class for styling
+            }
     
             const partCell = document.createElement('td');
             partCell.textContent = partId;
     
             const forces = partId2Forces[partId];
-            const fxCell = document.createElement('td');
-            fxCell.textContent = styleNumber(forces[0]);
-            const fyCell = document.createElement('td');
-            fyCell.textContent = styleNumber(forces[1]);
-            const fzCell = document.createElement('td');
-            fzCell.textContent = styleNumber(forces[2]);
-    
             const fAbsCell = document.createElement('td');
             fAbsCell.textContent = styleNumber(Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2));
             const mAbsCell = document.createElement('td');
@@ -153,9 +152,6 @@ async function renderTable(data) {
     
             // Append cells to the sub-row
             row.appendChild(partCell);
-            row.appendChild(fxCell);
-            row.appendChild(fyCell);
-            row.appendChild(fzCell);
             row.appendChild(fAbsCell);
             row.appendChild(mAbsCell);
     
