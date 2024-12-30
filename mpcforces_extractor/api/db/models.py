@@ -17,6 +17,13 @@ class RBE3DBModel(SQLModel, table=True):
     subcase_id2part_id2forces: Dict = Field(
         default_factory=dict, sa_column=Column(JSON)
     )  # Store subcase_id2part_id2forces as a dictionary
+    subcase_id2part_id2axial_radial_forces: Dict = Field(
+        default_factory=dict, sa_column=Column(JSON)
+    )  # Store subcase_id2part_id2axial_radial_forces as a dictionary
+    diameter: float = (Field(),)
+    length: float = (Field(),)
+    max_shear: float = (Field(),)
+    max_norm: float = (Field(),)
 
 
 class RBE2DBModel(SQLModel, table=True):
@@ -34,6 +41,13 @@ class RBE2DBModel(SQLModel, table=True):
     subcase_id2part_id2forces: Dict = Field(
         default_factory=dict, sa_column=Column(JSON)
     )  # Store subcase_id2part_id2forces as a dictionary
+    subcase_id2part_id2axial_radial_forces: Dict = Field(
+        default_factory=dict, sa_column=Column(JSON)
+    )  # Store subcase_id2part_id2axial_radial_forces as a dictionary
+    diameter: float = (Field(),)
+    length: float = (Field(),)
+    max_shear: float = (Field(),)
+    max_norm: float = (Field(),)
 
 
 class NodeDBModel(SQLModel, table=True):

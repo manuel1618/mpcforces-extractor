@@ -83,6 +83,7 @@ async def run_extractor(request: Request, file_request: RunExtractorRequest):
 
         return {"message": "Extractor run successfully!"}
     except Exception as e:
+        print(e.with_traceback())
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

@@ -83,12 +83,36 @@ async function renderTable(data) {
         nodeCell.appendChild(slaveNodesButton);
         nodeCell.rowSpan = partIdsSorted.length + 1;
         nodeCell.classList.add('centered'); // Center-align
+
+        const diameterCell = document.createElement('td');
+        diameterCell.textContent = styleNumber(mpc.diameter);
+        diameterCell.rowSpan = partIdsSorted.length + 1;
+        diameterCell.classList.add('centered'); // Center-align
+
+        const lengthCell = document.createElement('td');
+        lengthCell.textContent = styleNumber(mpc.length);
+        lengthCell.rowSpan = partIdsSorted.length + 1;
+        lengthCell.classList.add('centered'); // Center-align
+        
+        const maxShearCell = document.createElement('td');
+        maxShearCell.textContent = styleNumber(mpc.max_shear);
+        maxShearCell.rowSpan = partIdsSorted.length + 1;
+        maxShearCell.classList.add('centered'); // Center-align
+
+        const maxNormalStressCell = document.createElement('td');
+        maxNormalStressCell.textContent = styleNumber(mpc.max_norm);
+        maxNormalStressCell.rowSpan = partIdsSorted.length + 1;
+        maxNormalStressCell.classList.add('centered'); // Center-align
     
         // Append parent row cells
         parentRow.appendChild(idCell);
         parentRow.appendChild(configCell);
         parentRow.appendChild(masterNodeCell);
         parentRow.appendChild(nodeCell);
+        parentRow.appendChild(diameterCell);
+        parentRow.appendChild(lengthCell);
+        parentRow.appendChild(maxShearCell);
+        parentRow.appendChild(maxNormalStressCell);
         tableBody.appendChild(parentRow);
     
         // Add sub-rows for each part
@@ -122,6 +146,8 @@ async function renderTable(data) {
     
             tableBody.appendChild(row);
         }
+
+
     });
     
 }
