@@ -202,35 +202,53 @@ class Database:
         """
         Function to populate the database with MPCs
         """
-        for mpc_config in MPC_CONFIG:
-            if mpc_config.value not in MPC.config_2_id_2_instance:
-                continue
-            for mpc in MPC.config_2_id_2_instance[mpc_config.value].values():
-                mpc.get_part_id2force(None)
-                sub2part2force = mpc.get_subcase_id2part_id2force()
+        for mpc in MPC.all_instances:
+            mpc.get_part_id2force(None)
+            sub2part2force = mpc.get_subcase_id2part_id2force()
+            # stresss
+            sub2part2axial_radial_forces = {}
+            for sub in Subcase.subcases:
+                sub2part2axial_radial_forces[sub.subcase_id] = (
+                    mpc.get_part_id2axial_radial_forces(sub)
+                )
+            _, _, max_axial_force, _, _, max_rad_force = (
+                mpc.get_max_axial_and_radial_force()
+            )
+            max_radial_stress = mpc.get_stress(max_rad_force)
+            max_axial_stress = mpc.get_stress(max_axial_force)
 
-                if mpc_config == MPC_CONFIG.RBE2:
-                    db_mpc = RBE2DBModel(
-                        id=mpc.element_id,
-                        config=mpc.mpc_config.name,  # Store enum as string
-                        master_node=mpc.master_node.id,
-                        nodes=",".join([str(node.id) for node in mpc.nodes]),
-                        part_id2nodes=mpc.part_id2node_ids,
-                        subcase_id2part_id2forces=sub2part2force,
-                    )
-                elif mpc_config == MPC_CONFIG.RBE3:
-                    db_mpc = RBE3DBModel(
-                        id=mpc.element_id,
-                        config=mpc.mpc_config.name,  # Store enum as string
-                        master_node=mpc.master_node.id,
-                        nodes=",".join([str(node.id) for node in mpc.nodes]),
-                        part_id2nodes=mpc.part_id2node_ids,
-                        subcase_id2part_id2forces=sub2part2force,
-                    )
-                else:
-                    raise ValueError(f"Unknown MPC config {mpc_config}")
-                # Add to the session
-                session.add(db_mpc)
+            if mpc.mpc_config == MPC_CONFIG.RBE2:
+                db_mpc = RBE2DBModel(
+                    id=mpc.element_id,
+                    config=mpc.mpc_config.name,  # Store enum as string
+                    master_node=mpc.master_node.id,
+                    nodes=",".join([str(node.id) for node in mpc.nodes]),
+                    part_id2nodes=mpc.part_id2node_ids,
+                    subcase_id2part_id2forces=sub2part2force,
+                    subcase_id2part_id2axial_radial_forces=sub2part2axial_radial_forces,
+                    diameter=mpc.diameter,
+                    length=mpc.length,
+                    max_axial_stress=max_axial_stress,
+                    max_radial_stress=max_radial_stress,
+                )
+            elif mpc.mpc_config == MPC_CONFIG.RBE3:
+                db_mpc = RBE3DBModel(
+                    id=mpc.element_id,
+                    config=mpc.mpc_config.name,  # Store enum as string
+                    master_node=mpc.master_node.id,
+                    nodes=",".join([str(node.id) for node in mpc.nodes]),
+                    part_id2nodes=mpc.part_id2node_ids,
+                    subcase_id2part_id2forces=sub2part2force,
+                    subcase_id2part_id2axial_radial_forces=sub2part2axial_radial_forces,
+                    diameter=mpc.diameter,
+                    length=mpc.length,
+                    max_axial_stress=max_axial_stress,
+                    max_radial_stress=max_radial_stress,
+                )
+            else:
+                raise ValueError(f"Unknown MPC config {mpc.mpc_config}")
+            # Add to the session
+            session.add(db_mpc)
 
     async def get_rbe2s(self) -> List[RBE2DBModel]:
         """

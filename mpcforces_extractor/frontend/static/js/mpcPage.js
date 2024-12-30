@@ -3,6 +3,9 @@ let sortDirection = 1; // 1 for ascending, -1 for descending
 let currentPage = 1; // Track the current page
 const MPCS_PER_PAGE = 10; // Number of MPCs per page
 let total_pages = 0; // Total number of pages
+let cachedSubcases = null;
+
+const subcaseDropdown = document.getElementById('subcase-dropdown'); // used multiple times
 
 async function fetchMPCs() {
     try {
@@ -43,98 +46,134 @@ function updatePagination() {
 }
 
 // Function to render the table
-function renderTable(data) {
+async function renderTable(data) {
     const tableBody = document.getElementById('mpc-table-body');
+
+    cachedSubcases || await fetchSubcases(); // Fetch subcases if not already cached
 
     // Clear the table before appending new rows
     tableBody.innerHTML = '';
 
     data.forEach(mpc => {
-        const row = document.createElement('tr');
-
-        // Create individual table cells
+        const partId2Forces = mpc.subcase_id2part_id2forces[subcaseDropdown.value];
+        const partIdsSorted = Object.keys(partId2Forces).sort((a, b) => a - b);
+    
+        // Create the parent row for the MPC
+        const parentRow = document.createElement('tr');
+        parentRow.classList.add('parent-row'); // Add a class for styling
+    
+        // Parent row cells
         const idCell = document.createElement('td');
         idCell.textContent = mpc.id;
+        idCell.rowSpan = partIdsSorted.length + 1;
+        idCell.classList.add('centered'); // Center-align
 
         const configCell = document.createElement('td');
         configCell.textContent = mpc.config;
+        configCell.rowSpan = partIdsSorted.length + 1;
+        configCell.classList.add('centered'); // Center-align
 
         const masterNodeCell = document.createElement('td');
         masterNodeCell.textContent = mpc.master_node;
-
-        const nodeCell = document.createElement('td');
-        const slaveNodesButton = createCopyButton(mpc.nodes.split(",").join(", "), 'Copy');
-        nodeCell.appendChild(slaveNodesButton);
+        masterNodeCell.rowSpan = partIdsSorted.length + 1;
+        masterNodeCell.classList.add('centered'); // Center-align
 
         // Create the part_id2nodes cell
         const partId2NodesCell = document.createElement('td');
-
-        const partId2Nodes = mpc.part_id2nodes;
-        console.log(partId2Nodes);
-
-        partId2NodesCell.innerHTML = ""; // Clear content if any
-
-        // Loop through the part_id2nodes dictionary
-        for (const [partId, nodeIds] of Object.entries(partId2Nodes)) {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.flexDirection = 'column'; // Stack buttons vertically
+        for (const [partId, nodeIds] of Object.entries(mpc.part_id2nodes)) {
             if (nodeIds.length >= 1) {
-                const label = document.createElement('span');
-                label.textContent = `Part ${partId}: `;
-                label.style.marginRight = '5px';
-
-                const button = createCopyButton(nodeIds.join(", "), `Copy Nodes`);
+                const button = createCopyButton(nodeIds.join(", "), `Part ` + partId);
                 button.style.marginBottom = '5px';
-                button.style.marginRight = '10px';
-
-                partId2NodesCell.appendChild(label);
-                partId2NodesCell.appendChild(button);
-                partId2NodesCell.appendChild(document.createElement('br'));
+                buttonContainer.appendChild(button);
             }
         }
+        partId2NodesCell.appendChild(buttonContainer);
+        partId2NodesCell.rowSpan = partIdsSorted.length +1 ;
 
-        // Create the part_id2forces cell
-        const partId2ForcesCell = document.createElement('td');
-        const subcase_id2part_id2forces = mpc.subcase_id2part_id2forces;
+        const allSlaveNodesCell = document.createElement('td');
+        const allSlaveNodesButton = createCopyButton(mpc.nodes, 'All');
+        allSlaveNodesCell.appendChild(allSlaveNodesButton);
+        allSlaveNodesCell.rowSpan = partIdsSorted.length + 1;
 
-        for (const [subcaseId, partId2Forces] of Object.entries(subcase_id2part_id2forces)) {
-            for (const [partId, forces] of Object.entries(partId2Forces)) {
-                const nodeIds = mpc.part_id2nodes[partId];
-                if (!nodeIds || nodeIds.length === 0) continue;
+        const diameterCell = document.createElement('td');
+        diameterCell.textContent = styleNumber(mpc.diameter);
+        diameterCell.rowSpan = partIdsSorted.length +1;
+        diameterCell.classList.add('centered'); // Center-align
 
-                let force = Math.sqrt(
-                    forces[0] ** 2 +
-                    forces[1] ** 2 +
-                    forces[2] ** 2
-                )
-                if (force > 0.1 && force < 10000) {
-                    force = force.toFixed(2);
-                } else {
-                    force = force.toExponential(2);
-                }
+        const lengthCell = document.createElement('td');
+        lengthCell.textContent = styleNumber(mpc.length);
+        lengthCell.rowSpan = partIdsSorted.length + 1;
+        lengthCell.classList.add('centered'); // Center-align
+        
+        const maxAxialStressCell = document.createElement('td');
+        maxAxialStressCell.textContent = styleNumber(mpc.max_axial_stress);
+        maxAxialStressCell.rowSpan = partIdsSorted.length + 1;
+        maxAxialStressCell.classList.add('centered'); // Center-align
+        
+        const maxRadCell = document.createElement('td');
+        maxRadCell.textContent = styleNumber(mpc.max_radial_stress);
+        maxRadCell.rowSpan = partIdsSorted.length + 1;
+        maxRadCell.classList.add('centered'); // Center-align
+    
+        // Append parent row cells
+        parentRow.appendChild(idCell);
+        parentRow.appendChild(configCell);
+        parentRow.appendChild(masterNodeCell);
+        parentRow.appendChild(partId2NodesCell);
+        parentRow.appendChild(allSlaveNodesCell);
+        parentRow.appendChild(diameterCell);
+        parentRow.appendChild(lengthCell);
+        parentRow.appendChild(maxAxialStressCell);
+        parentRow.appendChild(maxRadCell);
+        tableBody.appendChild(parentRow);
+    
+        // Add sub-rows for each part
+        for (const partId of partIdsSorted) {
+            const row = document.createElement('tr');
 
-
-                const label = document.createElement('span');
-                label.textContent = `Subcase ${subcaseId}, Part ${partId}: ${force} `;
-                label.style.marginRight = '5px';
-
-                partId2ForcesCell.appendChild(label);
-                partId2ForcesCell.appendChild(document.createElement('br'));
+            // first row no hline
+            if (partId == partIdsSorted[0]) {
+                row.classList.add('first-row'); // Add a class for styling
+            } else {
+                row.classList.add('sub-row'); // Add a class for styling
             }
+    
+            const partCell = document.createElement('td');
+            partCell.textContent = partId;
+    
+            const forces = partId2Forces[partId];
+            const fAbsCell = document.createElement('td');
+            fAbsCell.textContent = styleNumber(Math.sqrt(forces[0]**2 + forces[1]**2 + forces[2]**2));
+            const mAbsCell = document.createElement('td');
+            mAbsCell.textContent = styleNumber(Math.sqrt(forces[3]**2 + forces[4]**2 + forces[5]**2));
+    
+            // Append cells to the sub-row
+            row.appendChild(partCell);
+            row.appendChild(fAbsCell);
+            row.appendChild(mAbsCell);
+    
+            tableBody.appendChild(row);
         }
 
-        // Append cells to the row
-        row.appendChild(idCell);
-        row.appendChild(configCell);
-        row.appendChild(masterNodeCell);
-        row.appendChild(nodeCell); // Add the slaveNodesButton cell
-        row.appendChild(partId2NodesCell); // Add the partId2Nodes cell
-        row.appendChild(partId2ForcesCell);
 
-        // Append row to the table body
-        tableBody.appendChild(row);
     });
+    
 }
 
-function sortTableById() {
+function styleNumber(force) {
+    if (force === 0) {
+        return '0';
+    }
+    if (Math.abs(force) > 0.1 && Math.abs(force) < 10000) {
+        return force.toFixed(2);
+    }
+    return force.toExponential(2);
+}
+
+async function sortTableById() {
     // Toggle sorting direction
     sortDirection *= -1;
 
@@ -142,7 +181,7 @@ function sortTableById() {
     mpcsData.sort((a, b) => (a.id - b.id) * sortDirection);
 
     // Re-render the table with sorted data
-    renderTable(mpcsData);
+    await renderTable(mpcsData);
 
     // Update the sorting icon
     const sortIcon = document.getElementById('id-sort-icon');
