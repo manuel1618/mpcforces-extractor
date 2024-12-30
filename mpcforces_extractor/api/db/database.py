@@ -211,12 +211,11 @@ class Database:
                 sub2part2axial_radial_forces[sub.subcase_id] = (
                     mpc.get_part_id2axial_radial_forces(sub)
                 )
-            _, _, max_rad_force, _, _, max_axial_force = (
-                mpc.get_max_radial_and_axial_force()
+            _, _, max_axial_force, _, _, max_rad_force = (
+                mpc.get_max_axial_and_radial_force()
             )
-            max_shear, max_norm = mpc.get_shear_and_axial_stress(
-                max_rad_force, max_axial_force
-            )
+            max_radial_stress = mpc.get_stress(max_rad_force)
+            max_axial_stress = mpc.get_stress(max_axial_force)
 
             if mpc.mpc_config == MPC_CONFIG.RBE2:
                 db_mpc = RBE2DBModel(
@@ -229,8 +228,8 @@ class Database:
                     subcase_id2part_id2axial_radial_forces=sub2part2axial_radial_forces,
                     diameter=mpc.diameter,
                     length=mpc.length,
-                    max_shear=max_shear,
-                    max_norm=max_norm,
+                    max_axial_stress=max_axial_stress,
+                    max_radial_stress=max_radial_stress,
                 )
             elif mpc.mpc_config == MPC_CONFIG.RBE3:
                 db_mpc = RBE3DBModel(
@@ -243,8 +242,8 @@ class Database:
                     subcase_id2part_id2axial_radial_forces=sub2part2axial_radial_forces,
                     diameter=mpc.diameter,
                     length=mpc.length,
-                    max_shear=max_shear,
-                    max_norm=max_norm,
+                    max_axial_stress=max_axial_stress,
+                    max_radial_stress=max_radial_stress,
                 )
             else:
                 raise ValueError(f"Unknown MPC config {mpc.mpc_config}")
