@@ -78,11 +78,26 @@ async function renderTable(data) {
         masterNodeCell.rowSpan = partIdsSorted.length + 1;
         masterNodeCell.classList.add('centered'); // Center-align
 
-        const nodeCell = document.createElement('td');
-        const slaveNodesButton = createCopyButton(mpc.nodes.split(",").join(", "), 'Copy');
-        nodeCell.appendChild(slaveNodesButton);
-        nodeCell.rowSpan = partIdsSorted.length + 1;
-        nodeCell.classList.add('centered'); // Center-align
+        // Create the part_id2nodes cell
+        const partId2NodesCell = document.createElement('td');
+        const partId2Nodes = mpc.part_id2nodes;
+        partId2NodesCell.innerHTML = ""; // Clear content if any
+        // Loop through the part_id2nodes dictionary
+        for (const [partId, nodeIds] of Object.entries(partId2Nodes)) {
+            if (nodeIds.length >= 1) {
+                const button = createCopyButton(nodeIds.join(", "), `Part`+partId + ` Slaves`);
+                button.style.marginBottom = '5px';
+                button.style.marginRight = '10px';
+                partId2NodesCell.appendChild(button);
+                partId2NodesCell.appendChild(document.createElement('br'));
+            }
+        }
+        allSlavesButton = createCopyButton(Object.values(partId2Nodes).flat().join(", "), `All Slaves`);
+        allSlavesButton.style.marginBottom = '5px';
+        allSlavesButton.style.marginRight = '10px';
+        partId2NodesCell.appendChild(allSlavesButton);
+        partId2NodesCell.rowSpan = partIdsSorted.length + 1;
+        partId2NodesCell.classList.add('centered'); // Center-align
 
         const diameterCell = document.createElement('td');
         diameterCell.textContent = styleNumber(mpc.diameter);
@@ -103,13 +118,12 @@ async function renderTable(data) {
         maxRadCell.textContent = styleNumber(mpc.max_radial_stress);
         maxRadCell.rowSpan = partIdsSorted.length + 1;
         maxRadCell.classList.add('centered'); // Center-align
-
     
         // Append parent row cells
         parentRow.appendChild(idCell);
         parentRow.appendChild(configCell);
         parentRow.appendChild(masterNodeCell);
-        parentRow.appendChild(nodeCell);
+        parentRow.appendChild(partId2NodesCell);
         parentRow.appendChild(diameterCell);
         parentRow.appendChild(lengthCell);
         parentRow.appendChild(maxAxialStressCell);
