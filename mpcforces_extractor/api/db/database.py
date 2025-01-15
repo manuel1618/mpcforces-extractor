@@ -1,6 +1,5 @@
 import os
 from typing import List, Optional, Dict
-from fastapi import HTTPException
 from sqlmodel import Session, create_engine, SQLModel, select, text
 from sqlalchemy.sql.expression import asc, desc
 from mpcforces_extractor.datastructure.rigids import MPC
@@ -355,17 +354,6 @@ class Database:
                 statement = select(NodeDBModel)
             return session.exec(statement).all()
 
-    async def remove_mpc(self, mpc_id: int):
-        """
-        Remove a specific MPC
-        """
-        if mpc_id in self.mpcs:
-            del self.mpcs[mpc_id]
-        else:
-            raise HTTPException(
-                status_code=404, detail=f"MPC with id {mpc_id} does not exist"
-            )
-
     async def get_subcases(self) -> List[SubcaseDBModel]:
         """
         Get all subcases
@@ -442,6 +430,8 @@ class Database:
             self.last_spc_sort_column = sort_column
             self.last_spc_sort_direction = sort_direction
             self.last_spc_filter = spc_ids
+
+            print(query.offset(offset).limit(limit))
 
             # Execute the query and return the results (with pagination)
             return session.exec(query.offset(offset).limit(limit)).all()
